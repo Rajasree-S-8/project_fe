@@ -1,0 +1,39 @@
+footer {
+  background-color: #00509e;
+  color: white;
+  padding: 2rem;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+footer p {
+  margin: 0.5rem 0;
+}
+
+footer a {
+  color: white;
+  text-decoration: none;
+  margin: 0 0.3rem;
+}
+
+footer a:hover {
+  color: #ffd500;
+  text-decoration: underline;
+}
+
+.social-icons {
+  margin-top: 1rem;
+}
+
+.social-icons a {
+  display: inline-block;
+  margin: 0 0.5rem;
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.social-icons a:hover {
+  transform: translateY(-3px);
+  color: #ffd500;
+  text-decoration: none;
+}
