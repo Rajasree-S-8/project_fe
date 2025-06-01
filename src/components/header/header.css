@@ -12,6 +12,59 @@ header {
   font-size: 1.8rem;
   font-weight: bold;
   letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Icon colors */
+.icon-logo {
+  color: #ffd500; /* Gold/yellow */
+}
+
+.icon-home {
+  color: #4caf50; /* Green */
+}
+
+.icon-info {
+  color: #17a2b8; /* Teal */
+}
+
+.icon-room {
+  color: #ff9800; /* Orange */
+}
+
+.icon-service {
+  color: #9c27b0; /* Purple */
+}
+
+.icon-booking {
+  color: #f44336; /* Red */
+}
+
+.icon-login {
+  color: #00aaff; /* Soft human blue */
+  transition: color 0.3s ease;
+}
+
+.icon-login:hover {
+  color: #0077cc; /* Darker blue on hover */
+}
+
+.icon-admin {
+  color: #ffc107; /* Amber */
+}
+
+.icon-customer {
+  color: #00bcd4; /* Cyan */
+}
+
+.icon-manager {
+  color: #3f51b5; /* Indigo */
+}
+
+.icon-restaurant {
+  color: #e91e63; /* Pink */
 }
 
 nav ul {
@@ -29,6 +82,7 @@ nav a {
   transition: color 0.3s ease;
   display: flex;
   align-items: center;
+  gap: 0.4rem;
 }
 
 nav a:hover {
@@ -45,6 +99,9 @@ nav a:hover {
 .dropdown-item {
   color: #333 !important;
   padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .dropdown-item:hover {
