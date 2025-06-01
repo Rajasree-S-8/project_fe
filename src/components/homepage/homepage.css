@@ -1,24 +1,47 @@
+/* Layout Structure */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.homepage-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
+  overflow: auto;
+}
+
 /* Hero Section */
 .hero {
   background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
               url('https://images.unsplash.com/photo-1551882547-ff40c63fe5fa') center/cover;
   height: 70vh;
+  min-height: 400px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   text-align: center;
+  position: relative;
 }
 
 .hero-content {
   max-width: 800px;
   padding: 2rem;
+  position: relative;
+  z-index: 2;
 }
 
 .hero h1 {
-  font-size: 3rem;
+  font-size: clamp(2rem, 5vw, 3rem);
   margin-bottom: 1.5rem;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  line-height: 1.2;
 }
 
 /* Buttons */
@@ -29,17 +52,19 @@
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-weight: 600;
+  display: inline-block;
 }
 
 .btn-primary {
   background-color: #ffd500;
   color: #00509e;
-  font-weight: bold;
 }
 
 .btn-primary:hover {
   background-color: #e6c000;
   transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .btn-secondary {
@@ -52,6 +77,7 @@
   background-color: transparent;
   color: #00509e;
   transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 80, 158, 0.2);
 }
 
 /* Features Section */
@@ -68,7 +94,20 @@
   text-align: center;
   color: #00509e;
   margin-bottom: 2rem;
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 3px;
+  background-color: #ffd500;
 }
 
 .feature-card {
@@ -78,22 +117,33 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .feature-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
 
 .feature-card img {
   width: 60px;
   height: 60px;
   margin-bottom: 1rem;
+  object-fit: contain;
 }
 
 .feature-card h3 {
   color: #00509e;
   margin-bottom: 0.8rem;
+  font-size: 1.25rem;
+}
+
+.feature-card p {
+  color: #555;
+  line-height: 1.6;
+  margin: 0;
 }
 
 /* Offers Section */
@@ -106,10 +156,45 @@
 .offers h2 {
   color: #00509e;
   margin-bottom: 1rem;
+  font-size: clamp(1.5rem, 3vw, 2rem);
 }
 
 .offers p {
   max-width: 600px;
   margin: 0 auto 2rem;
   color: #555;
+  line-height: 1.6;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .hero {
+    height: 60vh;
+  }
+  
+  .features {
+    grid-template-columns: 1fr;
+    padding: 2rem 1rem;
+    gap: 1.5rem;
+  }
+  
+  .feature-card {
+    padding: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    height: 50vh;
+    min-height: 300px;
+  }
+  
+  .hero h1 {
+    font-size: 2rem;
+  }
+  
+  .btn-primary, .btn-secondary {
+    padding: 0.7rem 1.2rem;
+    font-size: 0.9rem;
+  }
 }

@@ -1,7 +1,16 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import './Header.css';
 
-const Header = () => {
+function Header () {
+    const navigate = useNavigate();
+    const gotoHome =()=>{
+        navigate('/')
+    }
+    const gotAdmin =()=>{
+        navigate('/Admin')
+    }
   return (
     <header>
       <div className="logo" aria-label="GrandVista Hotel Logo">
@@ -10,7 +19,7 @@ const Header = () => {
       <nav aria-label="Primary navigation">
         <ul>
           <li>
-            <a href="#" tabIndex="0">
+            <a href="#" onClick={gotoHome} tabIndex="0">
               <i className="fas fa-home icon-home"></i> Home
             </a>
           </li>
@@ -47,7 +56,7 @@ const Header = () => {
             </a>
             <ul className="dropdown-menu" aria-labelledby="loginDropdown">
               <li>
-                <a className="dropdown-item" href="/admin-login">
+                <a className="dropdown-item" onClick={gotAdmin}>
                   <i className="fas fa-user-shield icon-admin"></i> Admin Login
                 </a>
               </li>

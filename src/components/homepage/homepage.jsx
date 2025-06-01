@@ -5,11 +5,7 @@ import './Homepage.css';
 
 const Homepage = () => {
   return (
-    <>
-      <meta charSet="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <title>GrandVista Hotel - Welcome</title>
-      
+    <div className="homepage-container"> {/* Added container div */}
       <Header />
       
       <main>
@@ -112,7 +108,7 @@ const Homepage = () => {
       </main>
       
       <Footer />
-    </>
+    </div>
   );
 }
 
