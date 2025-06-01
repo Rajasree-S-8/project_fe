@@ -1,58 +1,27 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // Ensure React Router is used
 import Header from '../header/header';
 import Footer from '../footer/footer';
 import './adminlog.css';
 
 const AdminLogin = () => {
-  const [credentials, setCredentials] = useState({ 
-    username: '', 
-    password: '' 
-  });
-  const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setCredentials(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-    if (!credentials.username.trim()) newErrors.username = 'Username required';
-    if (!credentials.password) newErrors.password = 'Password required';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
 
-    setIsLoading(true);
-    
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Hardcoded credentials (replace with real auth in production)
-      if (credentials.username === 'admin' && credentials.password === 'admin123') {
-        const session = {
-          token: 'auth-token-' + Math.random().toString(36).substring(2),
-          expiresAt: Date.now() + 3600000, // 1 hour
-          user: { name: 'Admin', role: 'admin' }
-        };
-        localStorage.setItem('adminSession', JSON.stringify(session));
-        navigate('/admin');
-      } else {
-        setErrors({ form: 'Invalid credentials' });
-      }
-    } catch (error) {
-      setErrors({ form: 'Login failed. Please try again.' });
-    } finally {
-      setIsLoading(false);
+    const { username, password } = formData;
+
+    if (username === 'admin' && password === 'admin123') {
+      navigate('/adminlog'); 
+    } else {
+      setError('Invalid username or password');
     }
   };
 
@@ -67,48 +36,37 @@ const AdminLogin = () => {
               <p>Enter your credentials to continue</p>
             </div>
 
-            {errors.form && <div className="alert alert-danger">{errors.form}</div>}
-
             <form onSubmit={handleSubmit} noValidate>
+              {error && <div className="alert alert-danger">{error}</div>}
+
               <div className="mb-3">
                 <label className="form-label">Username</label>
                 <input
                   type="text"
-                  className={`form-control ${errors.username ? 'is-invalid' : ''}`}
+                  className="form-control"
                   name="username"
-                  value={credentials.username}
-                  onChange={handleChange}
                   autoComplete="username"
                   required
+                  value={formData.username}
+                  onChange={handleChange}
                 />
-                {errors.username && <div className="invalid-feedback">{errors.username}</div>}
               </div>
 
               <div className="mb-4">
                 <label className="form-label">Password</label>
                 <input
                   type="password"
-                  className={`form-control ${errors.password ? 'is-invalid' : ''}`}
                   name="password"
-                  value={credentials.password}
-                  onChange={handleChange}
+                  className="form-control"
                   autoComplete="current-password"
                   required
+                  value={formData.password}
+                  onChange={handleChange}
                 />
-                {errors.password && <div className="invalid-feedback">{errors.password}</div>}
               </div>
 
-              <button 
-                type="submit" 
-                className="btn btn-primary w-100 py-2" 
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" />
-                    Signing in...
-                  </>
-                ) : 'Login'}
+              <button type="submit" className="btn btn-primary w-100 py-2">
+                Login
               </button>
             </form>
 

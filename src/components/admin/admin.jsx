@@ -46,7 +46,7 @@ const TableSection = ({ id, title, subtitle, icon, columns }) => (
   </div>
 );
 
-const Admin = () => (
+const admin = () => (
   <>
     <meta charSet="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -135,36 +135,34 @@ const Admin = () => (
           <p className="text-muted mb-4">Add a new staff member</p>
           <div className="card shadow-sm">
             <div className="card-body">
-              <form id="add-staff-form">
-                <div className="row">
-                  {[
-                    { id: 'staffId', label: 'Staff ID', type: 'text' },
-                    { id: 'username', label: 'Username', type: 'text' },
-                    { id: 'firstName', label: 'First Name', type: 'text' },
-                    { id: 'lastName', label: 'Last Name', type: 'text' },
-                    { id: 'email', label: 'Email', type: 'email' },
-                    { id: 'address', label: 'Address', type: 'text' },
-                    { id: 'phoneNumber', label: 'Phone Number', type: 'tel' },
-                    { id: 'password', label: 'Password', type: 'password' },
-                  ].map(({ id, label, type }) => (
-                    <div key={id} className="col-12 col-md-6 mb-3">
-                      <label htmlFor={id} className="form-label">{label}</label>
-                      <input type={type} className="form-control" id={id} name={id} required />
-                    </div>
-                  ))}
-                  <div className="col-12 col-md-6 mb-3">
-                    <label htmlFor="role" className="form-label">Role</label>
-                    <select className="form-select" id="role" name="role" required>
-                      <option value="" disabled selected>Select a role</option>
-                      <option value="Hotel Manager">Hotel Manager</option>
-                      <option value="Restaurant Manager">Restaurant Manager</option>
-                      <option value="Other">Other</option>
-                    </select>
+              <form id="add-staff-form" action="/add-staff" method="POST" encType="multipart/form-data">
+                {[
+                  { id: 'staffId', label: 'Staff ID', type: 'text' },
+                  { id: 'username', label: 'Username', type: 'text' },
+                  { id: 'firstName', label: 'First Name', type: 'text' },
+                  { id: 'lastName', label: 'Last Name', type: 'text' },
+                  { id: 'email', label: 'Email', type: 'email' },
+                  { id: 'address', label: 'Address', type: 'text' },
+                  { id: 'phoneNumber', label: 'Phone Number', type: 'tel' },
+                  { id: 'password', label: 'Password', type: 'password' },
+                ].map(({ id, label, type }) => (
+                  <div key={id} className="col-12 col-md-6 mb-3">
+                    <label htmlFor={id} className="form-label">{label}</label>
+                    <input type={type} className="form-control" id={id} name={id} required />
                   </div>
-                  <div className="col-12 col-md-6 mb-3">
-                    <label htmlFor="image" className="form-label">Image</label>
-                    <input type="file" className="form-control" id="image" name="image" accept="image/*" />
-                  </div>
+                ))}
+                <div className="col-12 col-md-6 mb-3">
+                  <label htmlFor="role" className="form-label">Role</label>
+                  <select className="form-select" id="role" name="role" required>
+                    <option value="" disabled selected>Select a role</option>
+                    <option value="Hotel Manager">Hotel Manager</option>
+                    <option value="Restaurant Manager">Restaurant Manager</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="col-12 col-md-6 mb-3">
+                  <label htmlFor="image" className="form-label">Image</label>
+                  <input type="file" className="form-control" id="image" name="image" accept="image/*" />
                 </div>
                 <button type="submit" className="btn btn-primary">Add Staff</button>
               </form>
@@ -215,4 +213,4 @@ const Admin = () => (
   </>
 );
 
-export default Admin;
+export default admin;
