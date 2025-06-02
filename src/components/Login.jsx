@@ -22,20 +22,29 @@ function Login() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    navigate("/home")
-    if (!formData.username || !formData.password) {
-      setError('Username and password are required.');
-      setSuccess(false);
-      return;
-    }
-    setError('');
+    if (formData.username === 'hmngr' && formData.password === 'hmngr123') {
+      setError('');
     setSuccess(true);
-    alert('Successfully Logged In!', formData);
+    navigate('/home');
+    console.log('Successfully Logged In!', formData);
     setFormData({
       username: '',
       password: '',
     });
     setTimeout(() => setSuccess(false), 3000);
+    }
+    else {
+      setError('Invalid username or password.'); 
+      setSuccess(false);
+      return;
+    }
+    
+    if (!formData.username || !formData.password) {
+      setError('Username and password are required.');
+      setSuccess(false);
+      return;
+    }
+    
   };
 
   return (
