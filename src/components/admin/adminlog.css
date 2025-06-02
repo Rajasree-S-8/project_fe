@@ -3,7 +3,9 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  margin-top: 55px;
 }
+
 
 .login-wrapper {
   flex: 1;

@@ -1,20 +1,22 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-
 import './Header.css';
 
-function Header () {
-    const navigate = useNavigate();
-    const gotoHome =()=>{
-        navigate('/')
-    }
-    const gotAdmin =()=>{
-        navigate('/Admin')
-    }
+function Header() {
+  const navigate = useNavigate();
+
+  const gotoHome = () => {
+    navigate('/');
+  };
+
+  const gotAdmin = () => {
+    navigate('/Admin');
+  };
+
   return (
     <header>
-      <div className="logo" aria-label="GrandVista Hotel Logo">
-        <i className="fas fa-hotel icon-logo"></i> GrandVista
+      <div className="logo" aria-label="Revzz Hotel Logo">
+        <i className="fas fa-hotel icon-logo"></i> Revzz Hotel
       </div>
       <nav aria-label="Primary navigation">
         <ul>
@@ -81,6 +83,6 @@ function Header () {
       </nav>
     </header>
   );
-};
+}
 
 export default Header;

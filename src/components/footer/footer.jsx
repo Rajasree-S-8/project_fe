@@ -4,25 +4,25 @@ import './Footer.css';
 const Footer = () => {
   return (
     <footer>
-      <p>© 2024 GrandVista Hotel. All rights reserved.</p>
+      <p>© 2025 Revzz Hotel. All rights reserved.</p>
       <p>
         Contact us: 
-        <a href="mailto:contact@grandvistahotel.com">
-          contact@grandvistahotel.com
+        <a href="mailto:contact@revzzhotel.com">
+          contact@revzzhotel.com
         </a> 
-        | Phone: +1 (555) 123-4567
+        | Phone: +91 9876543210
       </p>
       <p className="social-icons">
-        <a href="https://wa.me/15551234567" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+        <a href="https://wa.me/9876543210" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
           <i className="fab fa-whatsapp fa-lg"></i>
         </a>
-        <a href="https://facebook.com/grandvistahotel" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+        <a href="https://facebook.com/revzzhotel" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
           <i className="fab fa-facebook-f fa-lg"></i>
         </a>
-        <a href="https://twitter.com/grandvistahotel" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
+        <a href="https://twitter.com/revzzhotel" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
           <i className="fab fa-twitter fa-lg"></i>
         </a>
-        <a href="https://instagram.com/grandvistahotel" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+        <a href="https://instagram.com/revzzhotel" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
           <i className="fab fa-instagram fa-lg"></i>
         </a>
       </p>

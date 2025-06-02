@@ -1,8 +1,9 @@
 /* Layout Structure */
-html, body, #root {
+html, body {
   height: 100%;
   margin: 0;
   padding: 0;
+  background-color:rgb(11, 10, 10);
 }
 
 .homepage-container {
@@ -17,18 +18,43 @@ main {
 }
 
 /* Hero Section */
-.hero {
-  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
-              url('https://images.unsplash.com/photo-1551882547-ff40c63fe5fa') center/cover;
-  height: 70vh;
-  min-height: 400px;
+.homepage-container {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  text-align: center;
-  position: relative;
+  flex-direction: column;
+  min-height: 100vh;
 }
+
+main {
+  flex: 1;
+  overflow: auto;
+}
+
+/* Carousel height */
+#main-carousel {
+  max-height: 600px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+#main-carousel .carousel-item img {
+  object-fit: cover;
+  height: 600px;
+  width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  #main-carousel .carousel-item img {
+    height: 400px;
+  }
+}
+
+@media (max-width: 480px) {
+  #main-carousel .carousel-item img {
+    height: 250px;
+  }
+}
+
 
 .hero-content {
   max-width: 800px;
@@ -58,7 +84,7 @@ main {
 
 .btn-primary {
   background-color: #ffd500;
-  color: #00509e;
+  /* color: #00509e; */
 }
 
 .btn-primary:hover {
@@ -110,60 +136,124 @@ main {
   background-color: #ffd500;
 }
 
-.feature-card {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+.highlights-section {
+  padding: 60px 20px;
   text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  background-color: #f8f9fa;
 }
 
-.feature-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+.highlights-section h2 {
+  font-size: 36px;
+  margin-bottom: 40px;
+  color: #000306;
+  font-weight: 700;
 }
 
-.feature-card img {
-  width: 60px;
-  height: 60px;
-  margin-bottom: 1rem;
-  object-fit: contain;
+.highlights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 30px;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
-.feature-card h3 {
-  color: #00509e;
-  margin-bottom: 0.8rem;
-  font-size: 1.25rem;
+.highlight-card {
+  background: #fff;
+  padding: 30px 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
 
-.feature-card p {
+.highlight-card:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 8px 20px rgba(11, 13, 14, 0.3);
+}
+
+.highlight-card img {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 20px;
+  transition: transform 0.3s ease;
+}
+
+.highlight-card:hover img {
+  transform: scale(1.2);
+}
+
+.highlight-card h3 {
+  font-size: 20px;
+  color: #050b12;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.highlight-card p {
   color: #555;
-  line-height: 1.6;
-  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
 }
 
 /* Offers Section */
-.offers {
+.special-offers-section {
+  background: linear-gradient(135deg, #030404 0%, #0d2333 100%);
+  padding: 80px 20px;
   text-align: center;
-  padding: 3rem 2rem;
-  background-color: #f5f7fa;
+  color: rgb(255, 255, 255);
+  position: relative;
+  overflow: hidden;
 }
 
-.offers h2 {
+.special-offers-section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1), transparent 70%);
+  animation: rotateBackground 20s linear infinite;
+  z-index: 0;
+}
+
+@keyframes rotateBackground {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.special-offers-container {
+  position: relative;
+  z-index: 1;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.special-offers-container h2 {
+  font-size: 42px;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.special-offers-container p {
+  font-size: 18px;
+  margin-bottom: 30px;
+}
+
+.special-btn {
+  background-color: #ffffff;
   color: #00509e;
-  margin-bottom: 1rem;
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  padding: 12px 30px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
 }
 
-.offers p {
-  max-width: 600px;
-  margin: 0 auto 2rem;
-  color: #555;
-  line-height: 1.6;
+.special-btn:hover {
+  background-color: #02080c;
+  color: white;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
 }
 
 /* Responsive Adjustments */

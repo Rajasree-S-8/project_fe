@@ -1,9 +1,14 @@
 header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background-color: #00509e;
+  background-color: black;
   color: white;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
@@ -19,52 +24,41 @@ header {
 
 /* Icon colors */
 .icon-logo {
-  color: #ffd500; /* Gold/yellow */
+  color: #ffd500;
 }
-
 .icon-home {
-  color: #4caf50; /* Green */
+  color: #4caf50;
 }
-
 .icon-info {
-  color: #17a2b8; /* Teal */
+  color: #17a2b8;
 }
-
 .icon-room {
-  color: #ff9800; /* Orange */
+  color: #ff9800;
 }
-
 .icon-service {
-  color: #9c27b0; /* Purple */
+  color: #9c27b0;
 }
-
 .icon-booking {
-  color: #f44336; /* Red */
+  color: #f44336;
 }
-
 .icon-login {
-  color: #00aaff; /* Soft human blue */
+  color: #00aaff;
   transition: color 0.3s ease;
 }
-
 .icon-login:hover {
-  color: #0077cc; /* Darker blue on hover */
+  color: #0077cc;
 }
-
 .icon-admin {
-  color: #ffc107; /* Amber */
+  color: #ffc107;
 }
-
 .icon-customer {
-  color: #00bcd4; /* Cyan */
+  color: #00bcd4;
 }
-
 .icon-manager {
-  color: #3f51b5; /* Indigo */
+  color: #3f51b5;
 }
-
 .icon-restaurant {
-  color: #e91e63; /* Pink */
+  color: #e91e63;
 }
 
 nav ul {
@@ -90,11 +84,17 @@ nav a:hover {
 }
 
 .dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
   background-color: white;
   border-radius: 4px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   padding: 0.5rem 0;
+  min-width: 200px;
+  z-index: 1000;
 }
+
 
 .dropdown-item {
   color: #333 !important;
@@ -118,4 +118,14 @@ nav a:hover {
   border-right: 0.3em solid transparent;
   border-bottom: 0;
   border-left: 0.3em solid transparent;
+}
+
+/* Padding for main content to not hide behind header */
+body {
+  margin: 0;
+  padding: 0;
+}
+
+main {
+  padding-top: 90px; /* Adjust this based on actual header height */
 }
