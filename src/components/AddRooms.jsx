@@ -78,7 +78,7 @@ function AddRoom() {
           </select>
         </div>
         <div className="mb-3">
-          <label htmlFor="price" className="form-label">Price per Night (₹)</label>
+          <label htmlFor="price" className="form-label">Price per Night(₹)</label>
           <input
             type="number"
             className="form-control"
