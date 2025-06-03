@@ -1,0 +1,20 @@
+.bg-info {
+  background-color: #17a2b8 !important;
+}
+
+/* You can add additional specific styles for bookings here */
+.table th {
+  white-space: nowrap;
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+@media (max-width: 768px) {
+  .table-responsive {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+  }
+}

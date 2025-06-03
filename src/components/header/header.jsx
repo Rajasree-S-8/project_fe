@@ -12,6 +12,9 @@ function Header() {
   const gotAdmin = () => {
     navigate('/Admin');
   };
+  const gotHotelManager = () => {
+    navigate('/hotelogin');
+  }
 
   return (
     <header>
@@ -68,7 +71,7 @@ function Header() {
                 </a>
               </li>
               <li>
-                <a className="dropdown-item" href="/hotel-manager-login">
+                <a className="dropdown-item" onClick={gotHotelManager}>
                   <i className="fas fa-hotel icon-manager"></i> Hotel Manager
                 </a>
               </li>

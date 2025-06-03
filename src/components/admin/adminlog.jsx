@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Ensure React Router is used
+import { useNavigate } from 'react-router-dom';
 import Header from '../header/header';
 import Footer from '../footer/footer';
 import './adminlog.css';
@@ -31,6 +31,9 @@ const AdminLogin = () => {
       <div className="login-wrapper">
         <div className="login-container">
           <div className="login-card">
+            <div className="admin-logo">
+              <i className="fas fa-user-shield"></i>
+            </div>
             <div className="login-header">
               <h2>Admin Portal</h2>
               <p>Enter your credentials to continue</p>

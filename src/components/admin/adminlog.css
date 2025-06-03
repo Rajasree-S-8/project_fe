@@ -6,14 +6,18 @@
   margin-top: 55px;
 }
 
-
 .login-wrapper {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f8f9fa;
   padding: 2rem 1rem;
+  position: relative;
+  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
+              url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .login-container {
@@ -23,11 +27,27 @@
 }
 
 .login-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 8px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   padding: 2rem;
   transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.admin-logo {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.admin-logo i {
+  font-size: 3rem;
+  color: #3498db;
+  background: white;
+  padding: 1rem;
+  border-radius: 50%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .login-header {
@@ -123,5 +143,10 @@
   
   .login-header h2 {
     font-size: 1.5rem;
+  }
+  
+  .admin-logo i {
+    font-size: 2.5rem;
+    padding: 0.8rem;
   }
 }

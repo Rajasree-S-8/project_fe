@@ -1,0 +1,33 @@
+/* hotelhome.css */
+
+/* Existing styles... */
+
+/* Add these new styles */
+.home-background {
+  background-image: url('https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+.home-background::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: -1;
+}
+
+.home-background .container {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.home-background .card {
+  background-color: rgba(255, 255, 255, 0.9);
+}

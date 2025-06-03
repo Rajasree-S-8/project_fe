@@ -19,11 +19,7 @@
     "datatables.net-dt": "^1.11.5",
     "jquery": "^3.6.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-helmet": "^6.1.0",
-    "react-responsive-carousel": "^3.2.23",
-    "react-router": "^7.6.1",
-    "react-router-dom": "^7.6.1"
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
