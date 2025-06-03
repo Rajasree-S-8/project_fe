@@ -12,16 +12,15 @@ import Hotelhome from "./components/hotelmanager/hotelhome/hotelhome";
 function App() {
   return (
     <div>
-        <Router>
-      <Routes>
-        <Route path='/' element={<Homepage />} />
-        <Route path='/admin' element={<Admin />} />
-        <Route path='/adminlog' element={<Adminlog />} />
-        <Route path='/hotelogin' element={<Hotellogin />} />
-        <Route path="/hotelhome" element={<Hotelhome/>} />
-
-      </Routes>
-    </Router>
+      <Router>
+        <Routes>
+          <Route path='/' element={<Homepage />} />
+          <Route path='/admin' element={<Admin />} />
+          <Route path='/adminlog' element={<Adminlog />} />
+          <Route path='/hotelogin' element={<Hotellogin />} />
+          <Route path="/hotelhome" element={<Hotelhome/>} />
+        </Routes>
+      </Router>
     </div>
   );
 }
