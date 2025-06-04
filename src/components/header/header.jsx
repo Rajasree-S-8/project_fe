@@ -66,7 +66,7 @@ function Header() {
                 </a>
               </li>
               <li>
-                <a className="dropdown-item" href="/customer-login">
+                <a className="dropdown-item" href="/custlog">
                   <i className="fas fa-user icon-customer"></i> Customer Login
                 </a>
               </li>

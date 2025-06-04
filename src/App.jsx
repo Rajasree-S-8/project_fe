@@ -6,7 +6,8 @@ import Admin from "./components/admin/adminlog";
 import Adminlog from './components/admin/admin';
 import Hotellogin from "./components/hotelmanager/hotelogin/hotelogin";
 import Hotelhome from "./components/hotelmanager/hotelhome/hotelhome";
-
+import Customerreg from "./components/customer/CustomerRegister/Customerreg";
+import Customerlogin from "./components/customer/CustomerLogin/Customerlogin";
 
 
 function App() {
@@ -19,6 +20,8 @@ function App() {
           <Route path='/adminlog' element={<Adminlog />} />
           <Route path='/hotelogin' element={<Hotellogin />} />
           <Route path="/hotelhome" element={<Hotelhome/>} />
+          <Route path='/custlog' element={<Customerlogin/>} />
+          <Route path='/custreg' element={<Customerreg/>} />
         </Routes>
       </Router>
     </div>

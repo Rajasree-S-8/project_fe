@@ -35,13 +35,6 @@ const Homepage = () => {
             </div>
             <div className="carousel-item">
               <img
-                src="https://images.pexels.com/photos/460537/pexels-photo-460537.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-                className="d-block w-100"
-                alt="Hotel Spa"
-              />
-            </div>
-            <div className="carousel-item">
-              <img
                 src="https://images.pexels.com/photos/2291624/pexels-photo-2291624.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
                 className="d-block w-100"
                 alt="Hotel Event Hall"
