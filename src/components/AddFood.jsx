@@ -1,12 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
 
 const AddFood = () => {
   const [foodList, setFoodList] = useState([]);
   const [foodName, setFoodName] = useState("");
   const [foodPrice, setFoodPrice] = useState("");
   const [foodImage, setFoodImage] = useState("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedFoodList = JSON.parse(localStorage.getItem('foodList')) || [];
+    setFoodList(savedFoodList);
+  }, []);
 
   const handleAddFood = () => {
     if (foodName && foodPrice && foodImage) {
@@ -16,7 +22,9 @@ const AddFood = () => {
         price: parseFloat(foodPrice).toFixed(2),
         image: foodImage,
       };
-      setFoodList([...foodList, newFood]);
+      const updatedList = [...foodList, newFood];
+      setFoodList(updatedList);
+      localStorage.setItem('foodList', JSON.stringify(updatedList));
       setFoodName("");
       setFoodPrice("");
       setFoodImage("");
@@ -27,9 +35,17 @@ const AddFood = () => {
 
   return (
     <div className="container my-5">
-      <h1 className="text-center mb-4">Restaurant Management</h1>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1 className="text-center mb-4">Add New Food Item</h1>
+        <button 
+          className="btn btn-secondary"
+          onClick={() => navigate('/home')}
+        >
+          Back to Home
+        </button>
+      </div>
 
-      {/* Add Food Form */}
+      {/* Rest of the AddFood component remains the same */}
       <div className="row g-3 mb-5">
         <div className="col-md-4">
           <input
@@ -47,6 +63,8 @@ const AddFood = () => {
             placeholder="Price"
             value={foodPrice}
             onChange={(e) => setFoodPrice(e.target.value)}
+            min="0"
+            step="0.01"
           />
         </div>
         <div className="col-md-4">
@@ -65,9 +83,9 @@ const AddFood = () => {
         </div>
       </div>
 
-      {/* Food Cards */}
+      <h2 className="text-center mb-4">Recently Added Items</h2>
       <div className="row">
-        {foodList.map((food) => (
+        {foodList.slice(-3).reverse().map((food) => (
           <div key={food.id} className="col-md-4 mb-4">
             <div className="card h-100 shadow-sm">
               <img
@@ -75,6 +93,9 @@ const AddFood = () => {
                 className="card-img-top"
                 alt={food.name}
                 style={{ height: "200px", objectFit: "cover" }}
+                onError={(e) => {
+                  e.target.src = 'https://via.placeholder.com/300x200?text=Food+Image';
+                }}
               />
               <div className="card-body">
                 <h5 className="card-title">{food.name}</h5>

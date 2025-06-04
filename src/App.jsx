@@ -6,6 +6,8 @@ import HomePage from "./components/HomePage.jsx";
 import AddFood from "./components/AddFood"; 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import ViewFood from "./components/ViewFood.jsx";
+import ViewOrders from "./components/ViewOrders.jsx";
 
 
 
@@ -16,7 +18,9 @@ function App() {
         <Routes>
           <Route path="/" element={<Login/>}></Route>
           <Route path="/home" element={<HomePage/>}></Route>
-           <Route path="/add-food" element={<AddFood />} />
+          <Route path="/addfood" element={<AddFood />} />
+          <Route path="/viewfood" element={<ViewFood/>} />
+          <Route path="/vieworders" element={<ViewOrders/>} />
         </Routes>
       </BrowserRouter>
     </>
