@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './header1.css';
 
 const HeaderNavbar = ({ activeSection = 'home', setActiveSection }) => {
-  const [navbarExpanded, setNavbarExpanded] = useState(false); // Changed initial state to false
+  const [navbarExpanded, setNavbarExpanded] = useState(false);
   const navigate = useNavigate();
   const username = localStorage.getItem('username');
 
@@ -114,21 +114,6 @@ const HeaderNavbar = ({ activeSection = 'home', setActiveSection }) => {
                   <i className="bi bi-calendar-check"></i>
                   {' '}
                   View Bookings
-                </a>
-              </li>
-  
-              <li className="nav-item">
-                <a 
-                  className={`nav-link ${activeSection === 'ratingsReviews' ? 'active' : ''}`}
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setActiveSection('ratingsReviews');
-                  }}
-                >
-                  <i className="bi bi-star-fill"></i>
-                  {' '}
-                  Ratings & Reviews
                 </a>
               </li>
             </ul>

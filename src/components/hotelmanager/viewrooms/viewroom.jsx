@@ -22,6 +22,7 @@ const ViewRooms = () => {
   const roomsPerPage = 6;
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [imagePreview, setImagePreview] = useState('');
 
   useEffect(() => {
     fetchRooms();
@@ -141,6 +142,19 @@ const ViewRooms = () => {
       imageUrl: room.imageUrl || '',
     });
     setSelectedRoom(room);
+    setImagePreview(room.imageUrl || '');
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+        setEditForm({...editFormData, imageUrl: reader.result});
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleEditSubmit = async (e) => {
@@ -337,32 +351,37 @@ const ViewRooms = () => {
       ) : (
         <div className="rooms-grid">
           {currentRooms.map((room) => (
-            <div key={room.roomId} className="room-card">
-              <div className="room-image-container">
-                {room.imageUrl ? (
-                  <img src={room.imageUrl} alt={`Room ${room.roomNumber}`} />
-                ) : (
-                  <div className="no-image">No Image</div>
-                )}
-              </div>
-              <div className="room-details">
-                <h3>Room {room.roomNumber}</h3>
-                <p>Type: {room.roomType}</p>
-                <p>Price: ₹{room.price.toFixed(2)}</p>
-                <p>Added by: {room.createdBy?.username || 'Unknown'}</p>
-                <p>
-                  Status:
-                  <span className={`status-badge ${room.isAvailable ? 'available' : 'booked'}`}>
-                    {room.isAvailable ? 'Available' : 'Booked'}
-                  </span>
-                </p>
-                <div className="room-actions">
-                  <button className="action-btn view-btn" onClick={() => setSelectedRoom(room)}>View</button>
-                  <button className="action-btn edit-btn" onClick={() => handleEdit(room)}>Edit</button>
-                  <button className="action-btn delete-btn" onClick={() => handleDelete(room.roomId)}>Delete</button>
-                </div>
-              </div>
-            </div>
+          <div key={room.roomId} className="room-card">
+  <div className="room-image-container">
+    {room.imageUrl ? (
+      <img src={room.imageUrl} alt={`Room ${room.roomNumber}`} />
+    ) : (
+      <div className="no-image">No Image</div>
+    )}
+  </div>
+  <div className="room-details">
+    <h3>Room {room.roomNumber}</h3>
+    <div className="room-type-ac">
+      <p>Type: {room.roomType}</p>
+      <span className={`ac-badge ${room.acType === 'AC' ? 'ac' : 'non-ac'}`}>
+        {room.acType}
+      </span>
+    </div>
+    <p>Price: ₹{room.price.toFixed(2)}</p>
+    <p className="added-by-you">Added by you</p>
+    <p>
+      Status:
+      <span className={`status-badge ${room.isAvailable ? 'available' : 'booked'}`}>
+        {room.isAvailable ? 'Available' : 'Booked'}
+      </span>
+    </p>
+    <div className="room-actions">
+      <button className="action-btn view-btn" onClick={() => setSelectedRoom(room)}>View</button>
+      <button className="action-btn edit-btn" onClick={() => handleEdit(room)}>Edit</button>
+      <button className="action-btn delete-btn" onClick={() => handleDelete(room.roomId)}>Delete</button>
+    </div>
+  </div>
+</div>
           ))}
         </div>
       )}
@@ -523,40 +542,34 @@ const ViewRooms = () => {
                       />
                       <path d="M14.14 11.86L11.14 15.73L9 13.14L6 17H18L14.14 11.86Z" fill="#495057" />
                     </svg>
-                    Room Image URL (Optional)
+                    Room Picture
                   </label>
-                  <input
-                    type="url"
-                    className="form-input"
-                    value={editFormData.imageUrl}
-                    onChange={(e) => setEditForm({ ...editFormData, imageUrl: e.target.value })}
-                    placeholder="https://example.com/room-image.jpg"
-                  />
-                  {editFormData.imageUrl && (
-                    <div className="image-preview">
-                      <img
-                        src={editFormData.imageUrl}
-                        alt="Room preview"
-                        className="preview-image"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                        }}
+                  <div className="image-upload-container">
+                    <label className="image-upload-label">
+                      {imagePreview ? 'Change Picture' : 'Upload Picture'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="image-upload-input"
                       />
-                      <span className="preview-text">
-                        <svg className="preview-icon" viewBox="0 0 24 24" fill="none">
-                          <path
-                            d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z"
-                            fill="#6c757d"
-                          />
-                          <path
-                            d="M11 16H13V11H11V16ZM12 9C12.55 9 13 8.55 13 8C13 7.45 12.55 7 12 7C11.45 7 11 7.45 11 8C11 8.55 11.45 9 12 9Z"
-                            fill="#6c757d"
-                          />
-                        </svg>
-                        Image preview
-                      </span>
-                    </div>
-                  )}
+                    </label>
+                    {imagePreview && (
+                      <div className="image-preview-container">
+                        <img src={imagePreview} alt="Room preview" className="preview-image" />
+                        <button
+                          type="button"
+                          className="remove-image-btn"
+                          onClick={() => {
+                            setImagePreview('');
+                            setEditForm({...editFormData, imageUrl: ''});
+                          }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="form-group form-switch">
                   <input
@@ -590,7 +603,7 @@ const ViewRooms = () => {
             ) : (
               <div className="room-details-modal">
                 <h2 className="modal-title">Room {selectedRoom.roomNumber}</h2>
-                <p className="added-by">Added by: {selectedRoom.createdBy?.username || 'Unknown'}</p>
+                <p className="added-by-you-modal">Added by you</p>
                 <div className="modal-image-container">
                   {selectedRoom.imageUrl ? (
                     <img src={selectedRoom.imageUrl} alt={`Room ${selectedRoom.roomNumber}`} />
