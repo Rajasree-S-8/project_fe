@@ -1,10 +1,8 @@
-/* Main Container */
 .add-staff-container {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin-top: 3rem;
 }
 
-/* Title Styles */
 .add-staff-title {
   font-size: 1.25rem;
   font-weight: 700;
@@ -17,7 +15,6 @@
   margin-bottom: 1.5rem;
 }
 
-/* Card Styles */
 .add-staff-card {
   border-radius: 15px;
   overflow: hidden;
@@ -30,7 +27,6 @@
   background-color: #f8f9fa;
 }
 
-/* Form Layout */
 .add-staff-form-row {
   display: flex;
   flex-wrap: wrap;
@@ -43,7 +39,6 @@
   min-width: 0;
 }
 
-/* Label Styles */
 .add-staff-label {
   font-weight: 600;
   color: #6c757d;
@@ -51,7 +46,6 @@
   display: block;
 }
 
-/* Input Group Styles */
 .add-staff-input-group {
   display: flex;
   align-items: center;
@@ -68,7 +62,6 @@
   border: none;
 }
 
-/* Input and Select Styles */
 .add-staff-input,
 .add-staff-select {
   flex: 1;
@@ -84,7 +77,6 @@
   box-shadow: none;
 }
 
-/* Button Styles */
 .add-staff-button-container {
   display: flex;
   justify-content: flex-end;
@@ -109,7 +101,6 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* Responsive Adjustments */
 @media (max-width: 768px) {
   .add-staff-form-group {
     flex: 1 0 100%;

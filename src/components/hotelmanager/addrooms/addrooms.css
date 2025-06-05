@@ -1,22 +1,37 @@
-/* addrooms.css */
-
-/* Main Container */
-.add-room-container {
-  max-width: 800px;
-  margin: 2rem auto;
+/* Base Styles */
+.add-room-page {
+  min-height: 100vh;
   padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
-  background-color: #ffffff;
-  border: none;
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+    url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Segoe UI', system-ui, sans-serif;
 }
 
-/* Card Header */
+/* Card Container */
+.add-room-container {
+  max-width: 800px;
+  width: 100%;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+  background-color: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(2px);
+}
+
+/* Header Styles */
 .card-header {
   background-color: #f8f9fa;
   border-bottom: 1px solid #e9ecef;
   padding: 1.25rem 2rem;
-  border-radius: 10px 10px 0 0 !important;
+  border-radius: 10px 10px 0 0;
+  margin: -2rem -2rem 2rem -2rem;
 }
 
 .card-header h2 {
@@ -24,6 +39,25 @@
   font-size: 1.75rem;
   color: #2c3e50;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Form Layout */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.full-width {
+  grid-column: span 2;
 }
 
 /* Form Elements */
@@ -31,160 +65,158 @@
   font-weight: 500;
   color: #495057;
   margin-bottom: 0.5rem;
+  display: block;
 }
 
-.form-control, .form-select {
+.form-control, 
+.form-select {
   padding: 0.75rem 1rem;
   border: 1px solid #ced4da;
   border-radius: 8px;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  width: 100%;
+  background-color: #fff;
 }
 
-.form-control:focus, .form-select:focus {
-  border-color: #80bdff;
-  box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.15);
+.form-control:focus, 
+.form-select:focus {
+  border-color: #4dabf7;
+  box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.15);
   outline: none;
 }
 
-/* Radio Buttons */
-.form-check-input {
-  width: 1.2em;
-  height: 1.2em;
-  margin-top: 0.15em;
+/* Input Group */
+.input-group {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.form-check-label {
-  margin-left: 0.5rem;
-  color: #495057;
-}
-
-/* Price Input */
 .input-group-text {
   background-color: #f8f9fa;
   border: 1px solid #ced4da;
-  color: #495057;
+  padding: 0.75rem 1rem;
   font-weight: 500;
+  color: #495057;
 }
 
-/* Image Preview */
+.input-group .form-control {
+  border-left: none;
+}
+
+/* Radio Buttons */
+.radio-group {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0.5rem 0;
+}
+
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-check-input {
+  width: 1.1em;
+  height: 1.1em;
+  margin: 0;
+}
+
+/* Image Upload */
+.image-upload-container {
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.image-upload-container:hover {
+  border-color: #4dabf7;
+  background-color: #f8f9fa;
+}
+
 .preview-image {
-  max-width: 200px;
+  max-width: 100%;
   max-height: 200px;
-  display: block;
-  margin-top: 0.5rem;
+  margin-top: 1rem;
   border-radius: 8px;
   border: 1px solid #dee2e6;
-}
-
-.text-muted {
-  font-size: 0.85rem;
-  color: #6c757d !important;
-}
-
-/* Toggle Switch */
-.form-switch .form-check-input {
-  width: 3em;
-  height: 1.5em;
-  margin-left: 0;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
-}
-
-.form-switch .form-check-input:checked {
-  background-color: #0d6efd;
-  border-color: #0d6efd;
+  display: none;
 }
 
 /* Submit Button */
 .submit-btn {
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  padding: 0.75rem;
+  width: 100%;
+  padding: 0.875rem;
   font-size: 1.1rem;
+  font-weight: 600;
   border-radius: 8px;
-  background-color: #0d6efd;
+  background-color: #1971c2;
+  color: white;
   border: none;
-  transition: all 0.3s ease;
-  margin-top: 1rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
 }
 
 .submit-btn:hover {
-  background-color: #0b5ed7;
+  background-color: #1864ab;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+  box-shadow: 0 4px 12px rgba(25, 113, 194, 0.2);
 }
 
 .submit-btn:active {
   transform: translateY(0);
 }
 
-.submit-btn:disabled {
-  background-color: #6c757d;
-  cursor: not-allowed;
-}
-
-/* Alerts */
-.alert {
-  border-radius: 8px;
-  padding: 1rem 1.5rem;
-  margin-bottom: 1.5rem;
-  border: none;
-}
-
-.alert-success {
-  background-color: #d1e7dd;
-  color: #0f5132;
-}
-
-.alert-danger {
-  background-color: #f8d7da;
-  color: #842029;
-}
-
-.btn-close {
-  padding: 0.5rem;
-  background-size: 0.75rem;
-}
-
-/* Responsive Adjustments */
+/* Responsive Design */
 @media (max-width: 768px) {
+  .add-room-page {
+    padding: 1rem;
+  }
+  
   .add-room-container {
-    margin: 1rem;
     padding: 1.5rem;
   }
   
-  .card-header {
-    padding: 1rem 1.5rem;
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .full-width {
+    grid-column: span 1;
   }
   
   .card-header h2 {
     font-size: 1.5rem;
   }
+  
+  .radio-group {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 }
 
-/* Animation for alerts */
+/* Utility Classes */
+.text-muted {
+  color: #6c757d !important;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Animation */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.alert {
+.fade-in {
   animation: fadeIn 0.3s ease-out;
-}
-
-/* Form group spacing */
-.mb-3 {
-  margin-bottom: 1.5rem !important;
-}
-
-/* Radio button group spacing */
-.d-flex.gap-3 {
-  gap: 1.5rem !important;
-  padding: 0.5rem 0;
-}
-
-/* Input group focus state */
-.input-group:focus-within .input-group-text {
-  border-color: #80bdff;
-  color: #0d6efd;
 }

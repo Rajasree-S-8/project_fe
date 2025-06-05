@@ -8,22 +8,25 @@ body {
 /* Layout styles */
 .home-background {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
 }
 
 .other-section {
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background-color: #f8f9fa; /* Plain background for other pages */
 }
 
 .main-content-container {
-  padding-top: 50px; /* Navbar height */
+  padding-top: 60px; /* Adjusted for fixed navbar height */
 }
 
 /* Home content styles */
 .home-content {
   position: relative;
-  height: calc(100vh - 50px);
+  height: calc(100vh - 60px);
   display: flex;
   justify-content: center;
   align-items: center;

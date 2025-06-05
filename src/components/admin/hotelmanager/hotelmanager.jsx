@@ -21,13 +21,8 @@ const HotelManager = ({ isActive }) => {
   const roomsPerPage = 6;
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // Check if user is logged in
-    const staffId = localStorage.getItem('staffId');
-    setIsLoggedIn(!!staffId);
-    
     if (isActive) {
       fetchRooms();
     }
@@ -59,10 +54,23 @@ const HotelManager = ({ isActive }) => {
   }, [searchTerm, rooms, statusFilter, typeFilter]);
 
   const fetchRooms = async () => {
+    const staffId = localStorage.getItem('staffId');
+    console.log('Fetching all rooms, staffId:', staffId);
+    if (!staffId) {
+      setError('Please log in to access rooms.');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await fetch(`http://localhost:8080/api/rooms/all-rooms`);
+      const response = await fetch(`http://localhost:8080/api/rooms/all-rooms`, {
+        headers: {
+          'X-Staff-Id': staffId,
+        },
+      });
       console.log('Fetch response:', { status: response.status, statusText: response.statusText });
 
+      // Read the response body once
       const contentType = response.headers.get('content-type');
       let data;
       if (contentType && contentType.includes('application/json')) {
@@ -119,15 +127,11 @@ const HotelManager = ({ isActive }) => {
   };
 
   const handleEdit = (room) => {
-    if (!isLoggedIn) {
-      setError('Please log in to edit rooms.');
-      return;
-    }
     setIsEditing(true);
     setEditForm({
       roomNumber: room.roomNumber,
       roomType: room.roomType,
-      price: room.price.toString(),
+      price: room.price.toString(), // Ensure price is a string for input
       acType: room.acType,
       isAvailable: room.isAvailable,
       imageUrl: room.imageUrl || '',
@@ -148,6 +152,7 @@ const HotelManager = ({ isActive }) => {
       return;
     }
 
+    // Validate form inputs
     if (!editForm.roomNumber || !editForm.roomType || !editForm.price) {
       setError('Please fill in all required fields.');
       return;
@@ -175,6 +180,7 @@ const HotelManager = ({ isActive }) => {
         }),
       });
 
+      // Read the response body once
       const contentType = response.headers.get('content-type');
       let updatedRoom;
       if (contentType && contentType.includes('application/json')) {
@@ -184,6 +190,7 @@ const HotelManager = ({ isActive }) => {
         if (!response.ok) {
           throw new Error(`Failed to update room: ${errorData || response.statusText}`);
         }
+        // Fallback if response is not JSON
         updatedRoom = {
           ...selectedRoom,
           roomNumber: editForm.roomNumber,
@@ -262,7 +269,7 @@ const HotelManager = ({ isActive }) => {
               </div>
               {currentRooms.length === 0 ? (
                 <div className="no-rooms-message alert alert-info">
-                  No rooms found. {isLoggedIn && 'Add a room to get started!'}
+                  No rooms found. Add a room to get started!
                 </div>
               ) : (
                 <div className="rooms-grid">
@@ -279,9 +286,7 @@ const HotelManager = ({ isActive }) => {
                         <h5 className="card-title">Room {room.roomNumber}</h5>
                         <p className="card-text">Type: {room.roomType}</p>
                         <p className="card-text">Price: ₹{room.price.toFixed(2)}</p>
-                        {isLoggedIn && (
-                          <p className="card-text">Added by: {room.createdBy?.username || 'Unknown'}</p>
-                        )}
+                        <p className="card-text">Added by: {room.createdBy?.username || 'Unknown'}</p>
                         <p className="card-text">
                           Status:
                           <span className={`status-badge ${room.isAvailable ? 'badge bg-success' : 'badge bg-danger'}`}>
@@ -290,12 +295,8 @@ const HotelManager = ({ isActive }) => {
                         </p>
                         <div className="room-actions d-flex gap-2">
                           <button className="btn btn-primary btn-sm" onClick={() => setSelectedRoom(room)}>View</button>
-                          {isLoggedIn && (
-                            <>
-                              <button className="btn btn-warning btn-sm" onClick={() => handleEdit(room)}>Edit</button>
-                              <button className="btn btn-danger btn-sm" onClick={() => handleDelete(room.roomId)}>Delete</button>
-                            </>
-                          )}
+                          <button className="btn btn-warning btn-sm" onClick={() => handleEdit(room)}>Edit</button>
+                          <button className="btn btn-danger btn-sm" onClick={() => handleDelete(room.roomId)}>Delete</button>
                         </div>
                       </div>
                     </div>
@@ -434,9 +435,7 @@ const HotelManager = ({ isActive }) => {
                   </form>
                 ) : (
                   <div>
-                    {isLoggedIn && (
-                      <p className="added-by">Added by: {selectedRoom.createdBy?.username || 'Unknown'}</p>
-                    )}
+                    <p className="added-by">Added by: {selectedRoom.createdBy?.username || 'Unknown'}</p>
                     <div className="modal-image-container mb-3">
                       {selectedRoom.imageUrl ? (
                         <img src={selectedRoom.imageUrl} alt={`Room ${selectedRoom.roomNumber}`} className="img-fluid rounded" />
@@ -454,12 +453,8 @@ const HotelManager = ({ isActive }) => {
                       </span>
                     </p>
                     <div className="d-flex gap-2 mt-3">
-                      {isLoggedIn && (
-                        <>
-                          <button className="btn btn-warning" onClick={() => handleEdit(selectedRoom)}>Edit</button>
-                          <button className="btn btn-danger" onClick={() => handleDelete(selectedRoom.roomId)}>Delete</button>
-                        </>
-                      )}
+                      <button className="btn btn-warning" onClick={() => handleEdit(selectedRoom)}>Edit</button>
+                      <button className="btn btn-danger" onClick={() => handleDelete(selectedRoom.roomId)}>Delete</button>
                       <button className="btn btn-secondary" onClick={() => setSelectedRoom(null)}>Close</button>
                     </div>
                   </div>

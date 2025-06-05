@@ -142,7 +142,6 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
         throw new Error(errorData.message || 'Failed to add staff');
       }
 
-      const result = await response.json();
       alert('Staff added successfully!');
       setFormData({
         username: '',
