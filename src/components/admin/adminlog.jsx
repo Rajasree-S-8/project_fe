@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../header/header';
 import Footer from '../footer/footer';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import './adminlog.css';
 
 const AdminLogin = () => {
@@ -19,7 +20,7 @@ const AdminLogin = () => {
     const { username, password } = formData;
 
     if (username === 'admin' && password === 'admin123') {
-      navigate('/adminlog'); 
+      navigate('/adminlog');
     } else {
       setError('Invalid username or password');
     }
@@ -32,7 +33,7 @@ const AdminLogin = () => {
         <div className="login-container">
           <div className="login-card">
             <div className="admin-logo">
-              <i className="fas fa-user-shield"></i>
+              <i className="bi bi-person-circle"></i>
             </div>
             <div className="login-header">
               <h2>Admin Portal</h2>
@@ -42,12 +43,13 @@ const AdminLogin = () => {
             <form onSubmit={handleSubmit} noValidate>
               {error && <div className="alert alert-danger">{error}</div>}
 
-              <div className="mb-3">
-                <label className="form-label">Username</label>
+              <div className="mb-3 input-group">
+                <span className="input-group-text"><i className="bi bi-person-fill"></i></span>
                 <input
                   type="text"
                   className="form-control"
                   name="username"
+                  placeholder="Username"
                   autoComplete="username"
                   required
                   value={formData.username}
@@ -55,12 +57,13 @@ const AdminLogin = () => {
                 />
               </div>
 
-              <div className="mb-4">
-                <label className="form-label">Password</label>
+              <div className="mb-4 input-group">
+                <span className="input-group-text"><i className="bi bi-lock-fill"></i></span>
                 <input
                   type="password"
                   name="password"
                   className="form-control"
+                  placeholder="Password"
                   autoComplete="current-password"
                   required
                   value={formData.password}
@@ -69,7 +72,7 @@ const AdminLogin = () => {
               </div>
 
               <button type="submit" className="btn btn-primary w-100 py-2">
-                Login
+                <i className="bi bi-box-arrow-in-right me-2"></i>Login
               </button>
             </form>
 

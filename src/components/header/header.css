@@ -67,6 +67,11 @@ nav ul {
   gap: 1.5rem;
   margin: 0;
   padding: 0;
+  align-items: center;
+}
+
+.nav-item.dropdown {
+  margin-left: auto;
 }
 
 nav a {
@@ -94,7 +99,6 @@ nav a:hover {
   min-width: 200px;
   z-index: 1000;
 }
-
 
 .dropdown-item {
   color: #333 !important;
@@ -127,5 +131,5 @@ body {
 }
 
 main {
-  padding-top: 90px; /* Adjust this based on actual header height */
+  padding-top: 90px; /* Adjust based on header height */
 }

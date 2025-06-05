@@ -1,0 +1,9 @@
+.table td,
+.table th {
+  vertical-align: middle !important;
+  text-align: center;
+}
+
+.btn-sm {
+  min-width: 40px;
+}

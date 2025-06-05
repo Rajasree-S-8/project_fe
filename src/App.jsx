@@ -19,6 +19,8 @@ function App() {
         <Route path='/adminlog' element={<Adminlog />} />
         <Route path='/hotelogin' element={<Hotellogin />} />
         <Route path="/hotelhome" element={<Hotelhome/>} />
+        
+        
 
       </Routes>
     </Router>

@@ -1,0 +1,117 @@
+/* Main Container */
+.add-staff-container {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin-top: 3rem;
+}
+
+/* Title Styles */
+.add-staff-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: #0d6efd;
+}
+
+.add-staff-subtitle {
+  color: #6c757d;
+  margin-bottom: 1.5rem;
+}
+
+/* Card Styles */
+.add-staff-card {
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border: none;
+}
+
+.add-staff-card-body {
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+}
+
+/* Form Layout */
+.add-staff-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.add-staff-form-group {
+  flex: 1 0 calc(50% - 0.5rem);
+  min-width: 0;
+}
+
+/* Label Styles */
+.add-staff-label {
+  font-weight: 600;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* Input Group Styles */
+.add-staff-input-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  background-color: white;
+  overflow: hidden;
+}
+
+.add-staff-input-icon {
+  padding: 0.375rem 0.75rem;
+  color: #0d6efd;
+  background-color: transparent;
+  border: none;
+}
+
+/* Input and Select Styles */
+.add-staff-input,
+.add-staff-select {
+  flex: 1;
+  padding: 0.375rem 0.75rem;
+  border: none;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.add-staff-input:focus,
+.add-staff-select:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Button Styles */
+.add-staff-button-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.add-staff-button {
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+  border: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  color: white;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.add-staff-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .add-staff-form-group {
+    flex: 1 0 100%;
+  }
+}

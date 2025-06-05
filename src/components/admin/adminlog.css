@@ -14,7 +14,7 @@
   padding: 2rem 1rem;
   position: relative;
   background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
-              url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+              url('https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -22,7 +22,7 @@
 
 .login-container {
   width: 100%;
-  max-width: 420px;
+  max-width: 480px;
   margin: 0 auto;
 }
 
@@ -33,8 +33,12 @@
   padding: 2rem;
   transition: all 0.3s ease;
   position: relative;
+  width: 450px;
+  max-width: 100%;
   z-index: 1;
+  margin: 0 auto; /* Centers the card */
 }
+
 
 .admin-logo {
   text-align: center;
@@ -42,8 +46,8 @@
 }
 
 .admin-logo i {
-  font-size: 3rem;
-  color: #3498db;
+  font-size: 3.5rem;
+  color: #2c3e50;
   background: white;
   padding: 1rem;
   border-radius: 50%;
@@ -85,18 +89,16 @@
   box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
 }
 
-.is-invalid {
-  border-color: #e74c3c;
+.input-group-text {
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-right: 0;
+  border-radius: 4px 0 0 4px;
 }
 
-.is-invalid:focus {
-  box-shadow: 0 0 0 0.2rem rgba(231, 76, 60, 0.25);
-}
-
-.invalid-feedback {
-  color: #e74c3c;
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
+.input-group .form-control {
+  border-left: 0;
+  border-radius: 0 4px 4px 0;
 }
 
 .btn-primary {
@@ -109,11 +111,6 @@
 
 .btn-primary:hover {
   background-color: #2980b9;
-}
-
-.btn-primary:disabled {
-  background-color: #bdc3c7;
-  cursor: not-allowed;
 }
 
 .alert-danger {
@@ -131,20 +128,16 @@
   font-size: 0.85rem;
 }
 
-.spinner-border {
-  vertical-align: middle;
-}
-
-/* Responsive adjustments */
+/* Responsive */
 @media (max-width: 576px) {
   .login-card {
     padding: 1.5rem;
   }
-  
+
   .login-header h2 {
     font-size: 1.5rem;
   }
-  
+
   .admin-logo i {
     font-size: 2.5rem;
     padding: 0.8rem;

@@ -12,9 +12,10 @@ function Header() {
   const gotAdmin = () => {
     navigate('/Admin');
   };
+
   const gotHotelManager = () => {
     navigate('/hotelogin');
-  }
+  };
 
   return (
     <header>

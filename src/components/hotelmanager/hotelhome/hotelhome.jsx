@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './hotelhome.css';
 import HeaderNavbar from '../header1/header1';
-import AddRoom from '../hotelroom/hotelroom';
+import AddRoom from '../addrooms/addRooms'; 
 import ViewRooms from '../viewrooms/viewroom';
 import ViewCustomers from '../viewcustomer/viewcustomer';
 import ViewBookings from '../viewbooking/viewbooking';

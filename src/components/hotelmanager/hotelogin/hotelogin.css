@@ -122,15 +122,27 @@
   margin-bottom: 20px;
 }
 
-.forgot-password {
-  color: #7f8c8d;
-  text-decoration: none;
-  font-size: 14px;
+.forgot-password-link {
+  text-align: center;
+  margin-top: 15px;
 }
 
-.forgot-password:hover {
-  color: #3498db;
+.forgot-password-link button {
+  color: #6c757d;
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 0;
+}
+
+.forgot-password-link button:hover {
+  color: #0d6efd;
   text-decoration: underline;
+}
+
+.password-reset-icon {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 15px;
 }
 
 .login-btn {
