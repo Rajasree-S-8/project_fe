@@ -23,7 +23,7 @@ const Sidebar = ({ activeSection, handleNavClick }) => {
                         <i className="fas fa-user-shield me-2" style={{ color: '#3498db' }} /> Admin
                     </span>
                     <button onClick={Logout} className="btn btn-sm" style={{ backgroundColor: '#e74c3c', color: 'white' }}>
-                        <i className="fas fa-sign-out-alt me-1" /> Logout
+                        <i className="bi bi-box-arrow-left" /> Logout
                     </button>
                 </div>
                 <nav className="mt-4 px-4">
