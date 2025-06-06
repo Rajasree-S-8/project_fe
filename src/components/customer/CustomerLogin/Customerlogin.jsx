@@ -4,7 +4,6 @@ import { faUser, faLock } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Link, useNavigate } from 'react-router-dom';
 import Forgotpassword from '../ForgotPass/Forgotpassword';
-import Header from '../../header/header';
 
 const Customerlogin = () => {
 
@@ -70,7 +69,7 @@ const Customerlogin = () => {
             </Alert>}
 
             <Form onSubmit={handleSubmit}>
-              <FloatingLabel controlId="username" label="Username" className="mb-3">
+              <FloatingLabel controlId="username" className="mb-3">
                 <InputGroup>
                   <InputGroup.Text style={{ width: '40px' }}>
                     <FontAwesomeIcon icon={faUser} />
@@ -88,7 +87,7 @@ const Customerlogin = () => {
                 {errors.username && <Form.Text className="text-danger">{errors.username}</Form.Text>}
               </FloatingLabel>
 
-              <FloatingLabel controlId="password" label="Password" className="mb-3">
+              <FloatingLabel controlId="password" className="mb-3">
                 <InputGroup>
                   <InputGroup.Text style={{ width: '40px' }}>
                     <FontAwesomeIcon icon={faLock} />
