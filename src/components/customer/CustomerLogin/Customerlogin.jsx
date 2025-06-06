@@ -30,7 +30,12 @@ const Customerlogin = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Validate form data
+    navigate('/custhome',{
+      state: { customerName: formData.fullName }
+    });
     const validationErrors = validate();
+    // If there are validation errors, set them and do not submit
     if (Object.keys(validationErrors).length > 0) return setErrors(validationErrors);
     
     setErrors({});
