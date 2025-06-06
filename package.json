@@ -11,7 +11,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-<<<<<<< HEAD
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
@@ -26,13 +25,6 @@
     "react-bootstrap": "^2.10.10",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2"
-=======
-    "bootstrap": "^5.3.6",
-    "react": "^19.1.0",
-    "react-bootstrap": "^2.10.10",
-    "react-dom": "^19.1.0",
-    "react-router-dom": "^7.6.1"
->>>>>>> 17d24a46879e223f35c5a6e43cb0052ada5aaaba
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

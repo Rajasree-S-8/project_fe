@@ -8,6 +8,16 @@ import Hotellogin from "./components/hotelmanager/hotelogin/hotelogin";
 import Hotelhome from "./components/hotelmanager/hotelhome/hotelhome";
 import Customerreg from "./components/customer/CustomerRegister/Customerreg";
 import Customerlogin from "./components/customer/CustomerLogin/Customerlogin";
+import Login from "./components/Restaurantmanager/login/Login.jsx";
+import HomePage from "./components/Restaurantmanager/homepage/HomePage.jsx";
+import AddFood from "./components/Restaurantmanager/addfood/AddFood.jsx";
+import EditFood from "./components/Restaurantmanager/addfood/EditFood.jsx";
+
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import ViewFood from "./components/Restaurantmanager/viewfood/ViewFood.jsx";
+
+import ViewOrders from "./components/Restaurantmanager/viewfood/ViewOrders.jsx";
 
 
 function App() {
@@ -36,30 +46,6 @@ function App() {
 
       </Routes>
     </Router>
-    </div>
-  );
-}
-export default App;
-import React from "react";
-
-import Login from "./components/Restaurantmanager/login/Login.jsx";
-import { BrowserRouter,Routes, Route } from "react-router-dom";
-import HomePage from "./components/Restaurantmanager/homepage/HomePage.jsx";
-import AddFood from "./components/Restaurantmanager/addfood/AddFood.jsx";
-import EditFood from "./components/Restaurantmanager/addfood/EditFood.jsx";
-
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-import ViewFood from "./components/Restaurantmanager/viewfood/ViewFood.jsx";
-
-import ViewOrders from "./components/Restaurantmanager/viewfood/ViewOrders.jsx";
-
-
-
-
-function App() {
-  return (
-    <>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login/>}></Route>
@@ -70,8 +56,10 @@ function App() {
           <Route path="/vieworders" element={<ViewOrders/>} />
         </Routes>
       </BrowserRouter>
-    </>
-  )
+    </div>
+  );
 }
-
 export default App;
+
+
+
