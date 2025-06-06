@@ -38,13 +38,6 @@ const Homepage = () => {
                 alt="Hotel Dining"
               />
             </div>
-             <div className="carousel-item">
-              <img
-                src="https://images.pexels.com/photos/2788792/pexels-photo-2788792.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-                className="d-block w-100"
-                alt="Hotel Event "
-              />
-            </div>
             <div className="carousel-item">
               <img
                 src="https://images.pexels.com/photos/2291624/pexels-photo-2291624.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
