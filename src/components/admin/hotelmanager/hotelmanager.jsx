@@ -29,7 +29,7 @@ const HotelManager = ({ isActive }) => {
   }, [isActive]);
 
   useEffect(() => {
-    let filtered = rooms;
+    let filtered = [...rooms];
 
     if (searchTerm) {
       filtered = filtered.filter((room) =>
@@ -49,13 +49,18 @@ const HotelManager = ({ isActive }) => {
       filtered = filtered.filter((room) => room.roomType === typeFilter);
     }
 
+    filtered.sort((a, b) => {
+      const roomNumberA = parseInt(a.roomNumber, 10);
+      const roomNumberB = parseInt(b.roomNumber, 10);
+      return roomNumberA - roomNumberB;
+    });
+
     setFilteredRooms(filtered);
     setCurrentPage(1);
   }, [searchTerm, rooms, statusFilter, typeFilter]);
 
   const fetchRooms = async () => {
     const staffId = localStorage.getItem('staffId');
-    console.log('Fetching all rooms, staffId:', staffId);
     if (!staffId) {
       setError('Please log in to access rooms.');
       setLoading(false);
@@ -68,9 +73,7 @@ const HotelManager = ({ isActive }) => {
           'X-Staff-Id': staffId,
         },
       });
-      console.log('Fetch response:', { status: response.status, statusText: response.statusText });
 
-      // Read the response body once
       const contentType = response.headers.get('content-type');
       let data;
       if (contentType && contentType.includes('application/json')) {
@@ -80,18 +83,16 @@ const HotelManager = ({ isActive }) => {
       }
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch rooms: ${typeof data === 'string' ? data : JSON.stringify(data)} (Status: ${response.status})`);
+        throw new Error(`Failed to fetch rooms: ${typeof data === 'string' ? data : JSON.stringify(data)}`);
       }
 
-      console.log('Fetched rooms:', data);
       setRooms(data);
-      setFilteredRooms(data);
       if (data.length === 0) {
         setError('No rooms found in the system.');
       }
     } catch (err) {
       console.error('Fetch rooms error:', err.message);
-      setError(err.message || 'Unable to connect to the server. Please check if the backend is running.');
+      setError(err.message || 'Unable to connect to the server.');
     } finally {
       setLoading(false);
     }
@@ -128,14 +129,19 @@ const HotelManager = ({ isActive }) => {
 
   const handleEdit = (room) => {
     setIsEditing(true);
+    setSelectedRoom(room);
     setEditForm({
       roomNumber: room.roomNumber,
       roomType: room.roomType,
-      price: room.price.toString(), // Ensure price is a string for input
+      price: room.price.toString(),
       acType: room.acType,
       isAvailable: room.isAvailable,
       imageUrl: room.imageUrl || '',
     });
+  };
+
+  const handleView = (room) => {
+    setIsEditing(false);
     setSelectedRoom(room);
   };
 
@@ -152,7 +158,6 @@ const HotelManager = ({ isActive }) => {
       return;
     }
 
-    // Validate form inputs
     if (!editForm.roomNumber || !editForm.roomType || !editForm.price) {
       setError('Please fill in all required fields.');
       return;
@@ -180,7 +185,6 @@ const HotelManager = ({ isActive }) => {
         }),
       });
 
-      // Read the response body once
       const contentType = response.headers.get('content-type');
       let updatedRoom;
       if (contentType && contentType.includes('application/json')) {
@@ -190,7 +194,6 @@ const HotelManager = ({ isActive }) => {
         if (!response.ok) {
           throw new Error(`Failed to update room: ${errorData || response.statusText}`);
         }
-        // Fallback if response is not JSON
         updatedRoom = {
           ...selectedRoom,
           roomNumber: editForm.roomNumber,
@@ -201,8 +204,6 @@ const HotelManager = ({ isActive }) => {
           imageUrl: editForm.imageUrl,
         };
       }
-
-      console.log('Update response:', { status: response.status, updatedRoom });
 
       if (!response.ok) {
         throw new Error(`Failed to update room: ${JSON.stringify(updatedRoom) || response.statusText}`);
@@ -294,7 +295,7 @@ const HotelManager = ({ isActive }) => {
                           </span>
                         </p>
                         <div className="room-actions d-flex gap-2">
-                          <button className="btn btn-primary btn-sm" onClick={() => setSelectedRoom(room)}>View</button>
+                          <button className="btn btn-primary btn-sm" onClick={() => handleView(room)}>View</button>
                           <button className="btn btn-warning btn-sm" onClick={() => handleEdit(room)}>Edit</button>
                           <button className="btn btn-danger btn-sm" onClick={() => handleDelete(room.roomId)}>Delete</button>
                         </div>
@@ -346,87 +347,101 @@ const HotelManager = ({ isActive }) => {
               <div className="modal-body">
                 {isEditing ? (
                   <form onSubmit={handleEditSubmit}>
-                    <div className="mb-3">
-                      <label className="form-label">Room Number</label>
-                      <input
-                        className="form-control"
-                        value={editForm.roomNumber}
-                        onChange={(e) => setEditForm({ ...editForm, roomNumber: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label className="form-label">Room Type</label>
-                      <select
-                        className="form-select"
-                        value={editForm.roomType}
-                        onChange={(e) => setEditForm({ ...editForm, roomType: e.target.value })}
-                        required
-                      >
-                        <option value="">Select room type</option>
-                        <option value="Single">Single</option>
-                        <option value="Double">Double</option>
-                        <option value="Suite">Suite</option>
-                        <option value="Deluxe">Deluxe</option>
-                      </select>
-                    </div>
-                    <div className="mb-3">
-                      <label className="form-label">AC Type</label>
-                      <div className="d-flex gap-3">
-                        <div className="form-check">
-                          <input
-                            type="radio"
-                            className="form-check-input"
-                            name="acType"
-                            value="AC"
-                            checked={editForm.acType === 'AC'}
-                            onChange={(e) => setEditForm({ ...editForm, acType: e.target.value })}
-                          />
-                          <label className="form-check-label">AC</label>
-                        </div>
-                        <div className="form-check">
-                          <input
-                            type="radio"
-                            className="form-check-input"
-                            name="acType"
-                            value="Non-AC"
-                            checked={editForm.acType === 'Non-AC'}
-                            onChange={(e) => setEditForm({ ...editForm, acType: e.target.value })}
-                          />
-                          <label className="form-check-label">Non-AC</label>
+                    <div className="row">
+                      <div className="col-md-6 mb-3">
+                        <label className="form-label">Room Number</label>
+                        <input
+                          className="form-control"
+                          value={editForm.roomNumber}
+                          onChange={(e) => setEditForm({ ...editForm, roomNumber: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="col-md-6 mb-3">
+                        <label className="form-label">Room Type</label>
+                        <select
+                          className="form-select"
+                          value={editForm.roomType}
+                          onChange={(e) => setEditForm({ ...editForm, roomType: e.target.value })}
+                          required
+                        >
+                          <option value="">Select room type</option>
+                          <option value="Single">Single</option>
+                          <option value="Double">Double</option>
+                          <option value="Suite">Suite</option>
+                          <option value="Deluxe">Deluxe</option>
+                        </select>
+                      </div>
+                      <div className="col-md-6 mb-3">
+                        <label className="form-label">Price</label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          value={editForm.price}
+                          onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
+                          required
+                          min="0"
+                          step="0.01"
+                        />
+                      </div>
+                      <div className="col-md-6 mb-3">
+                        <label className="form-label">AC Type</label>
+                        <div className="d-flex gap-3">
+                          <div className="form-check">
+                            <input
+                              type="radio"
+                              className="form-check-input"
+                              name="acType"
+                              value="AC"
+                              checked={editForm.acType === 'AC'}
+                              onChange={(e) => setEditForm({ ...editForm, acType: e.target.value })}
+                            />
+                            <label className="form-check-label">AC</label>
+                          </div>
+                          <div className="form-check">
+                            <input
+                              type="radio"
+                              className="form-check-input"
+                              name="acType"
+                              value="Non-AC"
+                              checked={editForm.acType === 'Non-AC'}
+                              onChange={(e) => setEditForm({ ...editForm, acType: e.target.value })}
+                            />
+                            <label className="form-check-label">Non-AC</label>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="mb-3">
-                      <label className="form-label">Price</label>
-                      <input
-                        type="number"
-                        className="form-control"
-                        value={editForm.price}
-                        onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
-                        required
-                        min="0"
-                        step="0.01"
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label className="form-label">Image URL</label>
-                      <input
-                        type="url"
-                        className="form-control"
-                        value={editForm.imageUrl}
-                        onChange={(e) => setEditForm({ ...editForm, imageUrl: e.target.value })}
-                        placeholder="Optional image URL"
-                      />
-                    </div>
-                    <div className="mb-3 form-check">
-                      <input
-                        type="checkbox"
-                        className="form-check-input"
-                        checked={editForm.isAvailable}
-                        onChange={(e) => setEditForm({ ...editForm, isAvailable: e.target.checked })}
-                      />
-                      <label className="form-check-label">Available</label>
+                      <div className="col-md-6 mb-3">
+                        <label className="form-label">Image URL</label>
+                        <input
+                          type="url"
+                          className="form-control"
+                          value={editForm.imageUrl}
+                          onChange={(e) => setEditForm({ ...editForm, imageUrl: e.target.value })}
+                          placeholder="Enter image URL"
+                        />
+                      </div>
+                      <div className="col-md-6 mb-3">
+                        <label className="form-label">Image Preview</label>
+                        <div className="image-preview-container">
+                          {editForm.imageUrl ? (
+                            <img src={editForm.imageUrl} alt="Preview" className="img-fluid rounded" style={{ maxHeight: '100px' }} />
+                          ) : (
+                            <div className="no-image">No Image Preview</div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="col-md-6 mb-3">
+                        <div className="form-check">
+                          <input
+                            type="checkbox"
+                            className="form-check-input"
+                            checked={editForm.isAvailable}
+                            onChange={(e) => setEditForm({ ...editForm, isAvailable: e.target.checked })}
+                          />
+                          <label className="form-check-label">Available</label>
+                        </div>
+                      </div>
                     </div>
                     <div className="d-flex gap-2">
                       <button type="submit" className="btn btn-primary">Save</button>

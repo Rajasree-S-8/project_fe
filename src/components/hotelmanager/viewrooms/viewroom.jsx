@@ -9,6 +9,7 @@ const ViewRooms = () => {
   const [success, setSuccess] = useState('');
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isViewing, setIsViewing] = useState(false);
   const [editFormData, setEditForm] = useState({
     roomNumber: '',
     roomType: '',
@@ -24,14 +25,13 @@ const ViewRooms = () => {
   const [typeFilter, setTypeFilter] = useState('all');
   const [acFilter, setAcFilter] = useState('all');
   const [imagePreview, setImagePreview] = useState('');
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     fetchRooms();
   }, []);
 
   useEffect(() => {
-    let filtered = rooms;
+    let filtered = [...rooms].sort((a, b) => parseInt(a.roomNumber) - parseInt(b.roomNumber));
 
     if (searchTerm) {
       filtered = filtered.filter((room) =>
@@ -54,9 +54,6 @@ const ViewRooms = () => {
       filtered = filtered.filter((room) => room.acType === acFilter);
     }
 
-    // Sort rooms by room number
-    filtered.sort((a, b) => parseInt(a.roomNumber) - parseInt(b.roomNumber));
-
     setFilteredRooms(filtered);
     setCurrentPage(1);
   }, [searchTerm, rooms, statusFilter, typeFilter, acFilter]);
@@ -76,34 +73,21 @@ const ViewRooms = () => {
         },
       });
 
-      const contentType = response.headers.get('content-type');
-      let data;
-      if (contentType && contentType.includes('application/json')) {
-        data = await response.json();
-      } else {
-        data = await response.text();
-      }
-
       if (!response.ok) {
-        throw new Error(
-          `Failed to fetch rooms: ${typeof data === 'string' ? data : JSON.stringify(data)} (Status: ${response.status})`
-        );
+        const errorData = await response.text();
+        throw new Error(`Failed to fetch rooms: ${errorData || response.statusText}`);
       }
 
-      // Mock multiple images for carousel (since API provides single imageUrl)
-      const roomsWithImages = data.map(room => ({
-        ...room,
-        images: [room.imageUrl || 'https://via.placeholder.com/150', 'https://via.placeholder.com/150', 'https://via.placeholder.com/150']
-      }));
-
-      setRooms(roomsWithImages);
-      setFilteredRooms(roomsWithImages);
-      if (roomsWithImages.length === 0) {
+      const data = await response.json();
+      const sortedRooms = [...data].sort((a, b) => parseInt(a.roomNumber) - parseInt(b.roomNumber));
+      setRooms(sortedRooms);
+      setFilteredRooms(sortedRooms);
+      if (data.length === 0) {
         setError('No rooms found for your account.');
       }
     } catch (err) {
       console.error('Fetch rooms error:', err.message);
-      setError(err.message || 'Unable to connect to the server. Please check if the backend is running.');
+      setError(err.message || 'Unable to connect to the server.');
     } finally {
       setLoading(false);
     }
@@ -149,23 +133,15 @@ const ViewRooms = () => {
       price: room.price.toString(),
       acType: room.acType,
       isAvailable: room.isAvailable,
-      imageUrl: room.images[0] || '',
+      imageUrl: room.imageUrl || '',
     });
     setSelectedRoom(room);
-    setImagePreview(room.images[0] || '');
-    setCurrentImageIndex(0);
+    setImagePreview(room.imageUrl || '');
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-        setEditForm({ ...editFormData, imageUrl: reader.result });
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleView = (room) => {
+    setSelectedRoom(room);
+    setIsViewing(true);
   };
 
   const handleEditSubmit = async (e) => {
@@ -188,9 +164,10 @@ const ViewRooms = () => {
       setTimeout(() => setError(''), 3000);
       return;
     }
+
     const price = parseFloat(editFormData.price);
     if (isNaN(price) || price <= 0) {
-      setError('Please enter a valid price greater than 0.');
+      setError('Please enter a valid price.');
       setTimeout(() => setError(''), 3000);
       return;
     }
@@ -205,38 +182,19 @@ const ViewRooms = () => {
         body: JSON.stringify({
           roomNumber: editFormData.roomNumber,
           roomType: editFormData.roomType,
-          price,
+          price: price,
           acType: editFormData.acType,
           isAvailable: editFormData.isAvailable,
           imageUrl: editFormData.imageUrl || null,
         }),
       });
 
-      const contentType = response.headers.get('content-type');
-      let updatedRoom;
-      if (contentType && contentType.includes('application/json')) {
-        updatedRoom = await response.json();
-      } else {
-        const errorData = await response.text();
-        if (!response.ok) {
-          throw new Error(`Failed to update room: ${errorData || response.statusText}`);
-        }
-        updatedRoom = {
-          ...selectedRoom,
-          roomNumber: editFormData.roomNumber,
-          roomType: editFormData.roomType,
-          price,
-          acType: editFormData.acType,
-          isAvailable: editFormData.isAvailable,
-          imageUrl: editFormData.imageUrl,
-          images: [editFormData.imageUrl, 'https://via.placeholder.com/150', 'https://via.placeholder.com/150']
-        };
-      }
-
       if (!response.ok) {
-        throw new Error(`Failed to update room: ${JSON.stringify(updatedRoom) || response.statusText}`);
+        const errorData = await response.text();
+        throw new Error(`Failed to update room: ${errorData || response.statusText}`);
       }
 
+      const updatedRoom = await response.json();
       setRooms(rooms.map((room) => (room.roomId === updatedRoom.roomId ? updatedRoom : room)));
       setIsEditing(false);
       setSelectedRoom(updatedRoom);
@@ -247,30 +205,6 @@ const ViewRooms = () => {
       setError(err.message);
       setTimeout(() => setError(''), 3000);
     }
-  };
-
-  const nextImage = (roomId) => {
-    setRooms(rooms.map(room => {
-      if (room.roomId === roomId) {
-        const currentIndex = room.images.indexOf(room.images[currentImageIndex]);
-        const nextIndex = (currentIndex + 1) % room.images.length;
-        setCurrentImageIndex(nextIndex);
-        return room;
-      }
-      return room;
-    }));
-  };
-
-  const prevImage = (roomId) => {
-    setRooms(rooms.map(room => {
-      if (room.roomId === roomId) {
-        const currentIndex = room.images.indexOf(room.images[currentImageIndex]);
-        const prevIndex = (currentIndex - 1 + room.images.length) % room.images.length;
-        setCurrentImageIndex(prevIndex);
-        return room;
-      }
-      return room;
-    }));
   };
 
   const indexOfLastRoom = currentPage * roomsPerPage;
@@ -381,25 +315,14 @@ const ViewRooms = () => {
             currentRooms.map((room) => (
               <div key={room.roomId} className="room-card">
                 <div className="room-image-container">
-                  <div className="carousel">
-                    <img
-                      src={room.images[currentImageIndex]}
-                      alt={`${room.roomNumber}`}
-                      className="carousel-image"
-                    />
-                    <button 
-                      className="carousel-button prev"
-                      onClick={() => prevImage(room.roomId)}
-                    >
-                      &lt;
-                    </button>
-                    <button 
-                      className="carousel-button next"
-                      onClick={() => nextImage(room.roomId)}
-                    >
-                      &gt;
-                    </button>
-                  </div>
+                  <img
+                    src={room.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'}
+                    alt={`Room ${room.roomNumber}`}
+                    className="room-image"
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/300x200?text=Image+Not+Found';
+                    }}
+                  />
                   <span className="availability-icon">
                     <svg
                       width="16"
@@ -411,7 +334,7 @@ const ViewRooms = () => {
                       <path
                         d={room.isAvailable
                           ? 'M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z'
-                          : 'M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z'}
+                          : 'M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 11.1078 21.8846 10.2424 21.6686 9.41876C21.537 8.92539 20.9483 8.71436 20.5549 9.01834C20.1615 9.32232 19.9816 9.93292 20.1685 10.4188C20.3378 10.8596 20.4643 11.3219 20.5429 11.8C20.6266 12.3086 20.6701 12.8295 20.6701 13.36C20.6701 16.6619 18.332 19.36 15.335 19.36C13.8399 19.36 12.5025 18.5904 11.7566 17.36H14.6701C15.2224 17.36 15.6701 16.9123 15.6701 16.36C15.6701 15.8077 15.2224 15.36 14.6701 15.36H8.67005C8.11777 15.36 7.67005 15.8077 7.67005 16.36V18.36C7.67005 18.9123 8.11777 19.36 8.67005 19.36H9.75664C10.8763 21.0159 13.0285 22 15.335 22C19.4366 22 22.6701 18.7665 22.6701 14.665C22.6701 13.9977 22.5834 13.3505 22.4214 12.7331C22.7375 11.6593 22.8916 10.528 22.8652 9.39047C22.8652 9.39047 22.8652 9.39047 22.8652 9.39047C22.8652 9.39047 22.8652 9.39047 22.8652 9.39047Z'}
                       />
                     </svg>
                   </span>
@@ -422,9 +345,11 @@ const ViewRooms = () => {
                   <p><strong>Price:</strong> ₹{room.price.toFixed(2)}</p>
                   <p><strong>AC:</strong> {room.acType}</p>
                   <p><strong>Status:</strong> {room.isAvailable ? 'Available' : 'Unavailable'}</p>
-                  <p><strong>Created By:</strong> You</p>
                 </div>
                 <div className="room-actions">
+                  <button className="btn btn-view" onClick={() => handleView(room)}>
+                    View
+                  </button>
                   <button className="btn btn-edit" onClick={() => handleEdit(room)}>
                     Edit
                   </button>
@@ -464,11 +389,18 @@ const ViewRooms = () => {
         {isEditing && selectedRoom && (
           <div className="edit-modal">
             <div className="edit-modal-content">
-              <h2>Edit Room</h2>
+              <div className="modal-header">
+                <h2>Edit Room</h2>
+                <button className="modal-close" onClick={() => setIsEditing(false)}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 1.41L12.59 0L7 5.59L1.41 0L0 1.41L5.59 7L0 12.59L1.41 14L7 8.41L12.59 14L14 12.59L8.41 7L14 1.41Z" fill="black"/>
+                  </svg>
+                </button>
+              </div>
               <form onSubmit={handleEditSubmit}>
                 <div className="form-grid">
                   <div className="form-group">
-                    <label>Room Number</label>
+                    <label>Room Number *</label>
                     <input
                       type="text"
                       className="form-control"
@@ -480,7 +412,7 @@ const ViewRooms = () => {
                     />
                   </div>
                   <div className="form-group">
-                    <label>Room Type</label>
+                    <label>Room Type *</label>
                     <select
                       className="form-control"
                       value={editFormData.roomType}
@@ -499,8 +431,8 @@ const ViewRooms = () => {
                     </select>
                   </div>
                   <div className="form-group">
-                    <label>Price (₹)</label>
-                    <div className="input-group">
+                    <label>Price (₹) *</label>
+                    <div className="input-group price-input-group">
                       <span className="input-group-text">₹</span>
                       <input
                         type="number"
@@ -509,14 +441,14 @@ const ViewRooms = () => {
                         onChange={(e) =>
                           setEditForm({ ...editFormData, price: e.target.value })
                         }
-                        min="0.01"
-                        step="0.01"
+                        min="1"
+                        step="1"
                         required
                       />
                     </div>
                   </div>
                   <div className="form-group">
-                    <label>AC Type</label>
+                    <label>AC Type *</label>
                     <div className="radio-group">
                       <label>
                         <input
@@ -544,19 +476,26 @@ const ViewRooms = () => {
                   </div>
                 </div>
                 <div className="form-group">
-                  <label>Image</label>
+                  <label>Room Image URL</label>
                   <div className="image-upload-container">
                     <input
-                      type="file"
+                      type="text"
                       className="form-control"
-                      accept="image/*"
-                      onChange={handleImageChange}
+                      placeholder="Enter room image URL (e.g., https://example.com/room-image.jpg)"
+                      value={editFormData.imageUrl}
+                      onChange={(e) => {
+                        setEditForm({ ...editFormData, imageUrl: e.target.value });
+                        setImagePreview(e.target.value);
+                      }}
                     />
                     {imagePreview && (
                       <img
                         src={imagePreview}
                         alt="Preview"
                         className="image-preview"
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/300x200?text=Invalid+Image+URL';
+                        }}
                       />
                     )}
                   </div>
@@ -589,6 +528,68 @@ const ViewRooms = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {isViewing && selectedRoom && (
+          <div className="view-modal">
+            <div className="view-modal-content">
+              <div className="modal-header">
+                <h2>Room {selectedRoom.roomNumber} Details</h2>
+                <button className="modal-close" onClick={() => setIsViewing(false)}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 1.41L12.59 0L7 5.59L1.41 0L0 1.41L5.59 7L0 12.59L1.41 14L7 8.41L12.59 14L14 12.59L8.41 7L14 1.41Z" fill="black"/>
+                  </svg>
+                </button>
+              </div>
+              <div className="view-modal-grid">
+                <div className="view-modal-image">
+                  <img
+                    src={selectedRoom.imageUrl || 'https://via.placeholder.com/500x300?text=No+Image'}
+                    alt={`Room ${selectedRoom.roomNumber}`}
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/500x300?text=Image+Not+Found';
+                    }}
+                  />
+                </div>
+                <div className="view-modal-details">
+                  <div className="detail-row">
+                    <span className="detail-label">Room Number:</span>
+                    <span className="detail-value">{selectedRoom.roomNumber}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Room Type:</span>
+                    <span className="detail-value">{selectedRoom.roomType}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Price:</span>
+                    <span className="detail-value">₹{selectedRoom.price.toFixed(2)}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">AC Type:</span>
+                    <span className="detail-value">{selectedRoom.acType}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Status:</span>
+                    <span className="detail-value">
+                      {selectedRoom.isAvailable ? (
+                        <span className="status-available">Available</span>
+                      ) : (
+                        <span className="status-unavailable">Unavailable</span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="view-modal-actions">
+                <button
+                  className="btn btn-close"
+                  onClick={() => setIsViewing(false)}
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         )}

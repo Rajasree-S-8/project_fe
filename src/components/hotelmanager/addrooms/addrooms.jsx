@@ -11,6 +11,7 @@ const AddRoom = () => {
     isAvailable: true,
     imageUrl: ''
   });
+
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -59,7 +60,7 @@ const AddRoom = () => {
           acType: formData.acType,
           price: parseFloat(formData.price),
           isAvailable: formData.isAvailable,
-          imageUrl: formData.imageUrl || null
+          imageUrl: formData.imageUrl.trim() || null
         }),
       });
 
@@ -85,6 +86,31 @@ const AddRoom = () => {
     } finally {
       setIsLoading(false);
     }
+    // Add this state to your component
+const [expandedImage, setExpandedImage] = null;
+
+// Add this to your component's return (before the closing </div> of card-body)
+{expandedImage && (
+  <div className="image-modal" onClick={() => setExpandedImage(null)}>
+    <img src={expandedImage} alt="Expanded Preview" className="expanded-image" />
+  </div>
+)}
+
+// Update your image preview container to this:
+{formData.imageUrl.trim() && (
+  <div className="image-preview-container">
+    <img
+      src={formData.imageUrl}
+      alt="Image Preview"
+      className="img-thumbnail preview-image"
+      onClick={() => setExpandedImage(formData.imageUrl)}
+      onError={(e) => {
+        e.target.src = 'https://via.placeholder.com/300x200?text=Invalid+Image+URL';
+      }}
+    />
+    <div className="image-hint">Click to enlarge</div>
+  </div>
+)}
   };
 
   return (
@@ -105,11 +131,7 @@ const AddRoom = () => {
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
               </svg>
               Room added successfully!
-              <button type="button" className="btn-close" onClick={() => setSuccess(false)} aria-label="Close">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M14 1.41L12.59 0L7 5.59L1.41 0L0 1.41L5.59 7L0 12.59L1.41 14L7 8.41L12.59 14L14 12.59L8.41 7L14 1.41Z" fill="currentColor"/>
-                </svg>
-              </button>
+              <button type="button" className="btn-close" onClick={() => setSuccess(false)} aria-label="Close"></button>
             </div>
           )}
           {error && (
@@ -118,11 +140,7 @@ const AddRoom = () => {
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
               </svg>
               {error}
-              <button type="button" className="btn-close" onClick={() => setError('')} aria-label="Close">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M14 1.41L12.59 0L7 5.59L1.41 0L0 1.41L5.59 7L0 12.59L1.41 14L7 8.41L12.59 14L14 12.59L8.41 7L14 1.41Z" fill="currentColor"/>
-                </svg>
-              </button>
+              <button type="button" className="btn-close" onClick={() => setError('')} aria-label="Close"></button>
             </div>
           )}
           
@@ -216,17 +234,10 @@ const AddRoom = () => {
               
               <div className="form-group">
                 <label htmlFor="price" className="form-label">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#495057" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '8px', verticalAlign: 'middle'}}>
-                    <path d="M11 15H13V17H11V15ZM11 7H13V13H11V7ZM12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z"/>
-                  </svg>
-                  Price per day *
+                  Price per day (₹) *
                 </label>
                 <div className="input-group">
-                  <span className="input-group-text">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#495057">
-                      <path d="M11.8 10.9C9.53 10.31 8.8 9.7 8.8 8.75C8.8 7.66 9.81 6.9 11.5 6.9C13.28 6.9 13.94 7.75 14 9H16.21C16.14 7.28 15.09 5.7 13 5.19V3H10V5.16C8.06 5.58 6.5 6.84 6.5 8.77C6.5 11.08 8.41 12.23 11.2 12.9C13.7 13.5 14.2 14.38 14.2 15.31C14.2 16 13.71 17.1 11.5 17.1C9.44 17.1 8.64 16.18 8.56 15H6.39C6.5 17.19 8.15 18.42 10 18.83V21H13V18.85C14.95 18.48 16.5 17.35 16.5 15.3C16.5 12.46 14.07 11.49 11.8 10.9Z"/>
-                    </svg>
-                  </span>
+                  <span className="input-group-text">₹</span>
                   <input
                     type="number"
                     className="form-control"
@@ -249,7 +260,7 @@ const AddRoom = () => {
                   <path d="M19 5V19H5V5H19ZM19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3Z"/>
                   <path d="M14.14 11.86L11.14 15.73L9 13.14L6 17H18L14.14 11.86Z"/>
                 </svg>
-                Room Image URL
+                Room Image (Optional)
               </label>
               <input
                 type="url"
@@ -258,25 +269,18 @@ const AddRoom = () => {
                 name="imageUrl"
                 value={formData.imageUrl}
                 onChange={handleChange}
-                placeholder="Enter image URL (optional)"
+                placeholder="Enter image URL (e.g., https://example.com/image.jpg)"
               />
-              {formData.imageUrl && (
-                <div className="mt-2">
-                  <img 
-                    src={formData.imageUrl} 
-                    alt="Room preview" 
+              {formData.imageUrl.trim() && (
+                <div className="image-preview-container">
+                  <img
+                    src={formData.imageUrl}
+                    alt="Image Preview"
                     className="img-thumbnail preview-image"
                     onError={(e) => {
-                      e.target.style.display = 'none';
+                      e.target.src = 'https://via.placeholder.com/600x400?text=Invalid+Image+URL';
                     }}
                   />
-                  <small className="text-muted">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="#6c757d" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '4px', verticalAlign: 'middle'}}>
-                      <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z"/>
-                      <path d="M11 16H13V11H11V16ZM12 9C12.55 9 13 8.55 13 8C13 7.45 12.55 7 12 7C11.45 7 11 7.45 11 8C11 8.55 11.45 9 12 9Z"/>
-                    </svg>
-                    Image preview
-                  </small>
                 </div>
               )}
             </div>
@@ -307,8 +311,8 @@ const AddRoom = () => {
               {isLoading ? (
                 <>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="#ffffff" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '8px', verticalAlign: 'middle', animation: 'spin 1s linear infinite'}}>
-                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22ZM12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20Z" opacity="0.25"/>
-                    <path d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 11.1078 21.8846 10.2424 21.6686 9.41876C21.537 8.92539 20.9483 8.71436 20.5549 9.01834C20.1615 9.32232 19.9816 9.93292 20.1685 10.4188C20.3378 10.8596 20.4643 11.3219 20.5429 11.8C20.6266 12.3086 20.6701 12.8295 20.6701 13.36C20.6701 16.6619 18.332 19.36 15.335 19.36C13.8399 19.36 12.5025 18.5904 11.7566 17.36H14.6701C15.2224 17.36 15.6701 16.9123 15.6701 16.36C15.6701 15.8077 15.2224 15.36 14.6701 15.36H8.67005C8.11777 15.36 7.67005 15.8077 7.67005 16.36V18.36C7.67005 18.9123 8.11777 19.36 8.67005 19.36H9.75664C10.8763 21.0159 13.0285 22 15.335 22C19.4366 22 22.6701 18.7665 22.6701 14.665C22.6701 13.9977 22.5834 13.3505 22.4214 12.7331C22.7375 11.6593 22.8916 10.528 22.8652 9.39047C22.8652 9.39047 22.8652 9.39047 22.8652 9.39047C22.8652 9.39047 22.8652 9.39047 22.8652 9.39047Z"/>
+                    <path fillRule="evenodd" d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22ZM12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20Z" opacity="0.25"/>
+                    <path d="M12 2C6.47715 2 2 6.47715 2 12C2 11.1078 21.8846 10.2424 21.6686 9.41876C21.537 8.92539 20.9483 8.71436 20.5549 9.01834C20.1615 9.32232 19.9816 9.93292 20.1685 10.4188C20.3378 10.8596 20.4643 11.3219 20.5429 11.8C20.6266 12.3086 20.6701 12.8295 20.6701 13.36C20.6701 16.6619 18.332 19.36 15.335 19.36C13.8399 19.36 12.5025 18.5904 11.7566 17.36H14.6701C15.2224 17.36 15.6701 16.9123 15.6701 16.36C15.6701 15.8077 15.2224 15.36 14.6701 15.36H8.67005C8.11777 15.36 7.67005 15.8077 7.67005 16.36V18.36C7.67005 18.9123 8.11777 19.36 8.67005 19.36H9.75664C10.8763 21.0159 13.0285 22 15.335 22C19.4366 22 22.6701 18.7665 22.6701 14.665C22.6701 13.9977 22.5834 13.3505 22.4214 12.7331C22.7375 11.6593 22.8916 10.528 22.8652 9.39047C22.8652 9.39047 22.8652 9.39047 22.8652 9.39047C22.8652 9.39047 22.8652 9.39047 22.8652 9.39047Z"/>
                   </svg>
                   Adding Room...
                 </>

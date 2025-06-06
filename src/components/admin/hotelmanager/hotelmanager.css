@@ -76,6 +76,12 @@
   object-fit: cover;
 }
 
+.image-preview-container img {
+  max-height: 100px;
+  width: 100%;
+  object-fit: cover;
+}
+
 .added-by {
   font-style: italic;
   color: #555;

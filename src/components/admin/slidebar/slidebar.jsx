@@ -1,12 +1,20 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './slidebar.css';
 
 const Sidebar = ({ activeSection, handleNavClick }) => {
     const navigate = useNavigate();
+
     const Logout = () => {
+        localStorage.removeItem('activeSection');
         navigate('/admin');
     };
+
+    useEffect(() => {
+        // Save active section to localStorage when it changes
+        localStorage.setItem('activeSection', activeSection);
+    }, [activeSection]);
+
     return (
         <aside className="sidebar">
             <div>

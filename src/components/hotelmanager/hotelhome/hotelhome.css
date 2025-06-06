@@ -16,11 +16,11 @@ body {
 
 .other-section {
   min-height: 100vh;
-  background-color: #f8f9fa; /* Plain background for other pages */
+  background-color: #f8f9fa;
 }
 
 .main-content-container {
-  padding-top: 60px; /* Adjusted for fixed navbar height */
+  padding-top: 60px;
 }
 
 /* Home content styles */
@@ -44,12 +44,12 @@ body {
   height: 100%;
   object-fit: cover;
   transition: all 0.5s ease;
-  filter: brightness(0.8);
+  filter: brightness(0.7);
 }
 
 .hotel-image:hover {
   transform: scale(1.02);
-  filter: brightness(0.9);
+  filter: brightness(0.8);
 }
 
 .image-overlay {
@@ -58,59 +58,137 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 100%);
+  background: linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%);
   z-index: 1;
 }
 
-.welcome-message {
+/* Add these new animation styles */
+.welcome-container {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 800px;
+  z-index: 2;
+}
+
+.animate-from-top-right {
+  animation: slideFromTopRight 1s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes slideFromTopRight {
+
+  100% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+}
+
+/* Keep all your existing styles, just replace the animation */
+.welcome-box {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   text-align: center;
   color: white;
-  z-index: 2;
-  width: 80%;
-  max-width: 800px;
+  transition: all 0.3s ease;
+  /* Remove the old animation property */
 }
 
-.welcome-message h1 {
-  font-size: 3.5rem;
-  margin-bottom: 1rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  animation: fadeIn 1.5s ease-in-out;
+/* Rest of your existing CSS remains the same */
+
+.welcome-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
 }
 
-.welcome-message p {
-  font-size: 1.5rem;
+.welcome-box h1 {
+  font-size: 2.8rem;
+  margin-bottom: 1.2rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.welcome-box p {
+  font-size: 1.3rem;
   margin-bottom: 2rem;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-  animation: fadeIn 2s ease-in-out;
+  line-height: 1.6;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* Animation */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+.welcome-features {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  margin-top: 2rem;
 }
+
+.feature-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0.5rem 1rem;
+  padding: 1rem;
+  min-width: 120px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.feature-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Animations */
+
 
 /* Responsive styles */
 @media (max-width: 768px) {
-  .welcome-message h1 {
-    font-size: 2.5rem;
+  .welcome-box {
+    padding: 1.8rem;
   }
   
-  .welcome-message p {
-    font-size: 1.2rem;
+  .welcome-box h1 {
+    font-size: 2.2rem;
+  }
+  
+  .welcome-box p {
+    font-size: 1.1rem;
+  }
+  
+  .welcome-features {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .feature-item {
+    margin: 0.5rem 0;
+    width: 80%;
   }
 }
 
 @media (max-width: 576px) {
-  .welcome-message h1 {
-    font-size: 2rem;
+  .welcome-box h1 {
+    font-size: 1.8rem;
   }
   
-  .welcome-message p {
+  .welcome-box p {
     font-size: 1rem;
+  }
+  
+  .welcome-box {
+    padding: 1.5rem;
+    border-radius: 15px;
   }
 }
