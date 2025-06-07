@@ -87,7 +87,6 @@ const ViewFood = () => {
       <Header />
       <div className="container my-5">
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <h1>Food Menu</h1>
           <button
             className="btn btn-primary"
             onClick={() => navigate("/addfood")}
