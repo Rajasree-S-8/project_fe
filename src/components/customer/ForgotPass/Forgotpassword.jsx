@@ -45,9 +45,19 @@ const Forgotpassword = ({ show, onHide }) => {
 
   return (
     <Modal show={show} onHide={onHide} centered size="lg">
-      <Modal.Header closeButton>
+      <Modal.Header >
         <Modal.Title>Reset Password</Modal.Title>
+        <button 
+      type="button" 
+      className="btn-close-custom" 
+      onClick={onHide}
+      aria-label="Close"
+      style={{ background: 'rgb(235, 26, 22)', border: 'none', fontSize: '1.3rem', color: '#000' }}
+    >
+      ✕
+    </button>
       </Modal.Header>
+      {/* closeButton */}
       <Modal.Body>
         {submitted ? (
           <Alert variant="success" className="text-center">
@@ -57,7 +67,7 @@ const Forgotpassword = ({ show, onHide }) => {
           <>
             <p className="mb-4 text-center">Enter your details to reset your password.</p>
             <Form onSubmit={handleSubmit} className="px-3">
-              <FloatingLabel controlId="username" label="Username" className="mb-3">
+              <FloatingLabel controlId="username" className="mb-3">
                 <InputGroup>
                   <InputGroup.Text style={{ width: '40px' }}>
                     <FontAwesomeIcon icon={faUser} />
@@ -75,7 +85,7 @@ const Forgotpassword = ({ show, onHide }) => {
                 {errors.username && <Form.Text className="text-danger">{errors.username}</Form.Text>}
               </FloatingLabel>
 
-              <FloatingLabel controlId="email" label="Email" className="mb-3">
+              <FloatingLabel controlId="email" className="mb-3">
                 <InputGroup>
                   <InputGroup.Text style={{ width: '40px' }}>
                     <FontAwesomeIcon icon={faEnvelope} />
@@ -93,7 +103,7 @@ const Forgotpassword = ({ show, onHide }) => {
                 {errors.email && <Form.Text className="text-danger">{errors.email}</Form.Text>}
               </FloatingLabel>
 
-              <FloatingLabel controlId="phone" label="Phone Number" className="mb-3">
+              <FloatingLabel controlId="phone" className="mb-3">
                 <InputGroup>
                   <InputGroup.Text style={{ width: '40px' }}>
                     <FontAwesomeIcon icon={faPhone} />
@@ -111,7 +121,7 @@ const Forgotpassword = ({ show, onHide }) => {
                 {errors.phone && <Form.Text className="text-danger">{errors.phone}</Form.Text>}
               </FloatingLabel>
 
-              <FloatingLabel controlId="newPassword" label="New Password" className="mb-3">
+              <FloatingLabel controlId="newPassword" className="mb-3">
                 <InputGroup>
                   <InputGroup.Text style={{ width: '40px' }}>
                     <FontAwesomeIcon icon={faLock} />
@@ -129,7 +139,7 @@ const Forgotpassword = ({ show, onHide }) => {
                 {errors.newPassword && <Form.Text className="text-danger">{errors.newPassword}</Form.Text>}
               </FloatingLabel>
 
-              <FloatingLabel controlId="confirmPassword" label="Confirm Password" className="mb-4">
+              <FloatingLabel controlId="confirmPassword" className="mb-4">
                 <InputGroup>
                   <InputGroup.Text style={{ width: '40px' }}>
                     <FontAwesomeIcon icon={faLock} />
