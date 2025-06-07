@@ -16,6 +16,9 @@ function Header() {
   const gotHotelManager = () => {
     navigate('/hotelogin');
   };
+  const gotRestaurantManager = () => {
+    navigate('/Restaurantlog');
+  }
 
   return (
     <header>
@@ -77,7 +80,7 @@ function Header() {
                 </a>
               </li>
               <li>
-                <a className="dropdown-item" href="/restaurant-manager-login">
+                <a className="dropdown-item" onClick={gotRestaurantManager}>
                   <i className="fas fa-utensils icon-restaurant"></i> Restaurant Manager
                 </a>
               </li>

@@ -8,12 +8,14 @@ import Hotellogin from "./components/hotelmanager/hotelogin/hotelogin";
 import Hotelhome from "./components/hotelmanager/hotelhome/hotelhome";
 import Customerreg from "./components/customer/CustomerRegister/Customerreg";
 import Customerlogin from "./components/customer/CustomerLogin/Customerlogin";
-// import Login from "./components/Restaurantmanager/login/Login.jsx";
-// import HomePage from "./components/Restaurantmanager/homepage/HomePage.jsx";
-// import AddFood from "./components/Restaurantmanager/addfood/AddFood.jsx";
-// import EditFood from "./components/Restaurantmanager/addfood/EditFood.jsx";
+import Customerhome from "./components/customer/CustomerHome/Customerhome";
+import Restaurantlog from "./components/Restaurantmanager/login/Login.jsx";
+import RestaurantHomePage from "./components/Restaurantmanager/homepage/HomePage.jsx";
+import Profile from "./components/Restaurantmanager/profile/profile.jsx";
+import AddFood from "./components/Restaurantmanager/addfood/AddFood.jsx";
+import EditFood from "./components/Restaurantmanager/addfood/EditFood.jsx";
 
-// import ViewFood from "./components/Restaurantmanager/viewfood/ViewFood.jsx";
+import ViewFood from "./components/Restaurantmanager/viewfood/ViewFood.jsx";
 
 // import ViewOrders from "./components/Restaurantmanager/viewfood/ViewOrders.jsx";
 
@@ -30,6 +32,15 @@ function App() {
           <Route path="/hotelhome" element={<Hotelhome/>} />
           <Route path='/custlog' element={<Customerlogin/>} />
           <Route path='/custreg' element={<Customerreg/>} />
+          <Route path='/custhome' element={<Customerhome/>} />
+          <Route path="restaurantlog" element={<Restaurantlog/>}></Route>
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/restauranthome" element={<RestaurantHomePage/>}></Route>
+          <Route path="/addfood" element={<AddFood />} />
+          <Route path="/edit-food/:id" element={<EditFood />} />
+          <Route path="/viewfood" element={<ViewFood/>} />
+
+
         </Routes>
       </Router>
         <Router>

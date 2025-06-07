@@ -1,5 +1,5 @@
 .add-food-page {
-  background: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)), 
+  background: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)),
               url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
   background-size: cover;
   background-attachment: fixed;
@@ -42,4 +42,11 @@
 .form-check-input:checked {
   background-color: #4dabf7;
   border-color: #4dabf7;
+}
+
+.img-thumbnail {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
 }

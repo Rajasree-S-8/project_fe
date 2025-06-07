@@ -89,12 +89,22 @@ const Customerreg = () => {
 
           <div className="d-flex justify-content-center mb-4">
             <div style={{ position: 'relative', width: '100px', height: '100px' }}>
-              <Card.Img 
-                variant="top" 
-                src={imagePreview || "https://via.placeholder.com/100"} 
-                className="rounded-circle border border-primary border-3"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
+              
+                <Card.Img 
+                  variant="top" 
+                  as="div" // Render as div since we're using an icon
+                  className="rounded-circle border border-primary border-3 d-flex align-items-center justify-content-center"
+                  style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    backgroundColor: '#f8f9fa', // Light background for the icon
+                    fontSize: '3rem', // Adjust icon size
+                    color: '#6c757d' // Icon color
+                  }}
+                >
+                  <i className="bi bi-person-fill"></i> {/* Bootstrap Icons person icon */}
+                </Card.Img>
+
               <Form.Control
                 type="file"
                 accept="image/*"
@@ -110,9 +120,9 @@ const Customerreg = () => {
                 style={{ 
                   bottom: '0', 
                   right: '0', 
-                  width: '30px', 
-                  height: '30px',
-                  fontSize: '0.8rem'
+                  width: '40px', 
+                  height: '35px',
+                  fontSize: '1.5rem'
                 }}
               >
                 <FontAwesomeIcon icon={faCamera} />
@@ -121,7 +131,7 @@ const Customerreg = () => {
           </div>
 
           <Form onSubmit={handleSubmit}>
-            <FloatingLabel controlId="username" label="Username" className="mb-3">
+            <FloatingLabel controlId="username" className="mb-3">
               <InputGroup>
                 <InputGroup.Text style={{ width: '40px' }}>
                   <FontAwesomeIcon icon={faUser} />
@@ -140,7 +150,7 @@ const Customerreg = () => {
             </FloatingLabel>
 
             {/* Repeat similar structure for other fields */}
-            <FloatingLabel controlId="fullName" label="Full Name" className="mb-3">
+            <FloatingLabel controlId="fullName" className="mb-3">
               <InputGroup>
                 <InputGroup.Text style={{ width: '40px' }}>
                   <FontAwesomeIcon icon={faUser} />
@@ -158,7 +168,7 @@ const Customerreg = () => {
               {errors.fullName && <Form.Text className="text-danger">{errors.fullName}</Form.Text>}
             </FloatingLabel>
 
-            <FloatingLabel controlId="email" label="Email" className="mb-3">
+            <FloatingLabel controlId="email" className="mb-3">
               <InputGroup>
                 <InputGroup.Text style={{ width: '40px' }}>
                   <FontAwesomeIcon icon={faEnvelope} />
@@ -176,7 +186,39 @@ const Customerreg = () => {
               {errors.email && <Form.Text className="text-danger">{errors.email}</Form.Text>}
             </FloatingLabel>
 
-            <FloatingLabel controlId="password" label="Password" className="mb-3">
+            <FloatingLabel controlId="phone" className="mb-3">
+              <InputGroup>
+                <InputGroup.Text style={{ width: '40px' }}>
+                  <FontAwesomeIcon icon={faPhone} />
+                </InputGroup.Text>
+                <Form.Control
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="Phone Number"
+                  style={{ paddingLeft: '10px' }}
+                />
+              </InputGroup>
+            </FloatingLabel>
+
+            <FloatingLabel controlId="address" className="mb-3">
+              <InputGroup>
+                <InputGroup.Text style={{ width: '40px' }}>
+                  <FontAwesomeIcon icon={faMapMarkerAlt} />
+                </InputGroup.Text>
+                <Form.Control
+                  type="text"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  placeholder="Address"
+                  style={{ paddingLeft: '10px' }}
+                />
+              </InputGroup>
+            </FloatingLabel>
+
+            <FloatingLabel controlId="password" className="mb-3">
               <InputGroup>
                 <InputGroup.Text style={{ width: '40px' }}>
                   <FontAwesomeIcon icon={faLock} />
@@ -194,7 +236,7 @@ const Customerreg = () => {
               {errors.password && <Form.Text className="text-danger">{errors.password}</Form.Text>}
             </FloatingLabel>
 
-            <FloatingLabel controlId="confirmPassword" label="Confirm Password" className="mb-3">
+            <FloatingLabel controlId="confirmPassword" className="mb-3">
               <InputGroup>
                 <InputGroup.Text style={{ width: '40px' }}>
                   <FontAwesomeIcon icon={faLock} />
@@ -210,38 +252,6 @@ const Customerreg = () => {
                 />
               </InputGroup>
               {errors.confirmPassword && <Form.Text className="text-danger">{errors.confirmPassword}</Form.Text>}
-            </FloatingLabel>
-
-            <FloatingLabel controlId="phone" label="Phone Number" className="mb-3">
-              <InputGroup>
-                <InputGroup.Text style={{ width: '40px' }}>
-                  <FontAwesomeIcon icon={faPhone} />
-                </InputGroup.Text>
-                <Form.Control
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="Phone Number"
-                  style={{ paddingLeft: '10px' }}
-                />
-              </InputGroup>
-            </FloatingLabel>
-
-            <FloatingLabel controlId="address" label="Address" className="mb-3">
-              <InputGroup>
-                <InputGroup.Text style={{ width: '40px' }}>
-                  <FontAwesomeIcon icon={faMapMarkerAlt} />
-                </InputGroup.Text>
-                <Form.Control
-                  type="text"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  placeholder="Address"
-                  style={{ paddingLeft: '10px' }}
-                />
-              </InputGroup>
             </FloatingLabel>
 
             <Form.Group className="mb-4">

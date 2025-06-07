@@ -1,0 +1,69 @@
+
+.food-orders {
+  min-height: 100vh;
+  background: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)),
+              url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+  background-size: cover;
+  background-attachment: fixed;
+  padding-top: 70px;
+}
+
+.card {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 1.5rem;
+}
+
+.food-card {
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.food-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+.card-img-top {
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.card-text {
+  font-size: 1.1rem;
+}
+
+.pagination .page-link {
+  border-radius: 5px;
+  margin: 0 3px;
+  color: #4dabf7;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #4dabf7;
+  border-color: #4dabf7;
+  color: white;
+}
+
+.pagination .page-item.disabled .page-link {
+  color: #6c757d;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .card-title {
+    font-size: 1.1rem;
+  }
+
+  .card-text {
+    font-size: 1rem;
+  }
+}

@@ -6,16 +6,21 @@ import "./Header.css";
 function Header() {
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = React.useState(false);
+  const restaurantManager = JSON.parse(localStorage.getItem("restaurantManager"));
 
   const handleLogout = () => {
-    // Add logout logic here
-    navigate('/login');
+    localStorage.removeItem("restaurantManager");
+    navigate("/restaurantlog");
   };
+
+  // Get the first letter of the username
+  const usernameInitial = restaurantManager?.username ? 
+    restaurantManager.username.charAt(0).toUpperCase() : '';
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
       <div className="container">
-        <a className="navbar-brand fw-bold" href="#" onClick={() => navigate('/home')}>
+        <a className="navbar-brand fw-bold" href="#" onClick={() => navigate('/restauranthome')}>
           <span className="text-warning">Revzz</span> Hotel
         </a>
         <button
@@ -29,7 +34,7 @@ function Header() {
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav ms-auto">
             <li className="nav-item">
-              <NavLink className="nav-link" onClick={() => navigate('/home')}>
+              <NavLink className="nav-link" onClick={() => navigate('/restauranthome')}>
                 <i className="fas fa-home me-1"></i> Home
               </NavLink>
             </li>
@@ -50,10 +55,20 @@ function Header() {
             </li>
             <li className="nav-item dropdown">
               <NavLink 
-                className="nav-link dropdown-toggle" 
+                className="nav-link dropdown-toggle d-flex align-items-center" 
                 onClick={() => setShowDropdown(!showDropdown)}
               >
-                <i className="fas fa-user-circle me-1"></i> Profile
+                <div className="profile-icon-container position-relative me-2">
+                  <i className="fas fa-user-circle fs-4"></i>
+                  {usernameInitial && (
+                    <span className="username-badge position-absolute top-0 start-100 translate-middle">
+                      {usernameInitial}
+                    </span>
+                  )}
+                </div>
+                <span className="d-none d-lg-inline">
+                  {restaurantManager?.username || "Profile"}
+                </span>
               </NavLink>
               <ul className={`dropdown-menu ${showDropdown ? 'show' : ''}`}>
                 <li><NavLink className="dropdown-item" onClick={() => navigate("/profile")}>
