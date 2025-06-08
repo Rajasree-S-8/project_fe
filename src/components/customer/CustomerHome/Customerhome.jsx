@@ -1,27 +1,12 @@
-import React from 'react';
-import { Navbar, Nav, Button, Container, Card } from 'react-bootstrap';
+import { Button, Container, Card } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import CustHeader from '../header/CustHeader';
 
 const Customerhome = ({ customerName }) => {
     const navigate = useNavigate();
   return (
     <>
-      {/* Navigation Bar (unchanged) */}
-      <Navbar bg="dark" variant="dark" expand="lg" sticky="top">
-        <Container>
-          <Navbar.Brand>Welcome {customerName}, to Revzz Hotel</Navbar.Brand>
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
-          <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="ms-auto">
-              <Nav.Link><Button variant="outline-light" onClick={()=>navigate("/custhome")}>Home</Button></Nav.Link>
-              <Nav.Link><Button variant="outline-light">Rooms</Button></Nav.Link>
-              <Nav.Link><Button variant="outline-light">Food</Button></Nav.Link>
-              <Nav.Link><Button variant="outline-light">My Bookings</Button></Nav.Link>
-              <Nav.Link><Button variant="danger" onClick={()=>navigate("/")}><i className='bi bi-box-arrow-left'>Logout</i></Button></Nav.Link>
-            </Nav>
-          </Navbar.Collapse>
-        </Container>
-      </Navbar>
+      <CustHeader/>
 
       {/* Hero Section - Replaces Jumbotron */}
       <div 
@@ -42,10 +27,10 @@ const Customerhome = ({ customerName }) => {
               <Card.Title as="h1" style={{ textShadow: '2px 2px 4px #000000' }}>
                 Experience Luxury
               </Card.Title>
-              <Button variant="primary" size="lg" className="m-2">
+              <Button variant="primary" size="lg" className="m-2" onClick={() => navigate('/custroom')}>
                 Explore Hotel
               </Button>
-              <Button variant="success" size="lg" className="m-2">
+              <Button variant="success" size="lg" className="m-2" onClick={() => navigate('/custfood')}>
                 Explore Restaurant
               </Button>
             </Card.Body>
