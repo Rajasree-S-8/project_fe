@@ -105,7 +105,7 @@ const Customerroom = () => {
                     <Card.Body className="d-flex flex-column">
                       <Card.Title>Room {room.roomNumber || room.name}</Card.Title>
                       <Card.Subtitle className="mb-2 text-muted">
-                        ${room.price.toFixed(2)} per night
+                        ₹{room.price.toFixed(2)} per day
                       </Card.Subtitle>
                       <Card.Text className="flex-grow-1">
                         {room.roomType || 'Comfortable room'}
@@ -158,7 +158,7 @@ const Customerroom = () => {
                   </Carousel.Item>
                 </Carousel>
                 
-                <h4>${selectedRoom.price.toFixed(2)} per night</h4>
+                <h4>₹{selectedRoom.price.toFixed(2)} per day</h4>
                 <p><strong>Type:</strong> {selectedRoom.roomType}</p>
                 <p><strong>AC Type:</strong> {selectedRoom.acType}</p>
                 

@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { Form, Button, Alert, Card, FloatingLabel, InputGroup } from 'react-bootstrap';
 import { faUser, faEnvelope, faLock, faPhone, faMapMarkerAlt, faCamera } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Customerreg = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
     fullName: '',
@@ -50,7 +51,13 @@ const Customerreg = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Validate form data
+    const navigate = useNavigate();
+    navigate('/custlog', {
+      state: { customerName: formData.fullName }
+    });    
     const validationErrors = validate();
+    // If there are validation errors, set them and do not submit
     if (Object.keys(validationErrors).length > 0) return setErrors(validationErrors);
     
     setErrors({});
