@@ -60,7 +60,7 @@ const Customerfood = () => {
   return (
     <>
       <CustHeader />
-
+      <br /><br />
       <Container
         className="py-4"
         style={{
@@ -129,7 +129,7 @@ const Customerfood = () => {
                     <Card.Body className="d-flex flex-column">
                       <Card.Title>{item.name}</Card.Title>
                       <Card.Subtitle className="mb-2 text-muted">
-                        ${item.price.toFixed(2)}
+                        ₹{item.price.toFixed(2)}
                       </Card.Subtitle>
                       <Card.Text className="flex-grow-1">
                         {item.description?.substring(0, 60)}...
@@ -171,8 +171,16 @@ const Customerfood = () => {
           {/* Item Details Modal */}
           {selectedItem && (
             <Modal show={showDetails} onHide={() => setShowDetails(false)} centered>
-              <Modal.Header closeButton>
+              <Modal.Header>
                 <Modal.Title>{selectedItem.name}</Modal.Title>
+                <button
+                  type="button" 
+                  className="btn-close-custom" 
+                  onClick={() => setShowDetails(false)}
+                  aria-label="Close"
+                >
+                  ✕
+                </button>
               </Modal.Header>
               <Modal.Body>
                 <img 
@@ -187,7 +195,7 @@ const Customerfood = () => {
                     <p>{selectedItem.recipe}</p>
                   </>
                 )}
-                <h4 className="text-primary">${selectedItem.price.toFixed(2)}</h4>
+                <h4 className="text-primary">₹{selectedItem.price.toFixed(2)}</h4>
               </Modal.Body>
               <Modal.Footer>
                 <Button variant="secondary" onClick={() => setShowDetails(false)}>

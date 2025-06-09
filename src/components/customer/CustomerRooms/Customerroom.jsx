@@ -52,7 +52,7 @@ const Customerroom = () => {
   return (
     <>
       <CustHeader />
-
+      <br /><br />
       <Container
         className="py-4"
         style={{
@@ -105,7 +105,7 @@ const Customerroom = () => {
                     <Card.Body className="d-flex flex-column">
                       <Card.Title>Room {room.roomNumber || room.name}</Card.Title>
                       <Card.Subtitle className="mb-2 text-muted">
-                        ${room.price.toFixed(2)} per night
+                        ₹{room.price.toFixed(2)} per day
                       </Card.Subtitle>
                       <Card.Text className="flex-grow-1">
                         {room.roomType || 'Comfortable room'}
@@ -135,8 +135,16 @@ const Customerroom = () => {
           {/* Room Details Modal */}
           {selectedRoom && (
             <Modal show={showDetails} onHide={() => setShowDetails(false)} size="lg" centered>
-              <Modal.Header closeButton>
+              <Modal.Header>
                 <Modal.Title>Room {selectedRoom.roomNumber || selectedRoom.name}</Modal.Title>
+                <button
+                  type="button" 
+                  className="btn-close-custom" 
+                  onClick={() => setShowDetails(false)}
+                  aria-label="Close"
+                >
+                  ✕
+                </button>
               </Modal.Header>
               <Modal.Body>
                 <Carousel className="mb-4">
@@ -150,7 +158,7 @@ const Customerroom = () => {
                   </Carousel.Item>
                 </Carousel>
                 
-                <h4>${selectedRoom.price.toFixed(2)} per night</h4>
+                <h4>₹{selectedRoom.price.toFixed(2)} per day</h4>
                 <p><strong>Type:</strong> {selectedRoom.roomType}</p>
                 <p><strong>AC Type:</strong> {selectedRoom.acType}</p>
                 
@@ -162,7 +170,7 @@ const Customerroom = () => {
                 )}
               </Modal.Body>
               <Modal.Footer>
-                <Button variant="secondary" onClick={() => setShowDetails(false)}>
+                <Button variant="secondary"  onClick={() => setShowDetails(false)}>
                   Close
                 </Button>
                 <Button variant="primary" onClick={handleBookNow}>
