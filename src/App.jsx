@@ -9,9 +9,8 @@ import Hotelhome from "./components/hotelmanager/hotelhome/hotelhome";
 import Customerreg from "./components/customer/CustomerRegister/Customerreg";
 import Customerlogin from "./components/customer/CustomerLogin/Customerlogin";
 import Customerhome from "./components/customer/CustomerHome/Customerhome";
-import Customerroom from "./components/customer/CustomerRooms/CustomerRoom";
-import Customerfood from "./components/customer/CustomerFood/CustomerFood";
-
+import Customerroom from "./components/customer/CustomerRooms/Customerroom";
+import Customerfood from "./components/customer/CustomerFood/Customerfood";
 
 function App() {
   return (

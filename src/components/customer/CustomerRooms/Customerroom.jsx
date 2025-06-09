@@ -135,8 +135,16 @@ const Customerroom = () => {
           {/* Room Details Modal */}
           {selectedRoom && (
             <Modal show={showDetails} onHide={() => setShowDetails(false)} size="lg" centered>
-              <Modal.Header closeButton>
+              <Modal.Header>
                 <Modal.Title>Room {selectedRoom.roomNumber || selectedRoom.name}</Modal.Title>
+                <button
+                  type="button" 
+                  className="btn-close-custom" 
+                  onClick={() => setShowDetails(false)}
+                  aria-label="Close"
+                >
+                  ✕
+                </button>
               </Modal.Header>
               <Modal.Body>
                 <Carousel className="mb-4">
