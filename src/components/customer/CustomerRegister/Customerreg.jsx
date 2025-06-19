@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Form, Button, Alert, Card, FloatingLabel, InputGroup } from 'react-bootstrap';
-import { faUser, faEnvelope, faLock, faPhone, faMapMarkerAlt, faCamera } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faEnvelope, faLock, faPhone, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Customerreg = () => {
   const navigate = useNavigate();
@@ -13,26 +14,14 @@ const Customerreg = () => {
     password: '',
     confirmPassword: '',
     phone: '',
-    address: '',
-    profileImage: null
+    address: ''
   });
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
-  const [imagePreview, setImagePreview] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData({ ...formData, profileImage: file });
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result);
-      reader.readAsDataURL(file);
-    }
   };
 
   const validate = () => {
@@ -49,20 +38,31 @@ const Customerreg = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Validate form data
-    const navigate = useNavigate();
-    navigate('/custlog', {
-      state: { customerName: formData.fullName }
-    });    
     const validationErrors = validate();
-    // If there are validation errors, set them and do not submit
-    if (Object.keys(validationErrors).length > 0) return setErrors(validationErrors);
-    
-    setErrors({});
-    setSubmitted(true);
-    console.log('Registration submitted:', formData);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    try {
+      await axios.post('http://localhost:5050/api/customers/register', {
+        username: formData.username,
+        fullName: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone,
+        address: formData.address
+      });
+      setErrors({});
+      setSubmitted(true);
+      setTimeout(() => {
+        navigate('/custlog', { state: { customerName: formData.fullName } });
+      }, 2000); // Navigate after showing success message
+    } catch (error) {
+      setErrors({ api: error.response?.data || 'Registration failed. Please try again.' });
+    }
   };
 
   return (
@@ -89,53 +89,13 @@ const Customerreg = () => {
       <Card className="p-4 border-0 shadow" style={{ maxWidth: '500px', width: '100%', zIndex: 2 }}>
         <Card.Body>
           <h2 className="text-center mb-4">Create Account</h2>
-          
+
           {submitted && <Alert variant="success" dismissible onClose={() => setSubmitted(false)}>
-            Registration successful! You can now login.
+            Registration successful! Redirecting to login...
           </Alert>}
-
-          <div className="d-flex justify-content-center mb-4">
-            <div style={{ position: 'relative', width: '100px', height: '100px' }}>
-              
-                <Card.Img 
-                  variant="top" 
-                  as="div" // Render as div since we're using an icon
-                  className="rounded-circle border border-primary border-3 d-flex align-items-center justify-content-center"
-                  style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    backgroundColor: '#f8f9fa', // Light background for the icon
-                    fontSize: '3rem', // Adjust icon size
-                    color: '#6c757d' // Icon color
-                  }}
-                >
-                  <i className="bi bi-person-fill"></i> {/* Bootstrap Icons person icon */}
-                </Card.Img>
-
-              <Form.Control
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="d-none"
-                id="profileImage"
-              />
-              <Button 
-                as="label"
-                htmlFor="profileImage"
-                variant="primary"
-                className="rounded-circle position-absolute p-0"
-                style={{ 
-                  bottom: '0', 
-                  right: '0', 
-                  width: '40px', 
-                  height: '35px',
-                  fontSize: '1.5rem'
-                }}
-              >
-                <FontAwesomeIcon icon={faCamera} />
-              </Button>
-            </div>
-          </div>
+          {errors.api && <Alert variant="danger" dismissible onClose={() => setErrors({})}>
+            {errors.api}
+          </Alert>}
 
           <Form onSubmit={handleSubmit}>
             <FloatingLabel controlId="username" className="mb-3">
@@ -156,7 +116,6 @@ const Customerreg = () => {
               {errors.username && <Form.Text className="text-danger">{errors.username}</Form.Text>}
             </FloatingLabel>
 
-            {/* Repeat similar structure for other fields */}
             <FloatingLabel controlId="fullName" className="mb-3">
               <InputGroup>
                 <InputGroup.Text style={{ width: '40px' }}>
