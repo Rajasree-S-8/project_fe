@@ -4,6 +4,7 @@ import { faUser, faLock } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Link, useNavigate } from 'react-router-dom';
 import Forgotpassword from '../ForgotPass/Forgotpassword';
+import Header from '../../header/header';
 
 const Customerlogin = () => {
 
@@ -45,6 +46,7 @@ const Customerlogin = () => {
 
   return (
     <>
+      <Header/>
       <div style={{
         backgroundImage: 'url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80")',
         backgroundSize: 'cover',
