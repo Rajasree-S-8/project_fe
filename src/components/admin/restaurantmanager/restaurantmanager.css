@@ -1,4 +1,3 @@
-```css
 .restaurant-manager {
   min-height: 100vh;
   background: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)),
@@ -50,6 +49,11 @@
   color: white;
 }
 
+.btn-danger:hover {
+  background-color: #c82333;
+  color: white;
+}
+
 .pagination .page-link {
   border-radius: 5px;
   margin: 0 3px;
@@ -60,8 +64,49 @@
   border-color: #4dabf7;
 }
 
-.dropdown-toggle {
+/* Scoped dropdown styling */
+.restaurant-manager .dropdown-toggle {
   border-radius: 8px;
+  background-color: #212529; /* Black background */
+  border: 1px solid #343a40; /* Darker border */
+  color: #ffffff; /* White text */
+  transition: all 0.3s;
+  padding: 8px 12px; /* Consistent padding */
+}
+
+.restaurant-manager .dropdown-toggle:hover {
+  background-color: #343a40; /* Slightly lighter black on hover */
+  border-color: #495057;
+  color: #ffffff;
+}
+
+.restaurant-manager .dropdown-toggle:focus,
+.restaurant-manager .dropdown-toggle:active {
+  background-color: #495057 !important; /* Lighter black when active */
+  color: #ffffff !important;
+  border-color: #495057 !important;
+  box-shadow: 0 0 0 0.2rem rgba(73, 80, 87, 0.25);
+}
+
+.restaurant-manager .dropdown-menu {
+  border-radius: 8px;
+  border: 1px solid #343a40;
+  background-color: #212529; /* Black background */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  margin-top: 4px;
+  min-width: 100%;
+}
+
+.restaurant-manager .dropdown-item {
+  color: #ffffff; /* White text */
+  padding: 8px 16px;
+  transition: all 0.2s;
+}
+
+.restaurant-manager .dropdown-item:hover,
+.restaurant-manager .dropdown-item:focus {
+  background-color: #495057; /* Lighter black on hover */
+  color: #ffffff;
 }
 
 /* Modal styling */

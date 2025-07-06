@@ -1,12 +1,27 @@
-/* Add these styles to your Header.css */
+/* Icon color styles */
+.navbar-nav .nav-link i {
+  color: #ffc107; /* Yellow color for icons in nav links (Home, Add Food, View Menu, Orders) */
+  margin-right: 5px;
+}
+
+.dropdown-item i {
+  color: #17a2b8; /* Cyan color for icons in dropdown (My Profile, Logout) */
+  margin-right: 8px;
+}
+
+.profile-icon-container i {
+  color: #ffffff; /* White color for the profile icon */
+}
+
+/* Profile icon container */
 .profile-icon-container {
   position: relative;
   display: inline-block;
 }
 
 .username-badge {
-  background-color: #ffc107;
-  color: #212529;
+  background-color: #ffc107; /* Yellow background for username badge */
+  color: #212529; /* Dark text for contrast */
   border-radius: 50%;
   width: 20px;
   height: 20px;
@@ -64,6 +79,10 @@
   color: #ffc107 !important;
 }
 
+.nav-link:hover i {
+  color: #ffffff !important; /* White color for icons on hover */
+}
+
 .dropdown-menu {
   border: none;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
@@ -79,6 +98,10 @@
 .dropdown-item:hover {
   background-color: #f8f9fa;
   color: #212529;
+}
+
+.dropdown-item:hover i {
+  color: #ffc107; /* Yellow color for dropdown icons on hover */
 }
 
 .dropdown-item i {

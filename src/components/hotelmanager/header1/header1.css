@@ -1,8 +1,7 @@
-/* NAVBAR STYLES */
 .navbar {
   padding: 0.8rem 1rem;
   box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
-  background: linear-gradient(135deg, #1a2a3a 0%, #0d1b28 100%) !important;
+  background: linear-gradient(135deg, #080809 0%, #0d1b28 100%) !important;
   height: 60px;
   position: fixed;
   width: 100%;
@@ -34,7 +33,7 @@
 .navbar-brand i {
   font-size: 1.6rem;
   color: #4ecdc4;
-  margin-right: 8px;
+  margin-right: 16px; /* Increased from 8px to 16px for more space */
   transition: all 0.3s ease;
 }
 
@@ -76,42 +75,21 @@
   transition: all 0.3s ease;
 }
 
-/* ICON COLORS FOR NAV LINKS */
-.navbar .bi-house-door {
-  color: #4ecdc4; /* Teal - Home */
-}
+.navbar .bi-house-door { color: #4ecdc4; }
+.navbar .bi-plus-circle { color: #ff9f43; }
+.navbar .bi-door-closed { color: #ff6b6b; }
+.navbar .bi-people { color: #a55eea; }
+.navbar .bi-calendar-check { color: #2ecc71; }
+.navbar .bi-star-fill { color: #f1c40f; }
+.navbar .bi-person-circle { color: #3498db; }
 
-.navbar .bi-plus-circle {
-  color: #ff9f43; /* Orange - Add Room */
-}
-
-.navbar .bi-door-closed {
-  color: #ff6b6b; /* Red - View Rooms */
-}
-
-.navbar .bi-people {
-  color: #a55eea; /* Purple - View Customers */
-}
-
-.navbar .bi-calendar-check {
-  color: #2ecc71; /* Green - View Bookings */
-}
-
-.navbar .bi-star-fill {
-  color: #f1c40f; /* Yellow - Ratings & Reviews */
-}
-
-.navbar .bi-person-circle {
-  color: #3498db; /* Blue - Profile icon */
-}
-
-/* DROPDOWN MENU STYLES */
 .dropdown-menu {
   border: none;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   border-radius: 8px;
   padding: 0.5rem 0;
   background: #2c3e50;
+  left: -20px;
   margin-top: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -137,24 +115,11 @@
   font-size: 1.1rem;
 }
 
-/* ICON COLORS FOR DROPDOWN ITEMS */
-.dropdown-item .bi-person {
-  color: #4ecdc4;
-}
+.dropdown-item .bi-person { color: #4ecdc4; }
+.dropdown-item .bi-gear { color: #3498db; }
+.dropdown-item .bi-box-arrow-right { color: #ff6b6b; }
+.dropdown-item .bi-box-arrow-in-right { color: #2ecc71; }
 
-.dropdown-item .bi-gear {
-  color: #3498db;
-}
-
-.dropdown-item .bi-box-arrow-right {
-  color: #ff6b6b;
-}
-
-.dropdown-item .bi-box-arrow-in-right {
-  color: #2ecc71;
-}
-
-/* TOGGLER STYLES */
 .navbar-toggler {
   border: none;
   padding: 0.5rem;
@@ -171,7 +136,6 @@
   transition: all 0.3s ease;
 }
 
-/* USER PROFILE STYLES */
 .navbar .dropdown-toggle::after {
   vertical-align: 0.2em;
   margin-left: 8px;
@@ -183,7 +147,22 @@
   border-top-color: #fff;
 }
 
-/* RESPONSIVE STYLES */
+/* Style for the profile initial */
+.profile-initial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: #f1c40f; /* Yellow background */
+  color: #fff; /* White text for contrast */
+  border-radius: 50%; /* Circular shape */
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-right: 8px; /* Space between initial and username */
+}
+
 @media (max-width: 992px) {
   .navbar-collapse {
     background: linear-gradient(135deg, #1a2a3a 0%, #0d1b28 100%);
@@ -217,7 +196,6 @@
   }
 }
 
-/* SCROLL EFFECT */
 @media (min-width: 992px) {
   .navbar {
     padding: 0.5rem 1rem;
@@ -231,7 +209,6 @@
   }
 }
 
-/* ANIMATIONS */
 @keyframes fadeInDown {
   from {
     opacity: 0;

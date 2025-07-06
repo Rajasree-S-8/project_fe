@@ -1,3 +1,14 @@
+
+**Changes Made**:
+- Removed the "Add New Room" button from the `action-buttons` div.
+- Removed the `isAdding` state, `addForm` state, `handleAddSubmit` function, and the add modal JSX.
+- Kept the "Refresh" button and all other functionality (fetching rooms, filtering, pagination, view/edit/delete modals).
+- Ensured the `filters-container` and `action-buttons` divs remain in the JSX for layout consistency.
+
+### Updated `hotelmanager.css`
+The `action-buttons` div now contains only the "Refresh" button, so we’ll adjust the styling to ensure it aligns properly with the `filters-container`. The `success-message` style added previously for the add modal is no longer needed. Here’s the updated `hotelmanager.css`:
+
+```css
 #hotel-manager {
   padding: 1rem;
 }
@@ -6,11 +17,20 @@
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
+  align-items: center;
 }
 
 .filters-container select,
 .filters-container input {
   max-width: 200px;
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-end; /* Align single button to the right */
 }
 
 .rooms-grid {
@@ -90,9 +110,14 @@
 @media (max-width: 768px) {
   .filters-container {
     flex-direction: column;
+    align-items: stretch;
   }
   .filters-container select,
   .filters-container input {
     max-width: 100%;
+  }
+  .action-buttons {
+    justify-content: center;
+    margin-top: 1rem;
   }
 }

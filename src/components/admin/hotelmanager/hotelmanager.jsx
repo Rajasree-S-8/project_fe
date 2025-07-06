@@ -18,7 +18,7 @@ const HotelManager = ({ isActive }) => {
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const roomsPerPage = 6;
+  const roomsPerPage = 8;
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
 
@@ -60,32 +60,14 @@ const HotelManager = ({ isActive }) => {
   }, [searchTerm, rooms, statusFilter, typeFilter]);
 
   const fetchRooms = async () => {
-    const staffId = localStorage.getItem('staffId');
-    if (!staffId) {
-      setError('Please log in to access rooms.');
-      setLoading(false);
-      return;
-    }
-
     try {
-      const response = await fetch(`http://localhost:8080/api/rooms/all-rooms`, {
-        headers: {
-          'X-Staff-Id': staffId,
-        },
-      });
-
-      const contentType = response.headers.get('content-type');
-      let data;
-      if (contentType && contentType.includes('application/json')) {
-        data = await response.json();
-      } else {
-        data = await response.text();
-      }
-
+      const response = await fetch(`http://localhost:8080/api/rooms/all-rooms`);
+      
       if (!response.ok) {
-        throw new Error(`Failed to fetch rooms: ${typeof data === 'string' ? data : JSON.stringify(data)}`);
+        throw new Error(`Failed to fetch rooms: ${response.statusText}`);
       }
 
+      const data = await response.json();
       setRooms(data);
       if (data.length === 0) {
         setError('No rooms found in the system.');
@@ -102,13 +84,10 @@ const HotelManager = ({ isActive }) => {
     if (!window.confirm('Are you sure you want to delete this room?')) return;
 
     try {
-      const staffId = localStorage.getItem('staffId');
-      if (!staffId) throw new Error('Please log in to perform this action.');
-
       const response = await fetch(`http://localhost:8080/api/rooms/delete/${id}`, {
         method: 'DELETE',
         headers: {
-          'X-Staff-Id': staffId,
+          'X-Admin-Access': 'true', // Added admin access header
         },
       });
 
@@ -152,19 +131,14 @@ const HotelManager = ({ isActive }) => {
       return;
     }
 
-    const staffId = localStorage.getItem('staffId');
-    if (!staffId) {
-      setError('Please log in to perform this action.');
+    const price = parseFloat(editForm.price);
+    if (isNaN(price) || price < 0) {
+      setError('Please enter a valid price.');
       return;
     }
 
     if (!editForm.roomNumber || !editForm.roomType || !editForm.price) {
       setError('Please fill in all required fields.');
-      return;
-    }
-    const price = parseFloat(editForm.price);
-    if (isNaN(price) || price < 0) {
-      setError('Please enter a valid price.');
       return;
     }
 
@@ -173,7 +147,7 @@ const HotelManager = ({ isActive }) => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'X-Staff-Id': staffId,
+          'X-Admin-Access': 'true', // Added admin access header
         },
         body: JSON.stringify({
           roomNumber: editForm.roomNumber,
@@ -185,30 +159,12 @@ const HotelManager = ({ isActive }) => {
         }),
       });
 
-      const contentType = response.headers.get('content-type');
-      let updatedRoom;
-      if (contentType && contentType.includes('application/json')) {
-        updatedRoom = await response.json();
-      } else {
-        const errorData = await response.text();
-        if (!response.ok) {
-          throw new Error(`Failed to update room: ${errorData || response.statusText}`);
-        }
-        updatedRoom = {
-          ...selectedRoom,
-          roomNumber: editForm.roomNumber,
-          roomType: editForm.roomType,
-          price,
-          acType: editForm.acType,
-          isAvailable: editForm.isAvailable,
-          imageUrl: editForm.imageUrl,
-        };
-      }
-
       if (!response.ok) {
-        throw new Error(`Failed to update room: ${JSON.stringify(updatedRoom) || response.statusText}`);
+        const errorData = await response.text();
+        throw new Error(`Failed to update room: ${errorData || response.statusText}`);
       }
 
+      const updatedRoom = await response.json();
       setRooms(rooms.map((room) => (room.roomId === updatedRoom.roomId ? updatedRoom : room)));
       setIsEditing(false);
       setSelectedRoom(updatedRoom);
@@ -218,10 +174,13 @@ const HotelManager = ({ isActive }) => {
     }
   };
 
+  // Pagination logic
   const indexOfLastRoom = currentPage * roomsPerPage;
   const indexOfFirstRoom = indexOfLastRoom - roomsPerPage;
   const currentRooms = filteredRooms.slice(indexOfFirstRoom, indexOfLastRoom);
   const totalPages = Math.ceil(filteredRooms.length / roomsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
     <div id="hotel-manager" className={`mt-5 ${!isActive ? 'd-none' : ''}`}>
@@ -268,68 +227,81 @@ const HotelManager = ({ isActive }) => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
+              
               {currentRooms.length === 0 ? (
                 <div className="no-rooms-message alert alert-info">
-                  No rooms found. Add a room to get started!
+                  No rooms found matching your criteria.
                 </div>
+                
               ) : (
-                <div className="rooms-grid">
-                  {currentRooms.map((room) => (
-                    <div key={room.roomId} className="room-card card shadow-sm">
-                      <div className="room-image-container">
-                        {room.imageUrl ? (
-                          <img src={room.imageUrl} alt={`Room ${room.roomNumber}`} className="card-img-top" />
-                        ) : (
-                          <div className="no-image card-img-top">No Image</div>
-                        )}
-                      </div>
-                      <div className="card-body">
-                        <h5 className="card-title">Room {room.roomNumber}</h5>
-                        <p className="card-text">Type: {room.roomType}</p>
-                        <p className="card-text">Price: ₹{room.price.toFixed(2)}</p>
-                        <p className="card-text">Added by: {room.createdBy?.username || 'Unknown'}</p>
-                        <p className="card-text">
-                          Status:
-                          <span className={`status-badge ${room.isAvailable ? 'badge bg-success' : 'badge bg-danger'}`}>
-                            {room.isAvailable ? 'Available' : 'Booked'}
-                          </span>
-                        </p>
-                        <div className="room-actions d-flex gap-2">
-                          <button className="btn btn-primary btn-sm" onClick={() => handleView(room)}>View</button>
-                          <button className="btn btn-warning btn-sm" onClick={() => handleEdit(room)}>Edit</button>
-                          <button className="btn btn-danger btn-sm" onClick={() => handleDelete(room.roomId)}>Delete</button>
+                <>
+                  <div className="rooms-grid">
+                    {currentRooms.map((room) => (
+                      <div key={room.roomId} className="room-card card shadow-sm">
+                        <div className="room-image-container">
+                          {room.imageUrl ? (
+                            <img src={room.imageUrl} alt={`Room ${room.roomNumber}`} className="card-img-top" />
+                          ) : (
+                            <div className="no-image card-img-top">No Image</div>
+                          )}
+                        </div>
+                        <div className="card-body">
+                          <h5 className="card-title">Room {room.roomNumber}</h5>
+                          <p className="card-text">Type: {room.roomType}</p>
+                          <p className="card-text">Price: ₹{room.price.toFixed(2)}</p>
+                          <p className="card-text">Added by: {room.createdBy?.username || 'Unknown'}</p>
+                          <p className="card-text">
+                            Status:
+                            <span className={`status-badge ${room.isAvailable ? 'badge bg-success' : 'badge bg-danger'}`}>
+                              {room.isAvailable ? 'Available' : 'Booked'}
+                            </span>
+                          </p>
+                          <div className="room-actions d-flex gap-2">
+                            <button className="btn btn-primary btn-sm" onClick={() => handleView(room)}>View</button>
+                            <button className="btn btn-warning btn-sm" onClick={() => handleEdit(room)}>Edit</button>
+                            <button className="btn btn-danger btn-sm" onClick={() => handleDelete(room.roomId)}>Delete</button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {filteredRooms.length > roomsPerPage && (
-                <div className="pagination d-flex justify-content-center mt-4">
-                  <button
-                    className="btn btn-outline-primary me-2"
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                  >
-                    Previous
-                  </button>
-                  {Array.from({ length: totalPages }, (_, i) => (
-                    <button
-                      key={i + 1}
-                      className={`btn ${currentPage === i + 1 ? 'btn-primary' : 'btn-outline-primary'} me-2`}
-                      onClick={() => setCurrentPage(i + 1)}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
-                  <button
-                    className="btn btn-outline-primary"
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                  >
-                    Next
-                  </button>
-                </div>
+                    ))}
+                  </div>
+                  
+
+                  {filteredRooms.length > roomsPerPage && (
+                    <nav className="mt-4">
+                      <ul className="pagination justify-content-center">
+                        <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                          <button 
+                            className="page-link" 
+                            onClick={() => paginate(currentPage - 1)}
+                            disabled={currentPage === 1}
+                          >
+                            Previous
+                          </button>
+                        </li>
+                        {Array.from({ length: totalPages }, (_, i) => (
+                          <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                            <button 
+                              className="page-link" 
+                              onClick={() => paginate(i + 1)}
+                            >
+                              {i + 1}
+                            </button>
+                          </li>
+                        ))}
+                        <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                          <button 
+                            className="page-link" 
+                            onClick={() => paginate(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                          >
+                            Next
+                          </button>
+                        </li>
+                      </ul>
+                    </nav>
+                  )}
+                </>
               )}
             </>
           )}
@@ -346,7 +318,7 @@ const HotelManager = ({ isActive }) => {
               </div>
               <div className="modal-body">
                 {isEditing ? (
-                  <form onSubmit={handleEditSubmit}>
+                  <div>
                     <div className="row">
                       <div className="col-md-6 mb-3">
                         <label className="form-label">Room Number</label>
@@ -444,15 +416,15 @@ const HotelManager = ({ isActive }) => {
                       </div>
                     </div>
                     <div className="d-flex gap-2">
-                      <button type="submit" className="btn btn-primary">Save</button>
+                      <button type="button" className="btn btn-primary" onClick={handleEditSubmit}>Save</button>
                       <button type="button" className="btn btn-secondary" onClick={() => setIsEditing(false)}>Cancel</button>
                     </div>
-                  </form>
+                  </div>
                 ) : (
                   <div>
                     <p className="added-by">Added by: {selectedRoom.createdBy?.username || 'Unknown'}</p>
                     <div className="modal-image-container mb-3">
-                      {selectedRoom.imageUrl ? (
+                      {selectedRoom.imageUrl ?  (
                         <img src={selectedRoom.imageUrl} alt={`Room ${selectedRoom.roomNumber}`} className="img-fluid rounded" />
                       ) : (
                         <div className="no-image">No Image</div>

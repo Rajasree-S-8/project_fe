@@ -6,6 +6,7 @@ import Admin from "./components/admin/adminlog";
 import Adminlog from './components/admin/admin';
 import Hotellogin from "./components/hotelmanager/hotelogin/hotelogin";
 import Hotelhome from "./components/hotelmanager/hotelhome/hotelhome";
+
 import Customerreg from "./components/customer/CustomerRegister/Customerreg";
 import Customerlogin from "./components/customer/CustomerLogin/Customerlogin";
 import Customerhome from "./components/customer/CustomerHome/Customerhome";

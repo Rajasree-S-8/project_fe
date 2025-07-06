@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Table, Form, Pagination, Dropdown, Badge, Spinner, Alert, Modal, Button, FormControl, FormCheck } from 'react-bootstrap';
@@ -31,36 +30,35 @@ const RestaurantManager = ({ isActive }) => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewFood, setViewFood] = useState(null);
 
-  const restaurantManager = JSON.parse(localStorage.getItem('restaurantManager'));
+  // Delete modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteFoodId, setDeleteFoodId] = useState(null);
 
   useEffect(() => {
     const fetchFoodItems = async () => {
-      if (!restaurantManager?.staffId) {
-        setError('Please log in to view food items');
-        setLoading(false);
-        return;
-      }
-
       try {
         setLoading(true);
         const response = await axios.get('http://localhost:8080/api/food/', {
-          headers: { staffId: restaurantManager.staffId }
+          headers: {
+            'X-Admin-Access': 'true',
+          },
         });
         setFoodItems(response.data);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to fetch food items');
+        console.error('Fetch food items error:', err);
       } finally {
         setLoading(false);
       }
     };
-    fetchFoodItems();
-  }, []);
+    if (isActive) {
+      fetchFoodItems();
+    }
+  }, [isActive]);
 
   // Filter and search logic
   const filteredItems = foodItems.filter(item => {
-    const matchesSearch = 
-      (item.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false) || 
-      (item.staff?.username?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
+    const matchesSearch = item.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
     const matchesAvailability = 
       availabilityFilter === 'all' || 
       (availabilityFilter === 'available' && item.isAvailable) || 
@@ -70,14 +68,8 @@ const RestaurantManager = ({ isActive }) => {
 
   // Sorting logic
   const sortedItems = [...filteredItems].sort((a, b) => {
-    let aValue, bValue;
-    if (sortConfig.key === 'staff.username') {
-      aValue = a.staff?.username || '';
-      bValue = b.staff?.username || '';
-    } else {
-      aValue = a[sortConfig.key] ?? '';
-      bValue = b[sortConfig.key] ?? '';
-    }
+    const aValue = a[sortConfig.key] ?? '';
+    const bValue = b[sortConfig.key] ?? '';
     
     if (aValue < bValue) {
       return sortConfig.direction === 'asc' ? -1 : 1;
@@ -103,50 +95,46 @@ const RestaurantManager = ({ isActive }) => {
   };
 
   const refreshData = async () => {
-    if (!restaurantManager?.staffId) {
-      setError('Please log in to refresh food items');
-      return;
-    }
-
     try {
       setLoading(true);
       const response = await axios.get('http://localhost:8080/api/food/', {
-        headers: { staffId: restaurantManager.staffId }
+        headers: {
+          'X-Admin-Access': 'true',
+        },
       });
       setFoodItems(response.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to refresh food items');
+      console.error('Refresh data error:', err);
     } finally {
       setLoading(false);
     }
   };
 
   const toggleAvailability = async (id) => {
-    if (!restaurantManager?.staffId) {
-      setError('Please log in to modify food items');
-      return;
-    }
-
     try {
+      setLoading(true);
       await axios.put(`http://localhost:8080/api/food/${id}/availability`, {}, {
-        headers: { staffId: restaurantManager.staffId }
+        headers: {
+          'X-Admin-Access': 'true',
+        },
       });
-      refreshData();
+      await refreshData();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to toggle availability');
+      console.error('Toggle availability error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleEdit = async (id) => {
-    if (!restaurantManager?.staffId) {
-      setError('Please log in to edit food items');
-      return;
-    }
-
     try {
       setLoading(true);
       const response = await axios.get(`http://localhost:8080/api/food/${id}`, {
-        headers: { staffId: restaurantManager.staffId }
+        headers: {
+          'X-Admin-Access': 'true',
+        },
       });
       const food = response.data;
       setEditFood(food);
@@ -162,19 +150,16 @@ const RestaurantManager = ({ isActive }) => {
       setShowEditModal(true);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch food item');
+      console.error('Fetch food item for edit error:', err);
     } finally {
       setLoading(false);
     }
   };
 
   const handleUpdateFood = async () => {
-    if (!restaurantManager?.staffId) {
-      setError('Please log in to update food items');
-      return;
-    }
-
     if (!editForm.name || !editForm.price || !editForm.image || !editForm.description) {
       setError('Please fill in all required fields.');
+      console.error('Missing required fields for update');
       return;
     }
 
@@ -189,32 +174,58 @@ const RestaurantManager = ({ isActive }) => {
         isAvailable: editForm.isAvailable
       };
       await axios.put(`http://localhost:8080/api/food/${editFood.foodId}`, updatedFood, {
-        headers: { staffId: restaurantManager.staffId }
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Access': 'true',
+        },
       });
       setShowEditModal(false);
-      refreshData();
+      await refreshData();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update food item');
+      console.error('Update food item error:', err);
     } finally {
       setLoading(false);
     }
   };
 
   const handleView = async (id) => {
-    if (!restaurantManager?.staffId) {
-      setError('Please log in to view food items');
-      return;
-    }
-
     try {
       setLoading(true);
       const response = await axios.get(`http://localhost:8080/api/food/${id}`, {
-        headers: { staffId: restaurantManager.staffId }
+        headers: {
+          'X-Admin-Access': 'true',
+        },
       });
       setViewFood(response.data);
       setShowViewModal(true);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch food item details');
+      console.error('Fetch food item for view error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = (id) => {
+    setDeleteFoodId(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      setLoading(true);
+      await axios.delete(`http://localhost:8080/api/food/${deleteFoodId}`, {
+        headers: {
+          'X-Admin-Access': 'true',
+        },
+      });
+      setShowDeleteModal(false);
+      setDeleteFoodId(null);
+      await refreshData();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to delete food item');
+      console.error('Delete food item error:', err);
     } finally {
       setLoading(false);
     }
@@ -229,14 +240,10 @@ const RestaurantManager = ({ isActive }) => {
   if (!isActive) return null;
 
   return (
-    
-    
     <div className="container mt-4 restaurant-manager">
-      <h1 className="h3 fw-bold mb-1">Hotel Manager</h1>
-      <p className="text-muted mb-4">Manage Hotel Rooms</p>
+      <h1 className="h3 fw-bold mb-1">Restaurant Manager</h1>
+      <p className="text-muted mb-4">Manage Food Items</p>
       <div className="card shadow">
-        
-        
         <div className="card-body">
           {error && (
             <Alert variant="danger" onClose={() => setError(null)} dismissible>
@@ -251,7 +258,7 @@ const RestaurantManager = ({ isActive }) => {
                 <Form.Label>Search Foods</Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="Search by food name or staff username..."
+                  placeholder="Search by food name..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -279,7 +286,7 @@ const RestaurantManager = ({ isActive }) => {
               <button 
                 className="btn btn-outline-primary w-100"
                 onClick={refreshData}
-                disabled={loading || !restaurantManager?.staffId}
+                disabled={loading}
               >
                 {loading ? (
                   <>
@@ -323,14 +330,6 @@ const RestaurantManager = ({ isActive }) => {
                       </th>
                       <th>Description</th>
                       <th 
-                        onClick={() => requestSort('staff.username')}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        Added By {sortConfig.key === 'staff.username' && (
-                          <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </th>
-                      <th 
                         onClick={() => requestSort('isAvailable')}
                         style={{ cursor: 'pointer' }}
                       >
@@ -368,18 +367,6 @@ const RestaurantManager = ({ isActive }) => {
                             </div>
                           </td>
                           <td>
-                            {item.staff ? (
-                              <Badge bg="info" className="p-2">
-                                <i className="bi bi-person-fill me-2"></i>
-                                {item.staff.username || 'Unknown'}
-                              </Badge>
-                            ) : (
-                              <Badge bg="secondary" className="p-2">
-                                N/A
-                              </Badge>
-                            )}
-                          </td>
-                          <td>
                             <Badge bg={item.isAvailable ? 'success' : 'danger'} className="p-2">
                               {item.isAvailable ? 'Available' : 'Unavailable'}
                             </Badge>
@@ -390,7 +377,7 @@ const RestaurantManager = ({ isActive }) => {
                                 variant="primary"
                                 size="sm"
                                 onClick={() => handleEdit(item.foodId)}
-                                disabled={!restaurantManager?.staffId}
+                                disabled={loading}
                               >
                                 <i className="bi bi-pencil me-1"></i> Edit
                               </Button>
@@ -398,15 +385,14 @@ const RestaurantManager = ({ isActive }) => {
                                 variant="info"
                                 size="sm"
                                 onClick={() => handleView(item.foodId)}
-                                disabled={!restaurantManager?.staffId}
                               >
                                 <i className="bi bi-eye me-1"></i> View
                               </Button>
                               <Button
                                 variant={item.isAvailable ? 'warning' : 'success'}
                                 size="sm"
-                                onClick={() => toggleAvailability(item.foodId, item.isAvailable)}
-                                disabled={!restaurantManager?.staffId}
+                                onClick={() => toggleAvailability(item.foodId)}
+                                disabled={loading}
                               >
                                 {item.isAvailable ? (
                                   <>
@@ -418,13 +404,21 @@ const RestaurantManager = ({ isActive }) => {
                                   </>
                                 )}
                               </Button>
+                              <Button
+                                variant="danger"
+                                size="sm"
+                                onClick={() => handleDelete(item.foodId)}
+                                disabled={loading}
+                              >
+                                <i className="bi bi-trash me-1"></i> Delete
+                              </Button>
                             </div>
                           </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="7" className="text-center py-4">
+                        <td colSpan="6" className="text-center py-4">
                           <div className="d-flex flex-column align-items-center">
                             <i className="bi bi-emoji-frown fs-1 text-muted mb-2"></i>
                             <h5>No food items found</h5>
@@ -500,7 +494,8 @@ const RestaurantManager = ({ isActive }) => {
         <Modal.Body>
           {error && (
             <Alert variant="danger" onClose={() => setError(null)} dismissible>
-              {error}
+              <Alert.Heading>Error!</Alert.Heading>
+              <p>{error}</p>
             </Alert>
           )}
           <Form>
@@ -589,7 +584,7 @@ const RestaurantManager = ({ isActive }) => {
           <Button
             variant="primary"
             onClick={handleUpdateFood}
-            disabled={loading || !restaurantManager?.staffId}
+            disabled={loading}
           >
             {loading ? (
               <>
@@ -627,7 +622,6 @@ const RestaurantManager = ({ isActive }) => {
               <p><strong>Description:</strong> {viewFood.description || 'No description'}</p>
               <p><strong>Recipe:</strong> {viewFood.recipe || 'No recipe provided'}</p>
               <p><strong>Status:</strong> {viewFood.isAvailable ? 'Available' : 'Unavailable'}</p>
-              <p><strong>Added By:</strong> {viewFood.staff?.username || 'Unknown'}</p>
               <p><strong>Created At:</strong> {viewFood.createdAt || 'N/A'}</p>
             </div>
           ) : (
@@ -637,6 +631,37 @@ const RestaurantManager = ({ isActive }) => {
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowViewModal(false)}>
             Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
+        <Modal.Header closeButton className="modal-header-custom">
+          <Modal.Title className="modal-title-custom">
+            Confirm Delete
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Are you sure you want to delete this food item? This action cannot be undone.</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onClick={confirmDelete}
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-2" />
+                Deleting...
+              </>
+            ) : (
+              'Delete'
+            )}
           </Button>
         </Modal.Footer>
       </Modal>
