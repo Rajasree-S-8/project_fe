@@ -11,6 +11,7 @@ import Customerlogin from "./components/customer/CustomerLogin/Customerlogin";
 import Customerhome from "./components/customer/CustomerHome/Customerhome";
 import Customerroom from "./components/customer/CustomerRooms/Customerroom";
 import Customerfood from "./components/customer/CustomerFood/Customerfood";
+import Customerorders from "./components/customer/CustomerBookings/Customerorders";
 
 function App() {
   return (
@@ -27,6 +28,8 @@ function App() {
           <Route path='/custhome' element={<Customerhome/>} />
           <Route path='/custroom' element={<Customerroom/>} />
           <Route path='/custfood' element={<Customerfood/>} />
+          <Route path='/custorder' element={<Customerorders/>} />
+          <Route path='/custbook' element={<Customerbookings/>} />
         </Routes>
       </Router>
     </div>

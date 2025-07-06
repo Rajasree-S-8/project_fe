@@ -47,13 +47,13 @@ const Customerreg = () => {
     }
 
     try {
-      await axios.post('http://localhost:5050/api/customers/register', {
-        username: formData.username,
-        fullName: formData.fullName,
-        email: formData.email,
-        password: formData.password,
-        phone: formData.phone,
-        address: formData.address
+      await axios.post('http://localhost:9090/api/customers/register', {
+        cust_username: formData.username,
+        cust_fullName: formData.fullName,
+        cust_email: formData.email,
+        cust_password: formData.password,
+        cust_phone: formData.phone,
+        cust_address: formData.address
       });
       setErrors({});
       setSubmitted(true);
