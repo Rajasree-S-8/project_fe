@@ -1,0 +1,140 @@
+.customer-home-container {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding-top: 80px;
+}
+
+.welcome-alert {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  width: 80%;
+  max-width: 600px;
+}
+
+.home-content {
+  padding: 2rem 0;
+}
+
+.welcome-card {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  overflow: hidden;
+}
+
+.welcome-title {
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.welcome-subtitle {
+  font-weight: 400;
+  color: #7f8c8d;
+  margin-bottom: 2rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.action-btn {
+  min-width: 200px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Profile Modal Styles */
+.profile-modal .modal-content {
+  border-radius: 15px;
+}
+
+.profile-picture-container {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  margin: 0 auto;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #3498db;
+}
+
+.profile-picture {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-picture-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e9ecef;
+  color: #6c757d;
+}
+
+.camera-icon {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: #3498db;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.camera-icon:hover {
+  background: #2980b9;
+  transform: scale(1.1);
+}
+
+/* Form Styles */
+.form-control[readonly] {
+  background-color: #f8f9fa;
+  border-color: #dee2e6;
+}
+
+.input-group-text {
+  background-color: #e9ecef;
+  color: #495057;
+  min-width: 40px;
+  justify-content: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .action-btn {
+    width: 100%;
+  }
+  
+  .profile-picture-container {
+    width: 120px;
+    height: 120px;
+  }
+}

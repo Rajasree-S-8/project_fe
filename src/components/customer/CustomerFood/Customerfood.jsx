@@ -1,214 +1,390 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Container, Row, Col, Button, Badge, Modal, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Modal, Offcanvas, Spinner, Alert, Form, Badge } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import CustHeader from '../header/CustHeader';
 import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import './Customerfood.css';
+
+const CART_STORAGE_KEY = 'foodCart';
 
 const Customerfood = () => {
   const navigate = useNavigate();
   const [foodItems, setFoodItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [showDetails, setShowDetails] = useState(false);
+  const [error, setError] = useState(null);
+  const [cart, setCart] = useState(() => {
+    const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
+  const [showCart, setShowCart] = useState(false);
+  const [orderProcessing, setOrderProcessing] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(false);
 
   useEffect(() => {
-    const fetchFoodItems = async () => {
-      try {
-        const response = await axios.get('http://localhost:8080/api/food/available');
-        setFoodItems(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching food items:', error);
-        setLoading(false);
-      }
-    };
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+  }, [cart]);
 
+  const fetchFoodItems = async () => {
+    try {
+      const response = await axios.get('http://localhost:8080/api/food/available');
+      setFoodItems(response.data);
+      setLoading(false);
+      setError(null);
+    } catch (error) {
+      setError('Failed to load menu. Please try again later.');
+      setLoading(false);
+      toast.error('Failed to load menu. Please try again later.');
+    }
+  };
+
+  useEffect(() => {
     fetchFoodItems();
   }, []);
 
-  // Extract unique categories from food items
-  const categories = ['All', ...new Set(foodItems.map(item => item.category))].filter(Boolean);
-
-  const filteredItems = selectedCategory === 'All' 
-    ? foodItems 
-    : foodItems.filter(item => item.category === selectedCategory);
-
-  const handleViewDetails = (item) => {
-    setSelectedItem(item);
-    setShowDetails(true);
+  const addToCart = (item, quantity = 1) => {
+    setCart((prev) => {
+      const existing = prev.find((i) => i.foodId === item.foodId);
+      if (existing) {
+        return prev.map((i) =>
+          i.foodId === item.foodId ? { ...i, quantity: i.quantity + quantity } : i
+        );
+      }
+      return [...prev, { ...item, quantity }];
+    });
+    toast.success(`${item.name} added to cart!`);
   };
 
-  const handleOrder = () => {
-    alert(`Added ${selectedItem.name} to your order`);
-    setShowDetails(false);
+  const updateQuantity = (foodId, newQuantity) => {
+    if (newQuantity < 1) {
+      const removedItem = cart.find((item) => item.foodId === foodId);
+      setCart((prev) => prev.filter((item) => item.foodId !== foodId));
+      toast.info(`${removedItem.name} removed from cart`);
+      return;
+    }
+    setCart((prev) =>
+      prev.map((item) =>
+        item.foodId === foodId ? { ...item, quantity: newQuantity } : item
+      )
+    );
+  };
+
+  const calculateTotal = () => {
+    return cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
+  };
+
+  const placeOrder = async () => {
+    const customer = JSON.parse(localStorage.getItem('customer'));
+    if (!customer) {
+      toast.error('Please login to place an order');
+      navigate('/login');
+      return;
+    }
+
+    if (!deliveryAddress || deliveryAddress.trim().length < 10) {
+      toast.error('Please enter a valid delivery address (at least 10 characters)');
+      return;
+    }
+
+    if (cart.length === 0) {
+      toast.error('Your cart is empty');
+      return;
+    }
+
+    setOrderProcessing(true);
+
+    try {
+      const orderData = {
+        deliveryAddress: deliveryAddress.trim(),
+        items: cart.map((item) => ({
+          foodId: item.foodId,
+          quantity: item.quantity,
+        })),
+      };
+
+      const response = await axios.post(
+        'http://localhost:8080/api/orders/',
+        orderData,
+        {
+          headers: {
+            'X-Customer-Id': customer.userId,
+          },
+        }
+      );
+
+      setOrderSuccess(true);
+      setCart([]);
+      localStorage.removeItem(CART_STORAGE_KEY);
+      toast.success('Order placed successfully!');
+    } catch (error) {
+      console.error('Error placing order:', error);
+      toast.error('Failed to place order. Please try again.');
+    } finally {
+      setOrderProcessing(false);
+    }
   };
 
   if (loading) {
     return (
-      <>
-        <CustHeader />
-        <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
-          <Spinner animation="border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </Spinner>
-        </Container>
-      </>
+      <Container className="text-center mt-5">
+        <Spinner animation="border" />
+        <p>Loading menu...</p>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container className="text-center mt-5">
+        <Alert variant="danger">
+          {error}
+          <Button
+            variant="link"
+            onClick={() => {
+              setLoading(true);
+              setError(null);
+              fetchFoodItems();
+            }}
+            className="ms-2"
+          >
+            Retry
+          </Button>
+        </Alert>
+      </Container>
     );
   }
 
   return (
     <>
       <CustHeader />
-      <br /><br />
-      <Container
-        className="py-4"
-        style={{
-          backgroundImage: 'url(https://images.unsplash.com/photo-1556911220-bff31c812dba)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundAttachment: 'fixed',
-          minHeight: '100vh',
-          height: '100%',
-          maxWidth: '100%',
-          margin: 0,
-          padding: '0 15px',
-          position: 'relative',
-          color: '#fff',
-        }}
-      >
-        {/* Overlay for readability */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 1,
-          }}
-        />
-        {/* Content with higher z-index */}
-        <div style={{ position: 'relative', zIndex: 2 }}>
-          <h1 className="text-center text-white mb-4">Welcome to Our Restaurant</h1>
-          <p className="text-center text-white mb-4">
-            Explore our delicious menu and order your favorite dishes online.
-          </p>
+      <ToastContainer position="top-right" autoClose={5000} />
+      <Container className="mt-4">
+        <h2 className="mb-4">Our Menu</h2>
+        <Row xs={1} md={2} lg={3} className="g-4">
+          {foodItems.map((item) => (
+            <Col key={item.foodId}>
+              <Card className="h-100">
+                <Card.Img
+                  variant="top"
+                  src={item.image || '/images/food-placeholder.jpg'}
+                  style={{ height: '200px', objectFit: 'cover' }}
+                />
+                <Card.Body>
+                  <Card.Title>{item.name}</Card.Title>
+                  <Card.Text className="text-muted">{item.description}</Card.Text>
+                  <div className="d-flex justify-content-between align-items-center">
+                    <span className="fw-bold">₹{item.price}</span>
+                    <Badge bg={item.isAvailable ? 'success' : 'danger'}>
+                      {item.isAvailable ? 'Available' : 'Sold Out'}
+                    </Badge>
+                  </div>
+                </Card.Body>
+                <Card.Footer>
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      setSelectedItem(item);
+                      setShowDetails(true);
+                    }}
+                    disabled={!item.isAvailable}
+                  >
+                    View Details
+                  </Button>
+                </Card.Footer>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </Container>
 
-          {/* <h2 className="text-center mb-4">Our Menu</h2> */}
-          
-          {/* Category Filter */}
-          {categories.length > 1 && (
-            <div className="d-flex justify-content-center mb-4 flex-wrap">
-              {categories.map(category => (
-                <Button
-                  key={category}
-                  variant={selectedCategory === category ? 'primary' : 'outline-primary'}
-                  className="mx-2 mb-2"
-                  onClick={() => setSelectedCategory(category)}
-                >
-                  {category}
-                </Button>
-              ))}
-            </div>
+      <div className="cart-button">
+        <Button
+          variant="primary"
+          onClick={() => setShowCart(true)}
+          className="rounded-circle p-3"
+        >
+          🛒 {cart.length > 0 && <Badge bg="danger">{cart.length}</Badge>}
+        </Button>
+      </div>
+
+      <Modal show={showDetails} onHide={() => setShowDetails(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>{selectedItem?.name}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedItem && (
+            <>
+              <img
+                src={selectedItem.image || '/images/food-placeholder.jpg'}
+                alt={selectedItem.name}
+                className="img-fluid mb-3"
+              />
+              <p><strong>Price:</strong> ₹{selectedItem.price}</p>
+              <p><strong>Description:</strong> {selectedItem.description}</p>
+              {selectedItem.recipe && <p><strong>Recipe:</strong> {selectedItem.recipe}</p>}
+            </>
           )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDetails(false)}>
+            Close
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              addToCart(selectedItem);
+              setShowDetails(false);
+            }}
+            disabled={!selectedItem?.isAvailable}
+          >
+            Add to Cart
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
-          {/* Food Items Grid */}
-          <Row xs={1} md={2} lg={3} className="g-4">
-            {filteredItems.length > 0 ? (
-              filteredItems.map(item => (
-                <Col key={item.id}>
-                  <Card className="h-100 shadow-sm">
-                    <Card.Img 
-                      variant="top" 
-                      src={item.image || 'https://via.placeholder.com/400x300?text=Food+Image'} 
-                      alt={item.name}
-                      style={{ height: '200px', objectFit: 'cover' }}
-                    />
-                    <Card.Body className="d-flex flex-column">
-                      <Card.Title>{item.name}</Card.Title>
-                      <Card.Subtitle className="mb-2 text-muted">
-                        ₹{item.price.toFixed(2)}
-                      </Card.Subtitle>
-                      <Card.Text className="flex-grow-1">
-                        {item.description?.substring(0, 60)}...
-                      </Card.Text>
-                      <div className="mt-auto">
-                        {item.category && (
-                          <Badge bg="success" className="mb-2">
-                            {item.category}
-                          </Badge>
-                        )}
-                        <div className="d-flex justify-content-between">
-                          <Button 
-                            variant="outline-primary" 
+      <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Your Order</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p><strong>Total Amount:</strong> ₹{calculateTotal()}</p>
+          <p><strong>Delivery Address:</strong> {deliveryAddress}</p>
+          <p><strong>Items:</strong></p>
+          <ul>
+            {cart.map((item) => (
+              <li key={item.foodId}>
+                {item.name} (x{item.quantity}) - ₹{item.price * item.quantity}
+              </li>
+            ))}
+          </ul>
+          <p>Are you sure you want to place this order?</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              setShowConfirmModal(false);
+              placeOrder();
+            }}
+            disabled={orderProcessing}
+          >
+            {orderProcessing ? (
+              <>
+                <Spinner size="sm" animation="border" className="me-2" />
+                Processing...
+              </>
+            ) : (
+              'Confirm Order'
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Offcanvas show={showCart} onHide={() => setShowCart(false)} placement="end">
+        <Offcanvas.Header closeButton>
+          <Offcanvas.Title>Your Order</Offcanvas.Title>
+        </Offcanvas.Header>
+        <Offcanvas.Body>
+          {orderSuccess ? (
+            <div className="text-center">
+              <Alert variant="success">
+                <h4>Order Placed Successfully!</h4>
+                <p>Your order has been received and is being prepared.</p>
+                <Button
+                  variant="success"
+                  onClick={() => {
+                    setShowCart(false);
+                    setOrderSuccess(false);
+                    navigate('/customer/orders', { state: { orderSuccess: true } });
+                  }}
+                  className="w-100 mt-3"
+                >
+                  View Order Details
+                </Button>
+              </Alert>
+            </div>
+          ) : (
+            <>
+              <Form.Group className="mb-3">
+                <Form.Label>Delivery Address</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  value={deliveryAddress}
+                  onChange={(e) => setDeliveryAddress(e.target.value)}
+                  required
+                  placeholder="Enter your complete delivery address"
+                />
+              </Form.Group>
+
+              {cart.length === 0 ? (
+                <p className="text-center">Your cart is empty</p>
+              ) : (
+                <>
+                  <div className="cart-items">
+                    {cart.map((item) => (
+                      <div
+                        key={item.foodId}
+                        className="d-flex justify-content-between align-items-center mb-3"
+                      >
+                        <div>
+                          <h6>{item.name}</h6>
+                          <p>₹{item.price} × {item.quantity}</p>
+                        </div>
+                        <div className="d-flex align-items-center">
+                          <Button
                             size="sm"
-                            onClick={() => handleViewDetails(item)}
+                            variant="outline-secondary"
+                            onClick={() => updateQuantity(item.foodId, item.quantity - 1)}
                           >
-                            Details
+                            -
                           </Button>
-                          <Button 
-                            variant="primary" 
+                          <span className="mx-2">{item.quantity}</span>
+                          <Button
                             size="sm"
-                            onClick={() => handleOrder(item)}
+                            variant="outline-secondary"
+                            onClick={() => updateQuantity(item.foodId, item.quantity + 1)}
                           >
-                            Order Now
+                            +
                           </Button>
                         </div>
                       </div>
-                    </Card.Body>
-                  </Card>
-                </Col>
-              ))
-            ) : (
-              <Col className="text-center">
-                <h4>No food items available</h4>
-              </Col>
-            )}
-          </Row>
+                    ))}
+                  </div>
 
-          {/* Item Details Modal */}
-          {selectedItem && (
-            <Modal show={showDetails} onHide={() => setShowDetails(false)} centered>
-              <Modal.Header>
-                <Modal.Title>{selectedItem.name}</Modal.Title>
-                <button
-                  type="button" 
-                  className="btn-close-custom" 
-                  onClick={() => setShowDetails(false)}
-                  aria-label="Close"
-                >
-                  ✕
-                </button>
-              </Modal.Header>
-              <Modal.Body>
-                <img 
-                  src={selectedItem.image || 'https://via.placeholder.com/500x300?text=Food+Image'} 
-                  alt={selectedItem.name}
-                  className="img-fluid rounded mb-3"
-                />
-                <p>{selectedItem.description}</p>
-                {selectedItem.recipe && (
-                  <>
-                    <h5>Recipe:</h5>
-                    <p>{selectedItem.recipe}</p>
-                  </>
-                )}
-                <h4 className="text-primary">₹{selectedItem.price.toFixed(2)}</h4>
-              </Modal.Body>
-              <Modal.Footer>
-                <Button variant="secondary" onClick={() => setShowDetails(false)}>
-                  Close
-                </Button>
-                <Button variant="primary" onClick={handleOrder}>
-                  Add to Order
-                </Button>
-              </Modal.Footer>
-            </Modal>
+                  <div className="border-top pt-3">
+                    <h5 className="text-end">Total: ₹{calculateTotal()}</h5>
+                  </div>
+
+                  <Button
+                    variant="primary"
+                    onClick={() => setShowConfirmModal(true)}
+                    disabled={!deliveryAddress || deliveryAddress.trim().length < 10 || orderProcessing}
+                    className="w-100 mt-3"
+                  >
+                    {orderProcessing ? (
+                      <>
+                        <Spinner size="sm" animation="border" className="me-2" />
+                        Processing...
+                      </>
+                    ) : (
+                      'Review & Place Order'
+                    )}
+                  </Button>
+                </>
+              )}
+            </>
           )}
-        </div>
-      </Container>
+        </Offcanvas.Body>
+      </Offcanvas>
     </>
   );
 };

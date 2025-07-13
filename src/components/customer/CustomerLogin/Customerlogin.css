@@ -1,0 +1,284 @@
+/* Customerhome.css */
+.customer-home-container {
+  background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  color: white;
+  padding-top: 60px;
+}
+
+.customer-home-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 0;
+}
+
+.home-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.welcome-card {
+  background-color: rgba(0, 0, 0, 0.6);
+  border: none;
+  border-radius: 15px;
+  padding: 2rem;
+  backdrop-filter: blur(5px);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.welcome-title {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.welcome-subtitle {
+  font-size: 1.8rem;
+  margin-bottom: 2rem;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  min-width: 200px;
+  padding: 0.8rem 1.5rem;
+  font-weight: bold;
+  border-radius: 50px;
+  transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.welcome-alert {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 1000;
+  animation: slideIn 0.5s ease-out;
+}
+
+/* Profile Modal Styles */
+.profile-modal .modal-content {
+  border-radius: 15px;
+  border: none;
+}
+
+.profile-modal .modal-header {
+  border-bottom: 1px solid #dee2e6;
+}
+
+.profile-modal .modal-title {
+  font-weight: 600;
+}
+
+.profile-modal .form-control-custom {
+  padding-left: 10px;
+  padding-top: 1.625rem;
+  height: calc(3.5rem + 2px);
+}
+
+.profile-modal .input-group-icon {
+  padding-top: 1.625rem;
+  height: calc(3.5rem + 2px);
+  min-width: 45px;
+  justify-content: center;
+  background-color: #f8f9fa;
+  border-right: none;
+}
+
+.profile-modal .floating-label > label {
+  left: 45px;
+  padding-top: 0.25rem;
+  color: #6c757d;
+}
+
+.profile-modal textarea.form-control-custom {
+  height: 100px !important;
+  padding-top: 1.625rem;
+}
+
+.profile-modal .form-control[readonly] {
+  background-color: #f8f9fa;
+}
+
+/* CustomerLogin.css */
+.login-page {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+  background-size: cover;
+  background-position: center;
+  z-index: -1;
+}
+
+.login-background::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 0;
+}
+
+.login-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 450px;
+  padding: 20px;
+}
+
+.login-card {
+  border-radius: 15px;
+  background-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+  border: none;
+}
+
+.login-card .card-body {
+  padding: 2rem;
+}
+
+.login-card h2 {
+  color: #343a40;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.login-card .form-control-custom {
+  padding-left: 10px;
+  padding-top: 1.625rem;
+  height: calc(3.5rem + 2px);
+  border-left: none;
+}
+
+.login-card .input-group-icon {
+  padding-top: 1.625rem;
+  height: calc(3.5rem + 2px);
+  min-width: 45px;
+  justify-content: center;
+  background-color: #f8f9fa;
+  border-right: none;
+}
+
+.login-card .floating-label > label {
+  left: 45px;
+  padding-top: 0.25rem;
+  color: #6c757d;
+}
+
+.login-card .form-control:focus {
+  box-shadow: none;
+  border-color: #80bdff;
+}
+
+.login-card .is-invalid {
+  border-color: #dc3545;
+}
+
+.login-btn {
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  background-color: #3f51b5;
+  border: none;
+}
+
+.login-btn:hover {
+  background-color: #303f9f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.forgot-password-btn {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.forgot-password-btn:hover {
+  color: #3f51b5;
+  text-decoration: underline;
+}
+
+.register-link {
+  color: #3f51b5;
+  font-weight: 500;
+}
+
+.register-link:hover {
+  text-decoration: underline;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .welcome-title {
+    font-size: 2rem;
+  }
+  
+  .welcome-subtitle {
+    font-size: 1.3rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .action-btn {
+    width: 100%;
+  }
+
+  .login-card .card-body {
+    padding: 1.5rem;
+  }
+}

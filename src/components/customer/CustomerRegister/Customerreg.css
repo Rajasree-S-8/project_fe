@@ -1,0 +1,52 @@
+.registration-container {
+  background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+}
+
+.registration-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1;
+}
+
+.registration-card {
+  max-width: 800px;
+  width: 100%;
+  z-index: 2;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.preview-image {
+  max-width: 150px;
+  max-height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .registration-card {
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .preview-image {
+    max-width: 100px;
+    max-height: 100px;
+  }
+}

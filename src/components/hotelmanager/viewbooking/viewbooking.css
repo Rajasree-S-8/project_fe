@@ -2,13 +2,29 @@
   background-color: #17a2b8 !important;
 }
 
-/* You can add additional specific styles for bookings here */
+.card {
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  font-size: 1.5rem;
+  font-weight: 600;
+  padding: 1rem;
+}
+
 .table th {
   white-space: nowrap;
+  background-color: #f1f3f5;
 }
 
 .table td {
   vertical-align: middle;
+}
+
+.table-responsive {
+  margin-top: 1rem;
 }
 
 @media (max-width: 768px) {
@@ -17,4 +33,16 @@
     width: 100%;
     overflow-x: auto;
   }
+}
+
+.modal-content {
+  border-radius: 10px;
+}
+
+.modal-header {
+  background-color: #f8f9fa;
+}
+
+.modal-title {
+  font-weight: 600;
 }
