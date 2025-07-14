@@ -1,23 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Form, Button, Alert, Card, FloatingLabel, InputGroup } from 'react-bootstrap';
+import { Form, Button, Alert, Card, FloatingLabel, InputGroup, FormCheck } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faLock } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 import './CustomerLogin.css';
+import Header from '../../header/header.jsx';
 
 const CustomerLogin = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [formData, setFormData] = useState({
     username: location.state?.registeredUsername || '',
-    password: ''
+    password: '',
+    rememberMe: false
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
+    // Check for remembered credentials
+    const rememberedUsername = localStorage.getItem('rememberedUsername');
+    if (rememberedUsername) {
+      setFormData(prev => ({
+        ...prev,
+        username: rememberedUsername,
+        rememberMe: true
+      }));
+    }
+
     if (location.state?.registrationSuccess) {
       setShowSuccess(true);
       const timer = setTimeout(() => setShowSuccess(false), 5000);
@@ -26,8 +38,11 @@ const CustomerLogin = () => {
   }, [location.state]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === 'checkbox' ? checked : value
+    });
   };
 
   const validate = () => {
@@ -54,6 +69,13 @@ const CustomerLogin = () => {
         password: formData.password
       });
 
+      // Handle remember me functionality
+      if (formData.rememberMe) {
+        localStorage.setItem('rememberedUsername', formData.username);
+      } else {
+        localStorage.removeItem('rememberedUsername');
+      }
+
       localStorage.setItem('customer', JSON.stringify(response.data));
       navigate('/custhome', {
         state: {
@@ -76,7 +98,9 @@ const CustomerLogin = () => {
   };
 
   return (
+
     <div className="login-page">
+      <Header />
       <div className="login-background"></div>
       <div className="login-content">
         <Card className="login-card">
@@ -96,7 +120,8 @@ const CustomerLogin = () => {
             )}
 
             <Form onSubmit={handleSubmit}>
-              <FloatingLabel controlId="username" label="Username" className="mb-3">
+              <Form.Group className="mb-3" controlId="username">
+                <Form.Label>Username</Form.Label>
                 <InputGroup>
                   <InputGroup.Text>
                     <FontAwesomeIcon icon={faUser} />
@@ -107,15 +132,16 @@ const CustomerLogin = () => {
                     value={formData.username}
                     onChange={handleChange}
                     isInvalid={!!errors.username}
-                    placeholder="Username"
+                    className="form-control-custom"
                   />
                 </InputGroup>
                 {errors.username && (
                   <Form.Text className="text-danger">{errors.username}</Form.Text>
                 )}
-              </FloatingLabel>
+              </Form.Group>
 
-              <FloatingLabel controlId="password" label="Password" className="mb-3">
+              <Form.Group className="mb-3" controlId="password">
+                <Form.Label>Password</Form.Label>
                 <InputGroup>
                   <InputGroup.Text>
                     <FontAwesomeIcon icon={faLock} />
@@ -126,16 +152,23 @@ const CustomerLogin = () => {
                     value={formData.password}
                     onChange={handleChange}
                     isInvalid={!!errors.password}
-                    placeholder="Password"
+                    className="form-control-custom"
                   />
                 </InputGroup>
                 {errors.password && (
                   <Form.Text className="text-danger">{errors.password}</Form.Text>
                 )}
-              </FloatingLabel>
+              </Form.Group>
 
-              <div className="d-flex justify-content-between align-items-center mb-4">
-                <Form.Check type="checkbox" label="Remember me" />
+              <Form.Group className="mb-3 d-flex justify-content-between align-items-center">
+                <Form.Check
+                  type="checkbox"
+                  id="rememberMe"
+                  label="Remember me"
+                  name="rememberMe"
+                  checked={formData.rememberMe}
+                  onChange={handleChange}
+                />
                 <Button
                   variant="link"
                   onClick={() => navigate('/forgot-password')}
@@ -143,12 +176,12 @@ const CustomerLogin = () => {
                 >
                   Forgot password?
                 </Button>
-              </div>
+              </Form.Group>
 
               <Button
                 variant="primary"
                 type="submit"
-                className="w-100 py-2 mb-3"
+                className="w-100 py-2 mb-3 login-btn"
                 disabled={isLoading}
               >
                 {isLoading ? 'Logging in...' : 'Login'}
@@ -157,7 +190,7 @@ const CustomerLogin = () => {
               <div className="text-center">
                 <span>Don't have an account? </span>
                 <Link to="/custreg" className="text-decoration-none">
-                  <Button variant="link" className="p-0">
+                  <Button variant="link" className="p-0 register-link">
                     Register Here
                   </Button>
                 </Link>

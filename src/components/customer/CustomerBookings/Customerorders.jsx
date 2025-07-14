@@ -51,7 +51,7 @@ const Customerorders = () => {
     try {
       setCancelLoading(true);
       setError(null);
-      await axios.post(
+      await axios.put( // Changed from POST to PUT as it's more semantically correct for updates
         `http://localhost:8080/api/orders/${orderId}/cancel`,
         {},
         {
@@ -61,7 +61,7 @@ const Customerorders = () => {
         }
       );
       setOrders(orders.map(order => 
-        order.orderId === orderId ? { ...order, status: 'cancelled' } : order
+        order.orderId === orderId ? { ...order, status: 'CANCELLED' } : order
       ));
     } catch (error) {
       setError(error.response?.data?.message || 'Failed to cancel order.');
@@ -86,8 +86,21 @@ const Customerorders = () => {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid date';
+    
     const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+    return date.toLocaleDateString('en-US', options);
+  };
+
+  const getStatusBadge = (status) => {
+    if (!status) return <Badge bg="secondary">Unknown</Badge>;
+    
+    const statusLower = status.toLowerCase();
+    if (statusLower === 'completed') return <Badge bg="success">Completed</Badge>;
+    if (statusLower === 'cancelled') return <Badge bg="danger">Cancelled</Badge>;
+    return <Badge bg="warning">Pending</Badge>;
   };
 
   if (loading) {
@@ -141,28 +154,18 @@ const Customerorders = () => {
                 <tr key={order.orderId}>
                   <td>#{order.orderId}</td>
                   <td>
-                    {order.items && order.items.map((item) => (
-                      <div key={item.itemId}>
+                    {order.items?.map((item, index) => (
+                      <div key={index}>
                         {item.food?.name || 'Unknown Item'} (x{item.quantity})
                       </div>
-                    ))}
+                    )) || 'No items'}
                   </td>
-                  <td>₹{order.totalAmount?.toLocaleString() || '0'}</td>
+                  <td>₹{order.totalAmount?.toFixed(2) || '0.00'}</td>
                   <td>{formatDate(order.orderDate)}</td>
                   <td>
-                    <Badge
-                      bg={
-                        order.status === 'completed'
-                          ? 'success'
-                          : order.status === 'cancelled'
-                          ? 'danger'
-                          : 'warning'
-                      }
-                    >
-                      {order.status}
-                    </Badge>
+                    {getStatusBadge(order.status)}
                   </td>
-                  <td>{order.deliveryAddress}</td>
+                  <td>{order.deliveryAddress || 'N/A'}</td>
                   <td>
                     <div className="d-flex gap-2">
                       <Button
@@ -172,7 +175,7 @@ const Customerorders = () => {
                       >
                         Details
                       </Button>
-                      {order.status === 'pending' && (
+                      {order.status?.toLowerCase() === 'pending' && (
                         <Button
                           variant="outline-danger"
                           size="sm"
@@ -204,11 +207,11 @@ const Customerorders = () => {
                 <Row className="mb-3">
                   <Col md={6}>
                     <h5>Order Items</h5>
-                    {selectedOrder.items && selectedOrder.items.map((item) => (
-                      <div key={item.itemId} className="mb-3">
+                    {selectedOrder.items?.map((item, index) => (
+                      <div key={index} className="mb-3">
                         <strong>{item.food?.name || 'Unknown Item'}</strong><br />
                         Quantity: {item.quantity}<br />
-                        Price: ₹{item.price?.toLocaleString() || '0'}<br />
+                        Price: ₹{item.price?.toFixed(2) || '0.00'}<br />
                         {item.food?.staff && (
                           <>
                             Prepared By: {item.food.staff.fullname || 'N/A'}<br />
@@ -216,40 +219,28 @@ const Customerorders = () => {
                           </>
                         )}
                       </div>
-                    ))}
+                    )) || <p>No items found</p>}
                   </Col>
                   <Col md={6}>
                     <h5>Order Information</h5>
                     <div className="mb-3">
                       <strong>Order ID:</strong> {selectedOrder.orderId}<br />
                       <strong>Order Date:</strong> {formatDate(selectedOrder.orderDate)}<br />
-                      <strong>Delivery Address:</strong> {selectedOrder.deliveryAddress}<br />
-                      <strong>Status:</strong>{' '}
-                      <Badge
-                        bg={
-                          selectedOrder.status === 'completed'
-                            ? 'success'
-                            : selectedOrder.status === 'cancelled'
-                            ? 'danger'
-                            : 'warning'
-                        }
-                      >
-                        {selectedOrder.status}
-                      </Badge>
-                      <br />
-                      <strong>Total Amount:</strong> ₹{selectedOrder.totalAmount?.toLocaleString() || '0'}
+                      <strong>Delivery Address:</strong> {selectedOrder.deliveryAddress || 'N/A'}<br />
+                      <strong>Status:</strong> {getStatusBadge(selectedOrder.status)}<br />
+                      <strong>Total Amount:</strong> ₹{selectedOrder.totalAmount?.toFixed(2) || '0.00'}
                     </div>
                   </Col>
                 </Row>
                 <Row>
                   <Col>
                     <h5>Payment Information</h5>
-                    {selectedOrder.payments && selectedOrder.payments.length > 0 ? (
+                    {selectedOrder.payments?.length > 0 ? (
                       selectedOrder.payments.map((payment, index) => (
                         <div key={index} className="mb-3">
                           <strong>Payment ID:</strong> {payment.paymentId}<br />
-                          <strong>Amount:</strong> ₹{payment.amount?.toFixed(2) || '0'}<br />
-                          <strong>Status:</strong> {payment.status}<br />
+                          <strong>Amount:</strong> ₹{payment.amount?.toFixed(2) || '0.00'}<br />
+                          <strong>Status:</strong> {payment.status || 'N/A'}<br />
                           <strong>Payment Method:</strong> {payment.paymentMethod || 'N/A'}<br />
                           <strong>Transaction ID:</strong> {payment.transactionId || 'N/A'}<br />
                           <strong>Payment Date:</strong> {formatDate(payment.paymentDate)}

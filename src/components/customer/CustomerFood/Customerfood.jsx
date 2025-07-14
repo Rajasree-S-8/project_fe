@@ -107,15 +107,12 @@ const Customerfood = () => {
         })),
       };
 
-      const response = await axios.post(
-        'http://localhost:8080/api/orders/',
-        orderData,
-        {
-          headers: {
-            'X-Customer-Id': customer.userId,
-          },
+      const response = await axios.post('http://localhost:8080/api/orders', orderData, {
+        headers: {
+          'X-Customer-Id': customer.userId,
+          'Content-Type': 'application/json'
         }
-      );
+      });
 
       setOrderSuccess(true);
       setCart([]);
@@ -123,7 +120,13 @@ const Customerfood = () => {
       toast.success('Order placed successfully!');
     } catch (error) {
       console.error('Error placing order:', error);
-      toast.error('Failed to place order. Please try again.');
+      let errorMessage = 'Failed to place order. Please try again.';
+      if (error.response) {
+        errorMessage = error.response.data.message || errorMessage;
+      } else if (error.request) {
+        errorMessage = 'No response from server. Please check your connection.';
+      }
+      toast.error(errorMessage);
     } finally {
       setOrderProcessing(false);
     }
@@ -258,7 +261,7 @@ const Customerfood = () => {
           <ul>
             {cart.map((item) => (
               <li key={item.foodId}>
-                {item.name} (x{item.quantity}) - ₹{item.price * item.quantity}
+                {item.name} (x{item.quantity}) - ₹{(item.price * item.quantity).toFixed(2)}
               </li>
             ))}
           </ul>
@@ -303,7 +306,7 @@ const Customerfood = () => {
                   onClick={() => {
                     setShowCart(false);
                     setOrderSuccess(false);
-                    navigate('/customer/orders', { state: { orderSuccess: true } });
+                    navigate('/my-orders');
                   }}
                   className="w-100 mt-3"
                 >

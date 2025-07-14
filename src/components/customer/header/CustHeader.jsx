@@ -174,6 +174,11 @@ const CustHeader = ({ customerName }) => {
                   My Bookings
                 </Button>
               </Nav.Link>
+                  <Nav.Link>
+                <Button variant="outline-light" onClick={() => navigate("/my-orders")}>
+                  Order
+                </Button>
+              </Nav.Link>
               <Nav.Link className="profile-section">
                 <Button 
                   variant="outline-info" 

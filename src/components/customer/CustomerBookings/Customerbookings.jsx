@@ -30,6 +30,7 @@ const CustomerBooking = () => {
         throw new Error('User ID not found in customer data');
       }
 
+      console.log('Fetching bookings for customerId:', customer.userId); // Debug customer ID
       const response = await axios.get('http://localhost:8080/api/bookings/customer', {
         headers: {
           'X-Customer-Id': customer.userId,
@@ -37,27 +38,30 @@ const CustomerBooking = () => {
         },
       });
 
+      // Ensure bookingsData is always an array
       const bookingsData = Array.isArray(response.data) ? response.data : [];
-      
+      console.log('Fetched bookings:', bookingsData); // Debug log
+
       // Check for payment success in URL params
       const searchParams = new URLSearchParams(location.search);
       const paymentSuccessParam = searchParams.get('paymentSuccess');
       const bookingIdParam = searchParams.get('bookingId');
 
+      let updatedBookings = [...bookingsData];
+
       if (paymentSuccessParam === 'true' && bookingIdParam) {
-        const successfulBooking = bookingsData.find(b => b.bookingId === parseInt(bookingIdParam));
+        const successfulBooking = updatedBookings.find(b => b.bookingId === parseInt(bookingIdParam));
         if (successfulBooking) {
           setPaymentSuccess(true);
         }
       }
 
       // Check if there's a new booking from navigation state
+      console.log('Navigation state:', location.state); // Debug navigation state
       const { paymentSuccess: success, bookingDetails } = location.state || {};
-      let updatedBookings = bookingsData;
-
       if (success && bookingDetails) {
         const bookingExists = updatedBookings.some(b => b.bookingId === bookingDetails.bookingId);
-        if (!bookingExists) {
+        if (!bookingExists && bookingDetails) {
           updatedBookings = [...updatedBookings, bookingDetails];
         }
         setPaymentSuccess(true);
@@ -72,6 +76,7 @@ const CustomerBooking = () => {
       
       if (error.response) {
         errorMessage = error.response.data.message || `Error ${error.response.status}: ${error.response.statusText}`;
+        console.log('Server response:', error.response.data); // Debug server response
         if (error.response.status === 401 || error.response.status === 403) {
           navigate('/custlog');
           return;
@@ -90,6 +95,7 @@ const CustomerBooking = () => {
       } else {
         setError(errorMessage);
         setLoading(false);
+        setBookings([]); // Ensure bookings is an array even on failure
       }
     }
   };
@@ -100,10 +106,11 @@ const CustomerBooking = () => {
     } else {
       fetchBookings();
     }
-  }, [location.state, location.search]);
+  }, [location.state, location.search, navigate]);
 
   const fetchBookingDetails = async (bookingId) => {
     try {
+      setLoading(true);
       const customer = JSON.parse(localStorage.getItem('customer'));
       const response = await axios.get(`http://localhost:8080/api/bookings/${bookingId}/details`, {
         headers: {
@@ -115,19 +122,18 @@ const CustomerBooking = () => {
     } catch (error) {
       console.error('Error fetching booking details:', error);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleViewDetails = async (bookingId) => {
     try {
-      setLoading(true);
       const details = await fetchBookingDetails(bookingId);
       setCurrentBooking(details);
       setShowDetailsModal(true);
     } catch (error) {
       setError('Failed to load booking details. Please try again.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -255,7 +261,7 @@ const CustomerBooking = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {bookings.map((booking) => (
+                      {Array.isArray(bookings) && bookings.map((booking) => (
                         <tr key={booking.bookingId}>
                           <td>{booking.bookingId || 'N/A'}</td>
                           <td>
