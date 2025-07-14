@@ -11,6 +11,7 @@ const CustHeader = ({ customerName }) => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [customer, setCustomer] = useState({
     fullName: '',
+    username: '',
     email: '',
     phoneNumber: '',
     address: '',
@@ -41,9 +42,11 @@ const CustHeader = ({ customerName }) => {
           },
         });
         setCustomer(response.data);
+        // Update localStorage with fetched data, preserving userId
         localStorage.setItem('customer', JSON.stringify({
           ...customerData,
           ...response.data,
+          userId: customerData.userId, // Ensure userId is preserved
         }));
         setLoading(false);
       } catch (err) {
@@ -120,9 +123,11 @@ const CustHeader = ({ customerName }) => {
         }
       );
 
+      // Update localStorage with new data, preserving userId
       localStorage.setItem('customer', JSON.stringify({
         ...customerData,
         ...response.data,
+        userId: customerData.userId, // Ensure userId is preserved
       }));
       setSuccess('Profile updated successfully.');
       setIsEditing(false);
@@ -187,7 +192,7 @@ const CustHeader = ({ customerName }) => {
                   ) : (
                     <FontAwesomeIcon icon={faUser} className="me-2" />
                   )}
-                  {customerName || customerData.fullName || 'Profile'}
+                  {customerName || customerData.username || customerData.fullName || 'Profile'}
                 </Button>
               </Nav.Link>
               <Nav.Link>
@@ -234,6 +239,14 @@ const CustHeader = ({ customerName }) => {
                 )}
               </div>
               <Form onSubmit={handleProfileSubmit} className="profile-form">
+                <Form.Group className="mb-3">
+                  <Form.Label>Username</Form.Label>
+                  <Form.Control
+                    plaintext
+                    readOnly
+                    value={customer.username || 'N/A'}
+                  />
+                </Form.Group>
                 {isEditing && (
                   <Form.Group className="mb-3">
                     <Form.Label>Profile Image</Form.Label>
