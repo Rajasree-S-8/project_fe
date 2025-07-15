@@ -39,6 +39,26 @@ const Sidebar = ({ activeSection, handleNavClick }) => {
                             </li>
                         </ul>
                     </div>
+                    
+                    {/* New Customer Section */}
+                    <div className="mb-4">
+                        <p className="text-uppercase text-xs fw-bold mb-2">Customers</p>
+                        <ul className="nav flex-column">
+                            {[
+                                { href: '#customers', icon: 'fa-users', text: 'All Customers', section: 'customers', color: '#3498db' },
+                                { href: '#customer-Booking', icon: 'fa-user-plus', text: 'Room Booking', section: 'customer-registrations', color: '#2ecc71' },
+                            ].map(({ href, icon, text, section, color }) => (
+                                <li key={href} className="nav-item">
+                                    <a className={`nav-link ${activeSection === section && 'active'}`} 
+                                       href={href} 
+                                       onClick={(e) => handleNavClick(e, section)}>
+                                        <i className={`fas ${icon}`} style={{ color }} /> {text}
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
                     <div className="mb-4">
                         <p className="text-uppercase text-xs fw-bold mb-2">Staff</p>
                         <ul className="nav flex-column">

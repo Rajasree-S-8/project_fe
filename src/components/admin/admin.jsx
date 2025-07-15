@@ -9,6 +9,8 @@ import Rooms from './rooms/rooms';
 import RatingsReviews from './rating/rating';
 import HotelManager from './hotelmanager/hotelmanager';
 import RestaurantManager from './restaurantmanager/restaurantmanager';
+import Adcustomer from './Customer/Customer';
+import CustomerRoomBook from './Customer/customerroombook'; // Corrected import
 
 const Admin = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -39,6 +41,8 @@ const Admin = () => {
           <RatingsReviews isActive={activeSection === 'ratings-reviews'} />
           <HotelManager isActive={activeSection === 'hotel-manager'} />
           <RestaurantManager isActive={activeSection === 'restaurant-manager'} />
+          <Adcustomer isActive={activeSection === 'customers'} />
+          <CustomerRoomBook isActive={activeSection === 'customer-registrations'} /> {/* Added rendering */}
         </main>
       </div>
     </>

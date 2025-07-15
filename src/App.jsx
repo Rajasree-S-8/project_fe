@@ -21,6 +21,7 @@ import EditFood from "./components/Restaurantmanager/addfood/EditFood.jsx";
 import ViewFood from "./components/Restaurantmanager/viewfood/ViewFood.jsx";
 import ViewBookings from "./components/hotelmanager/viewbooking/ViewBooking.jsx";
 
+
 function App() {
   return (
     <Router>

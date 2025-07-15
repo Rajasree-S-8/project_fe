@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './AddStaff.css';
 
 const AddStaff = ({ isActive, onStaffAdded }) => {
   const [formData, setFormData] = useState({
@@ -15,6 +16,7 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
   const [emailError, setEmailError] = useState('');
   const [showPasswordPopup, setShowPasswordPopup] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -90,30 +92,35 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitAttempted(true);
+    setIsSubmitting(true);
 
     // Validate all required fields
     const requiredFields = ['username', 'fullName', 'email', 'address', 'Age', 'phoneNumber', 'password', 'role'];
     for (const field of requiredFields) {
       if (!formData[field]) {
-        alert(`Please fill in ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
+        showNotification(`Please fill in ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`, 'error');
+        setIsSubmitting(false);
         return;
       }
     }
 
     // Validate phone number
     if (formData.phoneNumber.length !== 10) {
-      alert('Phone number must be exactly 10 digits.');
+      showNotification('Phone number must be exactly 10 digits', 'error');
+      setIsSubmitting(false);
       return;
     }
 
     // Validate email format
     if (!validateEmail(formData.email)) {
+      setIsSubmitting(false);
       return;
     }
 
     // Validate password strength
     if (!validatePassword(formData.password)) {
       setShowPasswordPopup(true);
+      setIsSubmitting(false);
       return;
     }
 
@@ -123,7 +130,7 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
       email: formData.email,
       address: formData.address,
       age: parseInt(formData.Age),
-      phonenumber: formData.phoneNumber, // Keep as string
+      phonenumber: formData.phoneNumber,
       password: formData.password,
       role: formData.role
     };
@@ -142,7 +149,9 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
         throw new Error(errorData.message || 'Failed to add staff');
       }
 
-      alert('Staff added successfully!');
+      showNotification('Staff added successfully!', 'success');
+      
+      // Reset form
       setFormData({
         username: '',
         fullName: '',
@@ -160,8 +169,27 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
       if (onStaffAdded) onStaffAdded();
     } catch (error) {
       console.error('Error:', error);
-      alert(`Error: ${error.message}`);
+      showNotification(`Error: ${error.message}`, 'error');
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const showNotification = (message, type) => {
+    const notification = document.createElement('div');
+    notification.className = `staff-${type}-notification show`;
+    notification.innerHTML = `
+      <div class="notification-content">
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+        ${message}
+      </div>
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
   };
 
   const isPasswordValid = () => {
@@ -170,231 +198,242 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
   };
 
   return (
-    <div id="add-staff" className={`mt-5 ${!isActive ? 'd-none' : ''}`}>
-      <h1 className="h3 fw-bold mb-1">Add Staff</h1>
-      <p className="text-muted mb-4">Add a new staff member</p>
-      <div className="card shadow-sm">
-        <div className="card-body">
-          <form onSubmit={handleSubmit}>
-            <div className="row">
-              <div className="col-12 col-md-6 mb-3">
-                <label htmlFor="username" className="form-label">
-                  <i className="fas fa-user me-2"></i>
-                  Username
+    <div id="add-staff" className={`add-staff-container ${!isActive ? 'd-none' : ''}`}>
+      <div className="add-staff-header">
+        <h1 className="add-staff-title">Add New Staff Member</h1>
+        <p className="add-staff-subtitle">Fill in the details below to register a new staff member</p>
+      </div>
+      
+      <div className="add-staff-card">
+        <div className="add-staff-card-body">
+          <form onSubmit={handleSubmit} className="add-staff-form">
+            <div className="add-staff-form-grid">
+              {/* Username */}
+              <div className="add-staff-form-group">
+                <label htmlFor="username" className="add-staff-label">
+                  <i className="fas fa-user-tie"></i> Username
                 </label>
-                <div className="input-group">
-                  <span className="input-group-text">
-                    <i className="fas fa-user"></i>
-                  </span>
+                <div className="add-staff-input-container">
                   <input 
                     type="text" 
-                    className="form-control" 
+                    className="add-staff-input" 
                     id="username" 
                     name="username" 
                     value={formData.username}
                     onChange={handleChange}
+                    placeholder="Enter username"
                     required 
                   />
+                  <div className="input-underline"></div>
                 </div>
               </div>
 
-              <div className="col-12 col-md-6 mb-3">
-                <label htmlFor="fullName" className="form-label">
-                  <i className="fas fa-id-card me-2"></i>
-                  Full Name
+              {/* Full Name */}
+              <div className="add-staff-form-group">
+                <label htmlFor="fullName" className="add-staff-label">
+                  <i className="fas fa-id-card"></i> Full Name
                 </label>
-                <div className="input-group">
-                  <span className="input-group-text">
-                    <i className="fas fa-id-card"></i>
-                  </span>
+                <div className="add-staff-input-container">
                   <input 
                     type="text" 
-                    className="form-control" 
+                    className="add-staff-input" 
                     id="fullName" 
                     name="fullName" 
                     value={formData.fullName}
                     onChange={handleChange}
+                    placeholder="Enter full name"
                     required 
                   />
+                  <div className="input-underline"></div>
                 </div>
               </div>
 
-              <div className="col-12 col-md-6 mb-3">
-                <label htmlFor="email" className="form-label">
-                  <i className="fas fa-envelope me-2"></i>
-                  Email
+              {/* Email */}
+              <div className="add-staff-form-group">
+                <label htmlFor="email" className="add-staff-label">
+                  <i className="fas fa-envelope"></i> Email
                 </label>
-                <div className="input-group">
-                  <span className="input-group-text">
-                    <i className="fas fa-envelope"></i>
-                  </span>
+                <div className="add-staff-input-container">
                   <input 
                     type="email" 
-                    className={`form-control ${emailError ? 'is-invalid' : ''}`}
+                    className={`add-staff-input ${emailError ? 'input-error' : ''}`}
                     id="email" 
                     name="email" 
                     value={formData.email}
                     onChange={handleChange}
+                    placeholder="Enter email address"
                     required 
                   />
+                  <div className="input-underline"></div>
                 </div>
                 {emailError && (
-                  <div className="invalid-feedback d-block">
-                    <i className="fas fa-exclamation-circle me-2"></i>
-                    {emailError}
+                  <div className="input-error-message">
+                    <i className="fas fa-exclamation-circle"></i> {emailError}
                   </div>
                 )}
               </div>
 
-              <div className="col-12 col-md-6 mb-3">
-                <label htmlFor="address" className="form-label">
-                  <i className="fas fa-map-marker-alt me-2"></i>
-                  Address
+              {/* Address */}
+              <div className="add-staff-form-group">
+                <label htmlFor="address" className="add-staff-label">
+                  <i className="fas fa-map-marker-alt"></i> Address
                 </label>
-                <div className="input-group">
-                  <span className="input-group-text">
-                    <i className="fas fa-map-marker-alt"></i>
-                  </span>
+                <div className="add-staff-input-container">
                   <input 
                     type="text" 
-                    className="form-control" 
+                    className="add-staff-input" 
                     id="address" 
                     name="address" 
                     value={formData.address}
                     onChange={handleChange}
+                    placeholder="Enter street address"
                     required 
                   />
+                  <div className="input-underline"></div>
                 </div>
               </div>
 
-              <div className="col-12 col-md-6 mb-3">
-                <label htmlFor="Age" className="form-label">
-                  <i className="fas fa-birthday-cake me-2"></i>
-                  Age
+              {/* Age */}
+              <div className="add-staff-form-group">
+                <label htmlFor="Age" className="add-staff-label">
+                  <i className="fas fa-birthday-cake"></i> Age
                 </label>
-                <div className="input-group">
-                  <span className="input-group-text">
-                    <i className="fas fa-birthday-cake"></i>
-                  </span>
+                <div className="add-staff-input-container">
                   <input 
                     type="number" 
-                    className="form-control" 
+                    className="add-staff-input" 
                     id="Age" 
                     name="Age" 
                     value={formData.Age}
                     onChange={handleChange}
+                    placeholder="Enter age"
                     min="18"
                     max="100"
                     required 
                   />
+                  <div className="input-underline"></div>
                 </div>
               </div>
 
-              <div className="col-12 col-md-6 mb-3">
-                <label htmlFor="phoneNumber" className="form-label">
-                  <i className="fas fa-phone me-2"></i>
-                  Phone Number
+              {/* Phone Number */}
+              <div className="add-staff-form-group">
+                <label htmlFor="phoneNumber" className="add-staff-label">
+                  <i className="fas fa-phone"></i> Phone Number
                 </label>
-                <div className="input-group">
-                  <span className="input-group-text">
-                    <i className="fas fa-phone"></i>
-                  </span>
+                <div className="add-staff-input-container">
                   <input 
                     type="tel" 
-                    className="form-control" 
+                    className="add-staff-input" 
                     id="phoneNumber" 
                     name="phoneNumber" 
                     value={formData.phoneNumber}
                     onChange={handleChange}
+                    placeholder="Enter 10-digit phone number"
                     maxLength="10"
                     required 
                   />
+                  <div className="input-underline"></div>
                 </div>
               </div>
 
-              <div className="col-12 col-md-6 mb-3">
-                <label htmlFor="password" className="form-label">
-                  <i className="fas fa-lock me-2"></i>
-                  Password
+              {/* Password */}
+              <div className="add-staff-form-group">
+                <label htmlFor="password" className="add-staff-label">
+                  <i className="fas fa-key"></i> Password
                 </label>
-                <div className="input-group">
-                  <span className="input-group-text">
-                    <i className="fas fa-lock"></i>
-                  </span>
+                <div className="add-staff-input-container">
                   <input 
                     type="password" 
-                    className={`form-control ${passwordError && submitAttempted ? 'is-invalid' : ''}`}
+                    className={`add-staff-input ${passwordError && submitAttempted ? 'input-error' : ''}`}
                     id="password" 
                     name="password" 
                     value={formData.password}
                     onChange={handleChange}
+                    placeholder="Create a strong password"
                     minLength="8"
                     maxLength="50"
                     required 
                   />
+                  <div className="input-underline"></div>
                 </div>
                 {passwordError && submitAttempted && (
-                  <div className="invalid-feedback d-block">
-                    <i className="fas fa-exclamation-circle me-2"></i>
-                    {passwordError}
+                  <div className="input-error-message">
+                    <i className="fas fa-exclamation-circle"></i> {passwordError}
                   </div>
                 )}
                 
                 {showPasswordPopup && !isPasswordValid() && (
-                  <div className="card mt-2 shadow-sm">
-                    <div className="card-body p-3">
-                      <h6 className="card-title mb-2">Password Requirements:</h6>
-                      <ul className="mb-0 small">
-                        <li className={formData.password.length >= 8 && formData.password.length <= 50 ? 'text-success' : 'text-danger'}>
-                          {formData.password.length >= 8 && formData.password.length <= 50 ? '✓' : '✗'} 8-50 characters
-                        </li>
-                        <li className={/[A-Z]/.test(formData.password) ? 'text-success' : 'text-danger'}>
-                          {/[A-Z]/.test(formData.password) ? '✓' : '✗'} At least one uppercase letter (A-Z)
-                        </li>
-                        <li className={/[a-z]/.test(formData.password) ? 'text-success' : 'text-danger'}>
-                          {/[a-z]/.test(formData.password) ? '✓' : '✗'} At least one lowercase letter (a-z)
-                        </li>
-                        <li className={/\d/.test(formData.password) ? 'text-success' : 'text-danger'}>
-                          {/\d/.test(formData.password) ? '✓' : '✗'} At least one number (0-9)
-                        </li>
-                        <li className={/[@$!%*?&]/.test(formData.password) ? 'text-success' : 'text-danger'}>
-                          {/[@$!%*?&]/.test(formData.password) ? '✓' : '✗'} At least one special character (@$!%*?&)
-                        </li>
-                      </ul>
+                  <div className="password-requirements-popup">
+                    <div className="popup-header">
+                      <i className="fas fa-shield-alt"></i> Password Requirements
                     </div>
+                    <ul className="requirements-list">
+                      <li className={formData.password.length >= 8 && formData.password.length <= 50 ? 'valid' : 'invalid'}>
+                        <i className={`fas ${formData.password.length >= 8 && formData.password.length <= 50 ? 'fa-check' : 'fa-times'}`}></i>
+                        8-50 characters
+                      </li>
+                      <li className={/[A-Z]/.test(formData.password) ? 'valid' : 'invalid'}>
+                        <i className={`fas ${/[A-Z]/.test(formData.password) ? 'fa-check' : 'fa-times'}`}></i>
+                        At least one uppercase letter
+                      </li>
+                      <li className={/[a-z]/.test(formData.password) ? 'valid' : 'invalid'}>
+                        <i className={`fas ${/[a-z]/.test(formData.password) ? 'fa-check' : 'fa-times'}`}></i>
+                        At least one lowercase letter
+                      </li>
+                      <li className={/\d/.test(formData.password) ? 'valid' : 'invalid'}>
+                        <i className={`fas ${/\d/.test(formData.password) ? 'fa-check' : 'fa-times'}`}></i>
+                        At least one number
+                      </li>
+                      <li className={/[@$!%*?&]/.test(formData.password) ? 'valid' : 'invalid'}>
+                        <i className={`fas ${/[@$!%*?&]/.test(formData.password) ? 'fa-check' : 'fa-times'}`}></i>
+                        At least one special character
+                      </li>
+                    </ul>
                   </div>
                 )}
               </div>
 
-              <div className="col-12 col-md-6 mb-3">
-                <label htmlFor="role" className="form-label">
-                  <i className="fas fa-user-tag me-2"></i>
-                  Role
+              {/* Role */}
+              <div className="add-staff-form-group">
+                <label htmlFor="role" className="add-staff-label">
+                  <i className="fas fa-user-tag"></i> Role
                 </label>
-                <div className="input-group">
-                  <span className="input-group-text">
-                    <i className="fas fa-user-tag"></i>
-                  </span>
+                <div className="add-staff-input-container">
                   <select 
-                    className="form-select" 
+                    className="add-staff-select" 
                     id="role" 
                     name="role" 
                     value={formData.role}
                     onChange={handleChange}
                     required
                   >
-                    <option value="" disabled>Select a role</option>
+                    <option value="" disabled>Select staff role</option>
                     <option value="Hotel Manager">Hotel Manager</option>
                     <option value="Restaurant Manager">Restaurant Manager</option>         
                     <option value="Other">Other</option>
                   </select>
+                  <div className="input-underline"></div>
                 </div>
               </div>
             </div>
-            <button type="submit" className="btn btn-primary">
-              <i className="fas fa-user-plus me-2"></i>
-              Add Staff
-            </button>
+            
+            <div className="add-staff-actions">
+              <button 
+                type="submit" 
+                className="add-staff-submit-btn"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin"></i> Processing...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-user-plus"></i> Add Staff Member
+                  </>
+                )}
+              </button>
+            </div>
           </form>
         </div>
       </div>

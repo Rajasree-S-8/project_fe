@@ -5,12 +5,12 @@ import AddRoom from '../addrooms/addrooms';
 import ViewRooms from '../viewrooms/viewroom';
 import ViewCustomers from '../viewcustomer/viewcustomer';
 import ViewBookings from '../viewbooking/viewbooking';
-import Profile from '../profile/profile'; // New Profile component
+import Profile from '../profile/profile';
 
 function Home() {
   const [activeSection, setActiveSection] = useState(() => {
     const savedSection = localStorage.getItem('activeSection');
-    return savedSection || 'home'; // Default to 'home' after login
+    return savedSection || 'home';
   });
 
   useEffect(() => {
@@ -22,32 +22,70 @@ function Home() {
       case 'home':
         return (
           <div className="home-content">
-            <div className="hotel-image-container">
-              <img
-                src="https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
-                alt="Luxury Hotel"
-                className="hotel-image"
-              />
-              <div className="image-overlay"></div>
-              <div className="welcome-container">
-                <div className="welcome-box animate-from-top-right">
-                  <h1>Welcome to Hotel Management</h1>
-                  <p>Efficiently manage your hotel operations with our comprehensive system</p>
-                  <div className="welcome-features">
-                    <div className="feature-item">
-                      <span className="feature-icon">🛎️</span>
-                      <span>Room Management</span>
-                    </div>
-                    <div className="feature-item">
-                      <span className="feature-icon">👥</span>
-                      <span>Customer Records</span>
-                    </div>
-                    <div className="feature-item">
-                      <span className="feature-icon">📅</span>
-                      <span>Booking System</span>
-                    </div>
+            <div className="hotel-hero">
+              <div className="hero-overlay"></div>
+              <div className="hero-content">
+                <h1 className="hero-title">Welcome to <span>Revzz Hotel</span></h1>
+                <p className="hero-subtitle">Elevating hospitality through seamless management</p>
+                
+                <div className="stats-container">
+                  <div className="stat-card">
+                    <div className="stat-icon">🏨</div>
+                    <div className="stat-value">120+</div>
+                    <div className="stat-label">Rooms Available</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-icon">🌟</div>
+                    <div className="stat-value">4.9</div>
+                    <div className="stat-label">Average Rating</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-icon">👥</div>
+                    <div className="stat-value">5K+</div>
+                    <div className="stat-label">Happy Guests</div>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <div className="features-section">
+              <h2 className="section-title">Management Features</h2>
+              <div className="features-grid">
+                <div className="feature-card" onClick={() => setActiveSection('addRoom')}>
+                  <div className="feature-icon">➕</div>
+                  <h3>Add Rooms</h3>
+                  <p>Easily add new rooms to your inventory with all necessary details.</p>
+                </div>
+                <div className="feature-card" onClick={() => setActiveSection('viewRooms')}>
+                  <div className="feature-icon">🛏️</div>
+                  <h3>View Rooms</h3>
+                  <p>Manage and view all room details, availability, and status.</p>
+                </div>
+                <div className="feature-card" onClick={() => setActiveSection('viewCustomers')}>
+                  <div className="feature-icon">👤</div>
+                  <h3>Customer Management</h3>
+                  <p>Track customer information and preferences.</p>
+                </div>
+                <div className="feature-card" onClick={() => setActiveSection('viewBookings')}>
+                  <div className="feature-icon">📅</div>
+                  <h3>Booking System</h3>
+                  <p>Manage current and upcoming reservations efficiently.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="quick-actions">
+              <h2 className="section-title">Quick Actions</h2>
+              <div className="action-buttons">
+                <button onClick={() => setActiveSection('addRoom')} className="action-btn primary">
+                  Add New Room
+                </button>
+                <button onClick={() => setActiveSection('viewBookings')} className="action-btn secondary">
+                  Check Bookings
+                </button>
+                <button onClick={() => setActiveSection('viewCustomers')} className="action-btn accent">
+                  View Customers
+                </button>
               </div>
             </div>
           </div>
@@ -68,9 +106,9 @@ function Home() {
   };
 
   return (
-    <div className={activeSection === 'home' ? 'home-background' : 'other-section'}>
+    <div className={`app-container ${activeSection === 'home' ? 'home-active' : ''}`}>
       <HeaderNavbar activeSection={activeSection} setActiveSection={setActiveSection} />
-      <div className="main-content-container">
+      <div className="main-content">
         {renderSection()}
       </div>
     </div>

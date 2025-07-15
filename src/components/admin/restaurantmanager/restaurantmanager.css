@@ -1,168 +1,103 @@
+/* RestaurantManager.css */
+
 .restaurant-manager {
-  min-height: 100vh;
-  background: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)),
-              url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
-  background-size: cover;
-  background-attachment: fixed;
-  padding-top: 70px;
+  font-family: 'Roboto', sans-serif;
 }
 
-.card {
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.card-header {
-  padding: 1.5rem;
-}
-
-.table th {
-  font-weight: 600;
-}
-
-.table td {
-  vertical-align: middle;
-}
-
-.btn-sm {
-  border-radius: 8px;
-  transition: all 0.3s;
-}
-
-.btn-primary:hover {
-  background-color: #0056b3;
-  color: white;
-}
-
-.btn-info:hover {
-  background-color: #17a2b8;
-  color: white;
-}
-
-.btn-warning:hover {
-  background-color: #e0a800;
-  color: white;
-}
-
-.btn-success:hover {
-  background-color: #28a745;
-  color: white;
-}
-
-.btn-danger:hover {
-  background-color: #c82333;
-  color: white;
-}
-
-.pagination .page-link {
+.food-image-thumbnail {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
   border-radius: 5px;
-  margin: 0 3px;
 }
 
-.pagination .page-item.active .page-link {
-  background-color: #4dabf7;
-  border-color: #4dabf7;
-}
-
-/* Scoped dropdown styling */
-.restaurant-manager .dropdown-toggle {
-  border-radius: 8px;
-  background-color: #212529; /* Black background */
-  border: 1px solid #343a40; /* Darker border */
-  color: #ffffff; /* White text */
-  transition: all 0.3s;
-  padding: 8px 12px; /* Consistent padding */
-}
-
-.restaurant-manager .dropdown-toggle:hover {
-  background-color: #343a40; /* Slightly lighter black on hover */
-  border-color: #495057;
-  color: #ffffff;
-}
-
-.restaurant-manager .dropdown-toggle:focus,
-.restaurant-manager .dropdown-toggle:active {
-  background-color: #495057 !important; /* Lighter black when active */
-  color: #ffffff !important;
-  border-color: #495057 !important;
-  box-shadow: 0 0 0 0.2rem rgba(73, 80, 87, 0.25);
-}
-
-.restaurant-manager .dropdown-menu {
-  border-radius: 8px;
-  border: 1px solid #343a40;
-  background-color: #212529; /* Black background */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  margin-top: 4px;
-  min-width: 100%;
-}
-
-.restaurant-manager .dropdown-item {
-  color: #ffffff; /* White text */
-  padding: 8px 16px;
-  transition: all 0.2s;
-}
-
-.restaurant-manager .dropdown-item:hover,
-.restaurant-manager .dropdown-item:focus {
-  background-color: #495057; /* Lighter black on hover */
-  color: #ffffff;
-}
-
-/* Modal styling */
-.modal-content {
-  border-radius: 10px;
+.description-cell {
+  max-width: 250px;
 }
 
 .modal-header-custom {
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #dee2e6;
-  padding: 1rem 1.5rem;
+  background-color: #343a40;
+  color: white;
 }
 
 .modal-title-custom {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #343a40;
-  line-height: 1.2;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  max-width: 100%;
-  white-space: normal;
-}
-
-.form-label {
   font-weight: 500;
-  margin-bottom: 8px;
 }
 
-.form-control {
-  border-radius: 8px;
-  padding: 10px;
-  border: 1px solid #ddd;
-  transition: all 0.3s;
+.table th {
+  white-space: nowrap;
 }
 
-.form-control:focus {
-  border-color: #4dabf7;
-  box-shadow: 0 0 0 0.2rem rgba(77, 171, 247, 0.25);
+.table-responsive {
+  overflow-x: auto;
 }
 
-.img-thumbnail {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
+/* Pagination styling */
+.pagination {
+  margin-bottom: 0;
 }
 
-.form-check-input:checked {
-  background-color: #4dabf7;
-  border-color: #4dabf7;
+.page-item.active .page-link {
+  background-color: #343a40;
+  border-color: #343a40;
+}
+
+.page-link {
+  color: #343a40;
+}
+
+/* Badge styling */
+.badge {
+  font-size: 0.85em;
+  padding: 0.5em 0.75em;
+}
+
+/* Button spacing */
+.btn {
+  margin-right: 5px;
 }
 
 /* Responsive adjustments */
-@media (max-width: 576px) {
-  .modal-title-custom {
-    font-size: 1.2rem;
+@media (max-width: 768px) {
+  .table-responsive {
+    border: 0;
+  }
+  
+  .table thead {
+    display: none;
+  }
+  
+  .table tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+  }
+  
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    border-bottom: 1px solid #dee2e6;
+  }
+  
+  .table td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    margin-right: 1rem;
+  }
+  
+  .table td:last-child {
+    border-bottom: 0;
+  }
+  
+  .description-cell {
+    max-width: none;
+  }
+  
+  .food-image-thumbnail {
+    width: 40px;
+    height: 40px;
   }
 }

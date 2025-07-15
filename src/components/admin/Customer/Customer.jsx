@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import './StaffDetails.css';
+import './Customer.css';
 
-const StaffDetails = ({ isActive, refreshKey }) => {
-  const [staffList, setStaffList] = useState([]);
-  const [filteredStaffList, setFilteredStaffList] = useState([]);
-  const [editingStaff, setEditingStaff] = useState(null);
+const CustomerDetails = ({ isActive, refreshKey }) => {
+  const [customerList, setCustomerList] = useState([]);
+  const [filteredCustomerList, setFilteredCustomerList] = useState([]);
+  const [editingCustomer, setEditingCustomer] = useState(null);
   const [editFormData, setEditFormData] = useState({
     username: '',
-    fullname: '',
+    fullName: '',
     email: '',
-    age: '',
-    phonenumber: '',
-    role: '',
+    phoneNumber: '',
+    address: '',
     password: '********'
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -23,36 +22,36 @@ const StaffDetails = ({ isActive, refreshKey }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchStaffData();
+    fetchCustomerData();
   }, [refreshKey]);
 
   useEffect(() => {
-    const filterStaff = (staff) => {
-      return Object.values(staff).some(value => {
+    const filterCustomer = (customer) => {
+      return Object.values(customer).some(value => {
         if (!value) return false;
         return value.toString().toLowerCase().includes(searchTerm.toLowerCase());
       });
     };
 
-    const filtered = staffList.filter(filterStaff);
-    setFilteredStaffList(filtered);
+    const filtered = customerList.filter(filterCustomer);
+    setFilteredCustomerList(filtered);
     setCurrentPage(1);
-  }, [searchTerm, staffList]);
+  }, [searchTerm, customerList]);
 
-  const fetchStaffData = async () => {
+  const fetchCustomerData = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('http://localhost:8080/api/staff/all');
+      const response = await fetch('http://localhost:8080/api/customers/all');
       if (!response.ok) {
-        throw new Error('Failed to fetch staff data');
+        throw new Error('Failed to fetch customer data');
       }
       const data = await response.json();
-      const sortedData = data.sort((a, b) => a.staffId - b.staffId);
-      setStaffList(sortedData);
-      setFilteredStaffList(sortedData);
+      const sortedData = data.sort((a, b) => a.userId - b.userId);
+      setCustomerList(sortedData);
+      setFilteredCustomerList(sortedData);
     } catch (error) {
-      console.error('Error fetching staff data:', error);
+      console.error('Error fetching customer data:', error);
       setError(error.message);
     } finally {
       setIsLoading(false);
@@ -75,7 +74,7 @@ const StaffDetails = ({ isActive, refreshKey }) => {
       alert('Username is required');
       return false;
     }
-    if (!editFormData.fullname.trim()) {
+    if (!editFormData.fullName.trim()) {
       alert('Full name is required');
       return false;
     }
@@ -92,20 +91,19 @@ const StaffDetails = ({ isActive, refreshKey }) => {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredStaffList.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredStaffList.length / itemsPerPage);
+  const currentItems = filteredCustomerList.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredCustomerList.length / itemsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  const handleEditClick = (staff) => {
-    setEditingStaff(staff.staffId);
+  const handleEditClick = (customer) => {
+    setEditingCustomer(customer.userId);
     setEditFormData({
-      username: staff.username,
-      fullname: staff.fullname,
-      email: staff.email,
-      age: staff.age,
-      phonenumber: staff.phonenumber,
-      role: staff.role,
+      username: customer.username,
+      fullName: customer.fullName,
+      email: customer.email,
+      phoneNumber: customer.phoneNumber,
+      address: customer.address,
       password: '********'
     });
     setShowPassword(false);
@@ -119,22 +117,21 @@ const StaffDetails = ({ isActive, refreshKey }) => {
     });
   };
 
-  const handleUpdateStaff = async (staffId) => {
+  const handleUpdateCustomer = async (userId) => {
     if (!validateForm()) return;
 
     setIsLoading(true);
     try {
       const dataToSend = {
         username: editFormData.username,
-        fullname: editFormData.fullname,
+        fullName: editFormData.fullName,
         email: editFormData.email,
-        age: editFormData.age,
-        phonenumber: editFormData.phonenumber,
-        role: editFormData.role,
+        phoneNumber: editFormData.phoneNumber,
+        address: editFormData.address,
         password: editFormData.password !== '********' ? editFormData.password : null
       };
 
-      const response = await fetch(`http://localhost:8080/api/staff/update/${staffId}`, {
+      const response = await fetch(`http://localhost:8080/api/customers/update/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -144,13 +141,13 @@ const StaffDetails = ({ isActive, refreshKey }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update staff');
+        throw new Error(errorData.message || 'Failed to update customer');
       }
 
-      alert('Staff updated successfully!');
-      setEditingStaff(null);
+      alert('Customer updated successfully!');
+      setEditingCustomer(null);
       setShowPassword(false);
-      fetchStaffData();
+      fetchCustomerData();
     } catch (error) {
       console.error('Error:', error);
       alert(`Error: ${error.message}`);
@@ -159,22 +156,22 @@ const StaffDetails = ({ isActive, refreshKey }) => {
     }
   };
 
-  const handleDeleteStaff = async (staffId) => {
-    if (!window.confirm('Are you sure you want to delete this staff member?')) return;
+  const handleDeleteCustomer = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this customer?')) return;
 
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/staff/delete/${staffId}`, {
+      const response = await fetch(`http://localhost:8080/api/customers/delete/${userId}`, {
         method: 'DELETE'
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete staff');
+        throw new Error(errorData.message || 'Failed to delete customer');
       }
 
-      alert('Staff deleted successfully!');
-      fetchStaffData();
+      alert('Customer deleted successfully!');
+      fetchCustomerData();
     } catch (error) {
       console.error('Error:', error);
       alert(`Error: ${error.message}`);
@@ -188,10 +185,10 @@ const StaffDetails = ({ isActive, refreshKey }) => {
   };
 
   return (
-    <div id="staff-details" className={`staff-management-container ${!isActive ? 'd-none' : ''}`}>
-      <div className="staff-header">
-        <h1 className="staff-title">Staff Management</h1>
-        <p className="staff-subtitle">Manage all staff information with ease</p>
+    <div id="customer-details" className={`customer-management-container ${!isActive ? 'd-none' : ''}`}>
+      <div className="customer-header">
+        <h1 className="customer-title">Customer Management</h1>
+        <p className="customer-subtitle">Manage all customer information with ease</p>
       </div>
 
       {error && (
@@ -201,34 +198,33 @@ const StaffDetails = ({ isActive, refreshKey }) => {
         </div>
       )}
 
-      <div className="staff-controls">
+      <div className="customer-controls">
         <div className="search-container">
           <i className="bi bi-search search-icon"></i>
           <input
             type="text"
             className="search-input"
-            placeholder="Search staff..."
+            placeholder="Search customers..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <span className="total-badge">
           <i className="bi bi-people-fill me-1"></i>
-          Total: {filteredStaffList.length}
+          Total: {filteredCustomerList.length}
         </span>
       </div>
 
       <div className="table-container">
-        <table className="staff-table">
+        <table className="customer-table">
           <thead>
             <tr>
               <th>#</th>
               <th>Username</th>
               <th>Full Name</th>
               <th>Email Address</th>
-              <th>Age</th>
               <th>Phone</th>
-              <th>Role</th>
+              <th>Address</th>
               <th>Password</th>
               <th>Actions</th>
             </tr>
@@ -236,17 +232,17 @@ const StaffDetails = ({ isActive, refreshKey }) => {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan="9" className="loading-cell">
+                <td colSpan="8" className="loading-cell">
                   <div className="spinner"></div>
-                  <span>Loading staff data...</span>
+                  <span>Loading customer data...</span>
                 </td>
               </tr>
             ) : currentItems.length > 0 ? (
-              currentItems.map((staff, index) => (
-                <tr key={staff.staffId} className="staff-row">
+              currentItems.map((customer, index) => (
+                <tr key={customer.userId} className="customer-row">
                   <td>{getDisplayId(index)}</td>
                   <td>
-                    {editingStaff === staff.staffId ? (
+                    {editingCustomer === customer.userId ? (
                       <input
                         type="text"
                         name="username"
@@ -256,25 +252,25 @@ const StaffDetails = ({ isActive, refreshKey }) => {
                         required
                       />
                     ) : (
-                      staff.username
+                      customer.username
                     )}
                   </td>
                   <td>
-                    {editingStaff === staff.staffId ? (
+                    {editingCustomer === customer.userId ? (
                       <input
                         type="text"
-                        name="fullname"
-                        value={editFormData.fullname}
+                        name="fullName"
+                        value={editFormData.fullName}
                         onChange={handleEditFormChange}
                         className="form-control edit-input"
                         required
                       />
                     ) : (
-                      staff.fullname
+                      customer.fullName
                     )}
                   </td>
                   <td>
-                    {editingStaff === staff.staffId ? (
+                    {editingCustomer === customer.userId ? (
                       <input
                         type="email"
                         name="email"
@@ -284,55 +280,37 @@ const StaffDetails = ({ isActive, refreshKey }) => {
                         required
                       />
                     ) : (
-                      staff.email
+                      customer.email
                     )}
                   </td>
                   <td>
-                    {editingStaff === staff.staffId ? (
-                      <input
-                        type="number"
-                        name="age"
-                        value={editFormData.age}
-                        onChange={handleEditFormChange}
-                        className="form-control edit-input"
-                        min="18"
-                        max="100"
-                      />
-                    ) : (
-                      staff.age
-                    )}
-                  </td>
-                  <td>
-                    {editingStaff === staff.staffId ? (
+                    {editingCustomer === customer.userId ? (
                       <input
                         type="tel"
-                        name="phonenumber"
-                        value={editFormData.phonenumber}
+                        name="phoneNumber"
+                        value={editFormData.phoneNumber}
                         onChange={handleEditFormChange}
                         className="form-control edit-input"
                       />
                     ) : (
-                      staff.phonenumber
+                      customer.phoneNumber || '-'
                     )}
                   </td>
                   <td>
-                    {editingStaff === staff.staffId ? (
-                      <select
-                        name="role"
-                        value={editFormData.role}
+                    {editingCustomer === customer.userId ? (
+                      <input
+                        type="text"
+                        name="address"
+                        value={editFormData.address}
                         onChange={handleEditFormChange}
-                        className="form-select edit-select"
-                      >
-                        <option value="Hotel Manager">Hotel Manager</option>
-                        <option value="Restaurant Manager">Restaurant Manager</option>
-                        <option value="Other">Other</option>
-                      </select>
+                        className="form-control edit-input"
+                      />
                     ) : (
-                      staff.role
+                      customer.address || '-'
                     )}
                   </td>
                   <td>
-                    {editingStaff === staff.staffId ? (
+                    {editingCustomer === customer.userId ? (
                       <div className="password-input-group">
                         <input
                           type={showPassword ? "text" : "password"}
@@ -356,10 +334,10 @@ const StaffDetails = ({ isActive, refreshKey }) => {
                     )}
                   </td>
                   <td>
-                    {editingStaff === staff.staffId ? (
+                    {editingCustomer === customer.userId ? (
                       <div className="action-buttons">
                         <button
-                          onClick={() => handleUpdateStaff(staff.staffId)}
+                          onClick={() => handleUpdateCustomer(customer.userId)}
                           className="btn save-btn"
                           disabled={isLoading}
                         >
@@ -371,7 +349,7 @@ const StaffDetails = ({ isActive, refreshKey }) => {
                         </button>
                         <button
                           onClick={() => {
-                            setEditingStaff(null);
+                            setEditingCustomer(null);
                             setShowPassword(false);
                           }}
                           className="btn cancel-btn"
@@ -382,14 +360,9 @@ const StaffDetails = ({ isActive, refreshKey }) => {
                       </div>
                     ) : (
                       <div className="action-buttons">
+                       
                         <button
-                          onClick={() => handleEditClick(staff)}
-                          className="btn edit-btn"
-                        >
-                          <i className="bi bi-pencil-square"></i>
-                        </button>
-                        <button
-                          onClick={() => handleDeleteStaff(staff.staffId)}
+                          onClick={() => handleDeleteCustomer(customer.userId)}
                           className="btn delete-btn"
                         >
                           <i className="bi bi-trash"></i>
@@ -401,9 +374,9 @@ const StaffDetails = ({ isActive, refreshKey }) => {
               ))
             ) : (
               <tr>
-                <td colSpan="9" className="no-data">
+                <td colSpan="8" className="no-data">
                   <i className="bi bi-exclamation-circle"></i>
-                  No staff members found
+                  No customers found
                 </td>
               </tr>
             )}
@@ -411,7 +384,7 @@ const StaffDetails = ({ isActive, refreshKey }) => {
         </table>
       </div>
 
-      {filteredStaffList.length > itemsPerPage && (
+      {filteredCustomerList.length > itemsPerPage && (
         <div className="pagination-container">
           <nav>
             <ul className="pagination">
@@ -456,4 +429,4 @@ const StaffDetails = ({ isActive, refreshKey }) => {
   );
 };
 
-export default StaffDetails;
+export default CustomerDetails;

@@ -98,37 +98,39 @@ const CustomerLogin = () => {
   };
 
   return (
-
     <div className="login-page">
       <Header />
       <div className="login-background"></div>
       <div className="login-content">
         <Card className="login-card">
           <Card.Body>
-            <h2 className="text-center mb-4">Customer Login</h2>
+            <div className="text-center mb-4">
+              <h2 className="login-title">Welcome Back</h2>
+              <p className="login-subtitle">Sign in to your account</p>
+            </div>
 
             {showSuccess && (
-              <Alert variant="success" onClose={() => setShowSuccess(false)} dismissible>
+              <Alert variant="success" onClose={() => setShowSuccess(false)} dismissible className="mb-4">
                 Registration successful! Please log in with your credentials.
               </Alert>
             )}
 
             {errors.api && (
-              <Alert variant="danger" onClose={() => setErrors({...errors, api: ''})} dismissible>
+              <Alert variant="danger" onClose={() => setErrors({...errors, api: ''})} dismissible className="mb-4">
                 {errors.api}
               </Alert>
             )}
 
-            <Form onSubmit={handleSubmit}>
-              <Form.Group className="mb-3" controlId="username">
-                <Form.Label>Username</Form.Label>
+            <Form onSubmit={handleSubmit} className="auth-form">
+              <FloatingLabel controlId="username" label="Username" className="mb-3">
                 <InputGroup>
-                  <InputGroup.Text>
-                    <FontAwesomeIcon icon={faUser} />
+                  <InputGroup.Text className="input-group-icon">
+                    <FontAwesomeIcon icon={faUser} className="input-icon" />
                   </InputGroup.Text>
                   <Form.Control
                     type="text"
                     name="username"
+                    placeholder="Enter your username"
                     value={formData.username}
                     onChange={handleChange}
                     isInvalid={!!errors.username}
@@ -136,19 +138,19 @@ const CustomerLogin = () => {
                   />
                 </InputGroup>
                 {errors.username && (
-                  <Form.Text className="text-danger">{errors.username}</Form.Text>
+                  <Form.Text className="text-danger small">{errors.username}</Form.Text>
                 )}
-              </Form.Group>
+              </FloatingLabel>
 
-              <Form.Group className="mb-3" controlId="password">
-                <Form.Label>Password</Form.Label>
+              <FloatingLabel controlId="password" label="Password" className="mb-3">
                 <InputGroup>
-                  <InputGroup.Text>
-                    <FontAwesomeIcon icon={faLock} />
+                  <InputGroup.Text className="input-group-icon">
+                    <FontAwesomeIcon icon={faLock} className="input-icon" />
                   </InputGroup.Text>
                   <Form.Control
                     type="password"
                     name="password"
+                    placeholder="Enter your password"
                     value={formData.password}
                     onChange={handleChange}
                     isInvalid={!!errors.password}
@@ -156,43 +158,43 @@ const CustomerLogin = () => {
                   />
                 </InputGroup>
                 {errors.password && (
-                  <Form.Text className="text-danger">{errors.password}</Form.Text>
+                  <Form.Text className="text-danger small">{errors.password}</Form.Text>
                 )}
-              </Form.Group>
+              </FloatingLabel>
 
-              <Form.Group className="mb-3 d-flex justify-content-between align-items-center">
-                <Form.Check
+              <div className="d-flex justify-content-between align-items-center mb-4">
+                <FormCheck
                   type="checkbox"
                   id="rememberMe"
                   label="Remember me"
                   name="rememberMe"
                   checked={formData.rememberMe}
                   onChange={handleChange}
+                  className="remember-me"
                 />
-                <Button
-                  variant="link"
-                  onClick={() => navigate('/forgot-password')}
-                  className="p-0 text-decoration-none"
-                >
+                <Link to="/forgot-password" className="forgot-password">
                   Forgot password?
-                </Button>
-              </Form.Group>
+                </Link>
+              </div>
 
               <Button
                 variant="primary"
                 type="submit"
-                className="w-100 py-2 mb-3 login-btn"
+                className="w-100 auth-button"
                 disabled={isLoading}
               >
-                {isLoading ? 'Logging in...' : 'Login'}
+                {isLoading ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Logging in...
+                  </>
+                ) : 'Login'}
               </Button>
 
-              <div className="text-center">
-                <span>Don't have an account? </span>
-                <Link to="/custreg" className="text-decoration-none">
-                  <Button variant="link" className="p-0 register-link">
-                    Register Here
-                  </Button>
+              <div className="text-center mt-4">
+                <span className="text-muted">Don't have an account? </span>
+                <Link to="/custreg" className="register-link">
+                  Register Here
                 </Link>
               </div>
             </Form>

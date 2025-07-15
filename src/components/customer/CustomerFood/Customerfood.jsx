@@ -8,6 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import './Customerfood.css';
 
 const CART_STORAGE_KEY = 'foodCart';
+const API_BASE_URL = 'http://localhost:8080/api';
 
 const Customerfood = () => {
   const navigate = useNavigate();
@@ -23,19 +24,30 @@ const Customerfood = () => {
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [currentOrder, setCurrentOrder] = useState(null);
+  const [paymentDetails, setPaymentDetails] = useState({
+    cardNumber: '',
+    expiry: '',
+    cvv: '',
+    name: '',
+  });
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
 
+  // Persist cart to localStorage
   useEffect(() => {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
   }, [cart]);
 
+  // Fetch available food items
   const fetchFoodItems = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/food/available');
+      const response = await axios.get(`${API_BASE_URL}/food/available`, {
+        timeout: 10000,
+      });
       setFoodItems(response.data);
       setLoading(false);
-      setError(null);
     } catch (error) {
       setError('Failed to load menu. Please try again later.');
       setLoading(false);
@@ -47,15 +59,13 @@ const Customerfood = () => {
     fetchFoodItems();
   }, []);
 
+  // Cart management functions
   const addToCart = (item, quantity = 1) => {
     setCart((prev) => {
       const existing = prev.find((i) => i.foodId === item.foodId);
-      if (existing) {
-        return prev.map((i) =>
-          i.foodId === item.foodId ? { ...i, quantity: i.quantity + quantity } : i
-        );
-      }
-      return [...prev, { ...item, quantity }];
+      return existing
+        ? prev.map((i) => (i.foodId === item.foodId ? { ...i, quantity: i.quantity + quantity } : i))
+        : [...prev, { ...item, quantity }];
     });
     toast.success(`${item.name} added to cart!`);
   };
@@ -68,16 +78,13 @@ const Customerfood = () => {
       return;
     }
     setCart((prev) =>
-      prev.map((item) =>
-        item.foodId === foodId ? { ...item, quantity: newQuantity } : item
-      )
+      prev.map((item) => (item.foodId === foodId ? { ...item, quantity: newQuantity } : item))
     );
   };
 
-  const calculateTotal = () => {
-    return cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
-  };
+  const calculateTotal = () => cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
 
+  // Order processing functions
   const placeOrder = async () => {
     const customer = JSON.parse(localStorage.getItem('customer'));
     if (!customer) {
@@ -107,31 +114,118 @@ const Customerfood = () => {
         })),
       };
 
-      const response = await axios.post('http://localhost:8080/api/orders', orderData, {
+      const response = await axios.post(`${API_BASE_URL}/orders`, orderData, {
         headers: {
           'X-Customer-Id': customer.userId,
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       });
 
+      setCurrentOrder(response.data);
       setOrderSuccess(true);
       setCart([]);
       localStorage.removeItem(CART_STORAGE_KEY);
-      toast.success('Order placed successfully!');
+      toast.success('Order placed successfully! Please complete the payment.');
+      setShowPaymentModal(true);
     } catch (error) {
-      console.error('Error placing order:', error);
-      let errorMessage = 'Failed to place order. Please try again.';
-      if (error.response) {
-        errorMessage = error.response.data.message || errorMessage;
-      } else if (error.request) {
-        errorMessage = 'No response from server. Please check your connection.';
-      }
-      toast.error(errorMessage);
+      handleOrderError(error);
     } finally {
       setOrderProcessing(false);
     }
   };
 
+  const handleOrderError = (error) => {
+    let errorMessage = 'Failed to place order. Please try again.';
+    if (error.response) {
+      if (error.response.status === 400) {
+        errorMessage = error.response.data || errorMessage;
+      } else if (error.response.status === 403) {
+        errorMessage = 'You are not authorized to perform this action. Please login again.';
+      } else {
+        errorMessage = error.response.data?.message || errorMessage;
+      }
+    } else if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
+      errorMessage = 'Cannot connect to the server. Please check your connection.';
+    }
+    toast.error(errorMessage);
+  };
+
+  // Payment processing
+  const handleCompletePayment = async () => {
+    const customer = JSON.parse(localStorage.getItem('customer'));
+    if (!customer || !currentOrder) {
+      toast.error('Please login and place an order first');
+      setShowPaymentModal(false);
+      return;
+    }
+
+    if (!validatePaymentDetails()) return;
+
+    setPaymentProcessing(true);
+
+    try {
+      const paymentRequest = {
+        cardLastFour: paymentDetails.cardNumber.slice(-4),
+      };
+
+      const response = await axios.post(
+        `${API_BASE_URL}/orders/${currentOrder.orderId}/payment`,
+        paymentRequest,
+        {
+          headers: {
+            'X-Customer-Id': customer.userId,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      setCurrentOrder(response.data);
+      setShowPaymentModal(false);
+      toast.success('Payment completed successfully!');
+    } catch (error) {
+      handlePaymentError(error);
+    } finally {
+      setPaymentProcessing(false);
+    }
+  };
+
+  const validatePaymentDetails = () => {
+    if (!paymentDetails.cardNumber || !paymentDetails.expiry || !paymentDetails.cvv || !paymentDetails.name) {
+      toast.error('Please fill all payment details');
+      return false;
+    }
+
+    if (paymentDetails.cardNumber.replace(/\s/g, '').length !== 16) {
+      toast.error('Please enter a valid 16-digit card number');
+      return false;
+    }
+
+    if (!paymentDetails.expiry.match(/^(0[1-9]|1[0-2])\/?([0-9]{2})$/)) {
+      toast.error('Please enter a valid expiry date (MM/YY)');
+      return false;
+    }
+
+    if (!paymentDetails.cvv.match(/^[0-9]{3,4}$/)) {
+      toast.error('Please enter a valid CVV (3 or 4 digits)');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handlePaymentError = (error) => {
+    let errorMessage = 'Payment failed. Please try again.';
+    if (error.response) {
+      if (error.response.status === 403) {
+        errorMessage = 'You are not authorized to perform this action. Please login again.';
+      } else {
+        errorMessage = error.response.data?.message || errorMessage;
+      }
+    }
+    toast.error(errorMessage);
+  };
+
+  // Loading and error states
   if (loading) {
     return (
       <Container className="text-center mt-5">
@@ -146,15 +240,7 @@ const Customerfood = () => {
       <Container className="text-center mt-5">
         <Alert variant="danger">
           {error}
-          <Button
-            variant="link"
-            onClick={() => {
-              setLoading(true);
-              setError(null);
-              fetchFoodItems();
-            }}
-            className="ms-2"
-          >
+          <Button variant="link" onClick={fetchFoodItems} className="ms-2">
             Retry
           </Button>
         </Alert>
@@ -166,6 +252,8 @@ const Customerfood = () => {
     <>
       <CustHeader />
       <ToastContainer position="top-right" autoClose={5000} />
+      
+      {/* Main Menu Display */}
       <Container className="mt-4">
         <h2 className="mb-4">Our Menu</h2>
         <Row xs={1} md={2} lg={3} className="g-4">
@@ -205,6 +293,7 @@ const Customerfood = () => {
         </Row>
       </Container>
 
+      {/* Floating Cart Button */}
       <div className="cart-button">
         <Button
           variant="primary"
@@ -215,6 +304,7 @@ const Customerfood = () => {
         </Button>
       </div>
 
+      {/* Food Item Details Modal */}
       <Modal show={showDetails} onHide={() => setShowDetails(false)}>
         <Modal.Header closeButton>
           <Modal.Title>{selectedItem?.name}</Modal.Title>
@@ -250,47 +340,81 @@ const Customerfood = () => {
         </Modal.Footer>
       </Modal>
 
-      <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)}>
+      {/* Payment Modal */}
+      <Modal show={showPaymentModal} onHide={() => setShowPaymentModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Confirm Your Order</Modal.Title>
+          <Modal.Title>Complete Payment</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p><strong>Total Amount:</strong> ₹{calculateTotal()}</p>
-          <p><strong>Delivery Address:</strong> {deliveryAddress}</p>
-          <p><strong>Items:</strong></p>
-          <ul>
-            {cart.map((item) => (
-              <li key={item.foodId}>
-                {item.name} (x{item.quantity}) - ₹{(item.price * item.quantity).toFixed(2)}
-              </li>
-            ))}
-          </ul>
-          <p>Are you sure you want to place this order?</p>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Card Number</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="1234 5678 9012 3456"
+                value={paymentDetails.cardNumber}
+                onChange={(e) => setPaymentDetails({ ...paymentDetails, cardNumber: e.target.value })}
+              />
+            </Form.Group>
+            <Row className="mb-3">
+              <Col md={6}>
+                <Form.Label>Expiry Date</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="MM/YY"
+                  value={paymentDetails.expiry}
+                  onChange={(e) => setPaymentDetails({ ...paymentDetails, expiry: e.target.value })}
+                />
+              </Col>
+              <Col md={6}>
+                <Form.Label>CVV</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="123"
+                  value={paymentDetails.cvv}
+                  onChange={(e) => setPaymentDetails({ ...paymentDetails, cvv: e.target.value })}
+                />
+              </Col>
+            </Row>
+            <Form.Group>
+              <Form.Label>Cardholder Name</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="John Doe"
+                value={paymentDetails.name}
+                onChange={(e) => setPaymentDetails({ ...paymentDetails, name: e.target.value })}
+              />
+            </Form.Group>
+          </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
+          <Button variant="secondary" onClick={() => setShowPaymentModal(false)}>
             Cancel
           </Button>
           <Button
             variant="primary"
-            onClick={() => {
-              setShowConfirmModal(false);
-              placeOrder();
-            }}
-            disabled={orderProcessing}
+            onClick={handleCompletePayment}
+            disabled={
+              paymentProcessing ||
+              !paymentDetails.cardNumber ||
+              !paymentDetails.expiry ||
+              !paymentDetails.cvv ||
+              !paymentDetails.name
+            }
           >
-            {orderProcessing ? (
+            {paymentProcessing ? (
               <>
-                <Spinner size="sm" animation="border" className="me-2" />
-                Processing...
+                <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+                <span className="ms-2">Processing...</span>
               </>
             ) : (
-              'Confirm Order'
+              'Complete Payment'
             )}
           </Button>
         </Modal.Footer>
       </Modal>
 
+      {/* Shopping Cart Offcanvas */}
       <Offcanvas show={showCart} onHide={() => setShowCart(false)} placement="end">
         <Offcanvas.Header closeButton>
           <Offcanvas.Title>Your Order</Offcanvas.Title>
@@ -300,7 +424,11 @@ const Customerfood = () => {
             <div className="text-center">
               <Alert variant="success">
                 <h4>Order Placed Successfully!</h4>
-                <p>Your order has been received and is being prepared.</p>
+                <p>
+                  {currentOrder?.status === 'completed'
+                    ? 'Your order has been confirmed and is being prepared.'
+                    : 'Please complete the payment to confirm your order.'}
+                </p>
                 <Button
                   variant="success"
                   onClick={() => {
@@ -369,7 +497,7 @@ const Customerfood = () => {
 
                   <Button
                     variant="primary"
-                    onClick={() => setShowConfirmModal(true)}
+                    onClick={placeOrder}
                     disabled={!deliveryAddress || deliveryAddress.trim().length < 10 || orderProcessing}
                     className="w-100 mt-3"
                   >
@@ -379,7 +507,7 @@ const Customerfood = () => {
                         Processing...
                       </>
                     ) : (
-                      'Review & Place Order'
+                      'Place Order'
                     )}
                   </Button>
                 </>
