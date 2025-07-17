@@ -1,10 +1,10 @@
-
+// src/components/foodorders/foodorders.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Card, Col, Row, Container, Pagination, Spinner, Alert } from 'react-bootstrap';
 import './food.css';
 
-const FoodOrders = ({ isActive }) => {
+const FoodOrders = ({ isActive, refreshKey }) => {
   const [foodItems, setFoodItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -33,8 +33,10 @@ const FoodOrders = ({ isActive }) => {
         setLoading(false);
       }
     };
-    fetchFoodItems();
-  }, []);
+    if (isActive) {
+      fetchFoodItems();
+    }
+  }, [isActive, refreshKey]);
 
   // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -52,7 +54,6 @@ const FoodOrders = ({ isActive }) => {
   return (
     <Container className="food-orders mt-5">
       <div className="card shadow mb-5">
-       
         <div className="card-body">
           {error && (
             <Alert variant="danger" onClose={() => setError(null)} dismissible>

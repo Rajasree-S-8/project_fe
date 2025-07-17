@@ -1,6 +1,9 @@
+// src/components/staffdetails/staffdetails.jsx
 import React, { useState, useEffect } from 'react';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './StaffDetails.css';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 const StaffDetails = ({ isActive, refreshKey }) => {
   const [staffList, setStaffList] = useState([]);
@@ -15,6 +18,8 @@ const StaffDetails = ({ isActive, refreshKey }) => {
     role: '',
     password: '********'
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
@@ -23,8 +28,10 @@ const StaffDetails = ({ isActive, refreshKey }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchStaffData();
-  }, [refreshKey]);
+    if (isActive) {
+      fetchStaffData();
+    }
+  }, [refreshKey, isActive]);
 
   useEffect(() => {
     const filterStaff = (staff) => {
@@ -108,6 +115,8 @@ const StaffDetails = ({ isActive, refreshKey }) => {
       role: staff.role,
       password: '********'
     });
+    setImageFile(null);
+    setImagePreview(null);
     setShowPassword(false);
   };
 
@@ -119,12 +128,25 @@ const StaffDetails = ({ isActive, refreshKey }) => {
     });
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleUpdateStaff = async (staffId) => {
     if (!validateForm()) return;
 
     setIsLoading(true);
     try {
-      const dataToSend = {
+      const formData = new FormData();
+      formData.append('staff', JSONRU.stringify({
         username: editFormData.username,
         fullname: editFormData.fullname,
         email: editFormData.email,
@@ -132,14 +154,15 @@ const StaffDetails = ({ isActive, refreshKey }) => {
         phonenumber: editFormData.phonenumber,
         role: editFormData.role,
         password: editFormData.password !== '********' ? editFormData.password : null
-      };
+      }));
+
+      if (imageFile) {
+        formData.append('image', imageFile);
+      }
 
       const response = await fetch(`http://localhost:8080/api/staff/update/${staffId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dataToSend)
+        body: formData
       });
 
       if (!response.ok) {
@@ -149,6 +172,8 @@ const StaffDetails = ({ isActive, refreshKey }) => {
 
       alert('Staff updated successfully!');
       setEditingStaff(null);
+      setImageFile(null);
+      setImagePreview(null);
       setShowPassword(false);
       fetchStaffData();
     } catch (error) {
@@ -183,12 +208,83 @@ const StaffDetails = ({ isActive, refreshKey }) => {
     }
   };
 
+  const downloadPDF = () => {
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm'
+    });
+
+    doc.setFontSize(20);
+    doc.setTextColor(40, 53, 147);
+    doc.text('Staff Management Report', 105, 15, { align: 'center' });
+
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 105, 22, { align: 'center' });
+
+    const tableColumn = ["ID", "Username", "Full Name", "Email", "Age", "Phone", "Role"];
+    const tableRows = [];
+
+    staffList.forEach(staff => {
+      const staffData = [
+        staff.staffId,
+        staff.username,
+        staff.fullname,
+        staff.email,
+        staff.age,
+        staff.phonenumber,
+        staff.role
+      ];
+      tableRows.push(staffData);
+    });
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 30,
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+        valign: 'middle'
+      },
+      headStyles: {
+        fillColor: [106, 17, 203],
+        textColor: 255,
+        fontStyle: 'bold'
+      },
+      alternateRowStyles: {
+        fillColor: [240, 240, 240]
+      },
+      columnStyles: {
+        0: { cellWidth: 10 },
+        1: { cellWidth: 25 },
+        2: { cellWidth: 30 },
+        3: { cellWidth: 40 },
+        4: { cellWidth: 15 },
+        5: { cellWidth: 25 },
+        6: { cellWidth: 30 }
+      }
+    });
+
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(100);
+      doc.text(`Page ${i} of ${pageCount}`, 200, 200, { align: 'right' });
+    }
+
+    doc.save(`staff_report_${new Date().toISOString().slice(0, 10)}.pdf`);
+  };
+
   const getDisplayId = (index) => {
     return (currentPage - 1) * itemsPerPage + index + 1;
   };
 
+  if (!isActive) return null;
+
   return (
-    <div id="staff-details" className={`staff-management-container ${!isActive ? 'd-none' : ''}`}>
+    <div id="staff-details" className="staff-management-container">
       <div className="staff-header">
         <h1 className="staff-title">Staff Management</h1>
         <p className="staff-subtitle">Manage all staff information with ease</p>
@@ -212,10 +308,19 @@ const StaffDetails = ({ isActive, refreshKey }) => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <span className="total-badge">
-          <i className="bi bi-people-fill me-1"></i>
-          Total: {filteredStaffList.length}
-        </span>
+        <div>
+          <button 
+            onClick={downloadPDF}
+            className="pdf-btn"
+          >
+            <i className="bi bi-file-earmark-pdf me-2"></i>
+            Download PDF
+          </button>
+          <span className="total-badge">
+            <i className="bi bi-people-fill me-1"></i>
+            Total: {filteredStaffList.length}
+          </span>
+        </div>
       </div>
 
       <div className="table-container">
@@ -223,6 +328,7 @@ const StaffDetails = ({ isActive, refreshKey }) => {
           <thead>
             <tr>
               <th>#</th>
+              <th>Image</th>
               <th>Username</th>
               <th>Full Name</th>
               <th>Email Address</th>
@@ -236,7 +342,7 @@ const StaffDetails = ({ isActive, refreshKey }) => {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan="9" className="loading-cell">
+                <td colSpan="10" className="loading-cell">
                   <div className="spinner"></div>
                   <span>Loading staff data...</span>
                 </td>
@@ -245,6 +351,15 @@ const StaffDetails = ({ isActive, refreshKey }) => {
               currentItems.map((staff, index) => (
                 <tr key={staff.staffId} className="staff-row">
                   <td>{getDisplayId(index)}</td>
+                  <td>
+                    {staff.image && (
+                      <img 
+                        src={`http://localhost:8080/api/files/uploads/${staff.image}`} 
+                        alt="Staff" 
+                        className="staff-image"
+                      />
+                    )}
+                  </td>
                   <td>
                     {editingStaff === staff.staffId ? (
                       <input
@@ -328,7 +443,12 @@ const StaffDetails = ({ isActive, refreshKey }) => {
                         <option value="Other">Other</option>
                       </select>
                     ) : (
-                      staff.role
+                      <span className={`role-badge ${
+                        staff.role === 'Hotel Manager' ? 'hotel-manager' :
+                        staff.role === 'Restaurant Manager' ? 'restaurant-manager' : 'other'
+                      }`}>
+                        {staff.role}
+                      </span>
                     )}
                   </td>
                   <td>
@@ -372,6 +492,8 @@ const StaffDetails = ({ isActive, refreshKey }) => {
                         <button
                           onClick={() => {
                             setEditingStaff(null);
+                            setImageFile(null);
+                            setImagePreview(null);
                             setShowPassword(false);
                           }}
                           className="btn cancel-btn"
@@ -401,7 +523,7 @@ const StaffDetails = ({ isActive, refreshKey }) => {
               ))
             ) : (
               <tr>
-                <td colSpan="9" className="no-data">
+                <td colSpan="10" className="no-data">
                   <i className="bi bi-exclamation-circle"></i>
                   No staff members found
                 </td>
@@ -452,6 +574,56 @@ const StaffDetails = ({ isActive, refreshKey }) => {
         <i className="bi bi-clock-history"></i>
         Last updated: {new Date().toLocaleString()}
       </div>
+
+      {editingStaff && (
+        <div className="modal-overlay">
+          <div className="edit-modal">
+            <h3>Edit Staff Member</h3>
+            <div className="form-group">
+              <label>Staff Image</label>
+              <div className="image-upload-container">
+                {imagePreview ? (
+                  <img src={imagePreview} alt="Preview" className="image-preview" />
+                ) : (
+                  <div className="image-placeholder">
+                    <i className="bi bi-person-square"></i>
+                    <span>No image selected</span>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  id="imageUpload"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="form-control"
+                />
+                <label htmlFor="imageUpload" className="upload-btn">
+                  <i className="bi bi-upload"></i> Choose Image
+                </label>
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button 
+                onClick={() => handleUpdateStaff(editingStaff)}
+                className="btn btn-primary"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button 
+                onClick={() => {
+                  setEditingStaff(null);
+                  setImageFile(null);
+                  setImagePreview(null);
+                }}
+                className="btn btn-secondary"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

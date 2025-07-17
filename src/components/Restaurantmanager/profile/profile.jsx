@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Header from "../header/Header.jsx";
 import "./Profile.css";
 
 function Profile() {
@@ -8,6 +9,8 @@ function Profile() {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
 
   useEffect(() => {
     const restaurantManager = JSON.parse(localStorage.getItem("restaurantManager"));
@@ -17,6 +20,9 @@ function Profile() {
       setTimeout(() => {
         setUser(restaurantManager);
         setEditedUser(restaurantManager);
+        if (restaurantManager.image) {
+          setPreviewUrl(`http://localhost:8080/api/files/uploads/${restaurantManager.image}`);
+        }
         setIsLoading(false);
       }, 800);
     }
@@ -34,15 +40,66 @@ function Profile() {
     setIsEditing(true);
   };
 
-  const handleSave = () => {
-    setUser({ ...editedUser });
-    setIsEditing(false);
-    // Add backend API call here if needed
+  const handleSave = async () => {
+    try {
+      // If a new file was selected, upload it first
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append("image", selectedFile);
+        formData.append("staff", JSON.stringify(editedUser));
+
+        const response = await fetch(`http://localhost:8080/api/staff/update/${user.id}`, {
+          method: "PUT",
+          body: formData,
+        });
+
+        if (response.ok) {
+          const updatedUser = await response.json();
+          setUser(updatedUser);
+          localStorage.setItem("restaurantManager", JSON.stringify(updatedUser));
+          if (updatedUser.image) {
+            setPreviewUrl(`http://localhost:8080/api/files/uploads/${updatedUser.image}`);
+          }
+        }
+      } else {
+        // No file selected, just update the user info
+        const response = await fetch(`http://localhost:8080/api/staff/update/${user.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(editedUser),
+        });
+
+        if (response.ok) {
+          const updatedUser = await response.json();
+          setUser(updatedUser);
+          localStorage.setItem("restaurantManager", JSON.stringify(updatedUser));
+        }
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    } finally {
+      setIsEditing(false);
+      setSelectedFile(null);
+    }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setEditedUser({ ...editedUser, [name]: value });
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   if (isLoading) {
@@ -59,6 +116,7 @@ function Profile() {
 
   return (
     <div className="profile-page animate__animated animate__fadeIn">
+      <Header />
       <div className="container my-5">
         <div className="row justify-content-center">
           <div className="col-lg-8 col-xl-6">
@@ -73,15 +131,40 @@ function Profile() {
               <div className="card-body p-4 p-md-5">
                 <div className="profile-avatar-container text-center mb-4">
                   <div className="profile-avatar shadow">
-                    <span className="avatar-initial">
-                      {user.username.charAt(0).toUpperCase()}
-                    </span>
+                    {previewUrl ? (
+                      <img 
+                        src={previewUrl} 
+                        alt="Profile" 
+                        className="avatar-image"
+                      />
+                    ) : (
+                      <span className="avatar-initial">
+                        {user.username.charAt(0).toUpperCase()}
+                      </span>
+                    )}
                     <div className="status-indicator bg-success"></div>
                   </div>
                   <h4 className="mt-3 mb-1">{user.username}</h4>
                   <div className="badge bg-warning text-dark rounded-pill px-3 py-1">
                     <i className="fas fa-utensils me-1"></i> {user.role}
                   </div>
+                  {isEditing && (
+                    <div className="mt-3">
+                      <input
+                        type="file"
+                        id="profile-image"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="d-none"
+                      />
+                      <label 
+                        htmlFor="profile-image" 
+                        className="btn btn-sm btn-outline-primary"
+                      >
+                        <i className="fas fa-camera me-1"></i> Change Photo
+                      </label>
+                    </div>
+                  )}
                 </div>
 
                 <div className="profile-details">
@@ -188,12 +271,24 @@ function Profile() {
 
                 <div className="profile-actions mt-5">
                   {isEditing ? (
-                    <button
-                      className="btn btn-success btn-lg rounded-pill px-4"
-                      onClick={handleSave}
-                    >
-                      <i className="fas fa-save me-2"></i> Save
-                    </button>
+                    <>
+                      <button
+                        className="btn btn-success btn-lg rounded-pill px-4"
+                        onClick={handleSave}
+                      >
+                        <i className="fas fa-save me-2"></i> Save
+                      </button>
+                      <button
+                        className="btn btn-secondary btn-lg rounded-pill px-4 ms-3"
+                        onClick={() => {
+                          setIsEditing(false);
+                          setSelectedFile(null);
+                          setPreviewUrl(user.image ? `http://localhost:8080/api/files/uploads/${user.image}` : "");
+                        }}
+                      >
+                        <i className="fas fa-times me-2"></i> Cancel
+                      </button>
+                    </>
                   ) : (
                     <button
                       className="btn btn-primary btn-lg rounded-pill px-4"
@@ -215,7 +310,7 @@ function Profile() {
                     <i className="fas fa-sign-out-alt me-2"></i> Logout
                   </button>
                 </div>
-              </div> {/* Changed from </card-body> to </div> */}
+              </div>
             </div>
           </div>
         </div>

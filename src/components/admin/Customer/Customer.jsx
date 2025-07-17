@@ -1,29 +1,27 @@
+// src/components/Customer/Customer.jsx
 import React, { useState, useEffect } from 'react';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './Customer.css';
+import Modal from 'react-bootstrap/Modal';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const CustomerDetails = ({ isActive, refreshKey }) => {
   const [customerList, setCustomerList] = useState([]);
   const [filteredCustomerList, setFilteredCustomerList] = useState([]);
-  const [editingCustomer, setEditingCustomer] = useState(null);
-  const [editFormData, setEditFormData] = useState({
-    username: '',
-    fullName: '',
-    email: '',
-    phoneNumber: '',
-    address: '',
-    password: '********'
-  });
-  const [showPassword, setShowPassword] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [currentImage, setCurrentImage] = useState('');
 
   useEffect(() => {
-    fetchCustomerData();
-  }, [refreshKey]);
+    if (isActive) {
+      fetchCustomerData();
+    }
+  }, [refreshKey, isActive]);
 
   useEffect(() => {
     const filterCustomer = (customer) => {
@@ -58,103 +56,12 @@ const CustomerDetails = ({ isActive, refreshKey }) => {
     }
   };
 
-  const validatePassword = (password) => {
-    if (password === '********') return true;
-    const re = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
-    return re.test(password);
-  };
-
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  };
-
-  const validateForm = () => {
-    if (!editFormData.username.trim()) {
-      alert('Username is required');
-      return false;
-    }
-    if (!editFormData.fullName.trim()) {
-      alert('Full name is required');
-      return false;
-    }
-    if (!validateEmail(editFormData.email)) {
-      alert('Please enter a valid email address');
-      return false;
-    }
-    if (!validatePassword(editFormData.password)) {
-      alert('Password must be at least 8 characters long and contain at least one letter and one number');
-      return false;
-    }
-    return true;
-  };
-
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredCustomerList.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredCustomerList.length / itemsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-  const handleEditClick = (customer) => {
-    setEditingCustomer(customer.userId);
-    setEditFormData({
-      username: customer.username,
-      fullName: customer.fullName,
-      email: customer.email,
-      phoneNumber: customer.phoneNumber,
-      address: customer.address,
-      password: '********'
-    });
-    setShowPassword(false);
-  };
-
-  const handleEditFormChange = (e) => {
-    const { name, value } = e.target;
-    setEditFormData({
-      ...editFormData,
-      [name]: value
-    });
-  };
-
-  const handleUpdateCustomer = async (userId) => {
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-    try {
-      const dataToSend = {
-        username: editFormData.username,
-        fullName: editFormData.fullName,
-        email: editFormData.email,
-        phoneNumber: editFormData.phoneNumber,
-        address: editFormData.address,
-        password: editFormData.password !== '********' ? editFormData.password : null
-      };
-
-      const response = await fetch(`http://localhost:8080/api/customers/update/${userId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dataToSend)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update customer');
-      }
-
-      alert('Customer updated successfully!');
-      setEditingCustomer(null);
-      setShowPassword(false);
-      fetchCustomerData();
-    } catch (error) {
-      console.error('Error:', error);
-      alert(`Error: ${error.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleDeleteCustomer = async (userId) => {
     if (!window.confirm('Are you sure you want to delete this customer?')) return;
@@ -184,8 +91,112 @@ const CustomerDetails = ({ isActive, refreshKey }) => {
     return (currentPage - 1) * itemsPerPage + index + 1;
   };
 
+  const handleViewImage = (imageUrl) => {
+    setCurrentImage(imageUrl);
+    setShowImageModal(true);
+  };
+
+  const downloadCustomerPDF = async (customer) => {
+    setIsLoading(true);
+    try {
+      const doc = new jsPDF();
+      
+      doc.setFontSize(18);
+      doc.text('Customer Details', 105, 20, { align: 'center' });
+      
+      if (customer.image) {
+        try {
+          const imageUrl = `http://localhost:8080/api/files/uploads/${customer.image}`;
+          const response = await fetch(imageUrl);
+          const blob = await response.blob();
+          const reader = new FileReader();
+          
+          reader.onload = function() {
+            const imgData = reader.result;
+            doc.addImage(imgData, 'JPEG', 15, 30, 40, 40);
+            doc.setFontSize(12);
+            doc.text(`Username: ${customer.username}`, 70, 35);
+            doc.text(`Full Name: ${customer.fullName}`, 70, 45);
+            doc.text(`Email: ${customer.email}`, 70, 55);
+            doc.text(`Phone: ${customer.phoneNumber || 'N/A'}`, 70, 65);
+            doc.text(`Address: ${customer.address || 'N/A'}`, 70, 75);
+            doc.save(`customer_${customer.username}_details.pdf`);
+          };
+          
+          reader.readAsDataURL(blob);
+        } catch (error) {
+          console.error('Error loading image:', error);
+          addCustomerDetailsWithoutImage(doc, customer);
+        }
+      } else {
+        addCustomerDetailsWithoutImage(doc, customer);
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const addCustomerDetailsWithoutImage = (doc, customer) => {
+    doc.setFontSize(12);
+    doc.text(`Username: ${customer.username}`, 20, 30);
+    doc.text(`Full Name: ${customer.fullName}`, 20, 40);
+    doc.text(`Email: ${customer.email}`, 20, 50);
+    doc.text(`Phone: ${customer.phoneNumber || 'N/A'}`, 20, 60);
+    doc.text(`Address: ${customer.address || 'N/A'}`, 20, 70);
+    doc.save(`customer_${customer.username}_details.pdf`);
+  };
+
+  const downloadAllCustomersPDF = async () => {
+    setIsLoading(true);
+    try {
+      const doc = new jsPDF();
+      
+      doc.setFontSize(18);
+      doc.text('All Customers Report', 105, 20, { align: 'center' });
+      
+      doc.setFontSize(10);
+      doc.text(`Generated on: ${new Date().toLocaleString()}`, 105, 30, { align: 'center' });
+      
+      const tableData = filteredCustomerList.map(customer => [
+        customer.userId,
+        customer.username,
+        customer.fullName,
+        customer.email,
+        customer.phoneNumber || 'N/A',
+        customer.address || 'N/A'
+      ]);
+      
+      doc.autoTable({
+        startY: 40,
+        head: [['ID', 'Username', 'Full Name', 'Email', 'Phone', 'Address']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [41, 128, 185],
+          textColor: 255,
+          fontStyle: 'bold'
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245]
+        }
+      });
+      
+      doc.save('all_customers_report.pdf');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!isActive) return null;
+
   return (
-    <div id="customer-details" className={`customer-management-container ${!isActive ? 'd-none' : ''}`}>
+    <div id="customer-details" className="customer-management-container">
       <div className="customer-header">
         <h1 className="customer-title">Customer Management</h1>
         <p className="customer-subtitle">Manage all customer information with ease</p>
@@ -209,10 +220,24 @@ const CustomerDetails = ({ isActive, refreshKey }) => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <span className="total-badge">
-          <i className="bi bi-people-fill me-1"></i>
-          Total: {filteredCustomerList.length}
-        </span>
+        <div className="d-flex align-items-center">
+          <span className="total-badge me-3">
+            <i className="bi bi-people-fill me-1"></i>
+            Total: {filteredCustomerList.length}
+          </span>
+          <button 
+            onClick={downloadAllCustomersPDF} 
+            className="btn btn-primary btn-sm"
+            disabled={isLoading || filteredCustomerList.length === 0}
+          >
+            {isLoading ? (
+              <span className="spinner-border spinner-border-sm me-1"></span>
+            ) : (
+              <i className="bi bi-file-earmark-pdf me-1"></i>
+            )}
+            Export All
+          </button>
+        </div>
       </div>
 
       <div className="table-container">
@@ -220,12 +245,12 @@ const CustomerDetails = ({ isActive, refreshKey }) => {
           <thead>
             <tr>
               <th>#</th>
+              <th>Image</th>
               <th>Username</th>
               <th>Full Name</th>
               <th>Email Address</th>
               <th>Phone</th>
               <th>Address</th>
-              <th>Password</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -242,133 +267,54 @@ const CustomerDetails = ({ isActive, refreshKey }) => {
                 <tr key={customer.userId} className="customer-row">
                   <td>{getDisplayId(index)}</td>
                   <td>
-                    {editingCustomer === customer.userId ? (
-                      <input
-                        type="text"
-                        name="username"
-                        value={editFormData.username}
-                        onChange={handleEditFormChange}
-                        className="form-control edit-input"
-                        required
-                      />
-                    ) : (
-                      customer.username
-                    )}
-                  </td>
-                  <td>
-                    {editingCustomer === customer.userId ? (
-                      <input
-                        type="text"
-                        name="fullName"
-                        value={editFormData.fullName}
-                        onChange={handleEditFormChange}
-                        className="form-control edit-input"
-                        required
-                      />
-                    ) : (
-                      customer.fullName
-                    )}
-                  </td>
-                  <td>
-                    {editingCustomer === customer.userId ? (
-                      <input
-                        type="email"
-                        name="email"
-                        value={editFormData.email}
-                        onChange={handleEditFormChange}
-                        className="form-control edit-input"
-                        required
-                      />
-                    ) : (
-                      customer.email
-                    )}
-                  </td>
-                  <td>
-                    {editingCustomer === customer.userId ? (
-                      <input
-                        type="tel"
-                        name="phoneNumber"
-                        value={editFormData.phoneNumber}
-                        onChange={handleEditFormChange}
-                        className="form-control edit-input"
-                      />
-                    ) : (
-                      customer.phoneNumber || '-'
-                    )}
-                  </td>
-                  <td>
-                    {editingCustomer === customer.userId ? (
-                      <input
-                        type="text"
-                        name="address"
-                        value={editFormData.address}
-                        onChange={handleEditFormChange}
-                        className="form-control edit-input"
-                      />
-                    ) : (
-                      customer.address || '-'
-                    )}
-                  </td>
-                  <td>
-                    {editingCustomer === customer.userId ? (
-                      <div className="password-input-group">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          name="password"
-                          value={editFormData.password}
-                          onChange={handleEditFormChange}
-                          className="form-control password-input"
-                          placeholder="Leave blank to keep current"
+                    {customer.image ? (
+                      <div className="customer-image-container">
+                        <img 
+                          src={`http://localhost:8080/api/files/uploads/${customer.image}`} 
+                          alt="Customer" 
+                          className="customer-thumbnail"
                         />
-                        <button
-                          className="toggle-password"
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          title={showPassword ? "Hide password" : "Show password"}
+                        <button 
+                          className="view-image-btn"
+                          onClick={() => handleViewImage(`http://localhost:8080/api/files/uploads/${customer.image}`)}
                         >
-                          <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
+                          <i className="bi bi-eye"></i>
                         </button>
                       </div>
                     ) : (
-                      "********"
+                      <div className="no-image-placeholder">
+                        <i className="bi bi-person-circle"></i>
+                      </div>
                     )}
                   </td>
+                  <td>{customer.username}</td>
+                  <td>{customer.fullName}</td>
+                  <td>{customer.email}</td>
+                  <td>{customer.phoneNumber || '-'}</td>
+                  <td>{customer.address || '-'}</td>
                   <td>
-                    {editingCustomer === customer.userId ? (
-                      <div className="action-buttons">
-                        <button
-                          onClick={() => handleUpdateCustomer(customer.userId)}
-                          className="btn save-btn"
-                          disabled={isLoading}
-                        >
-                          {isLoading ? (
-                            <span className="spinner-border spinner-border-sm"></span>
-                          ) : (
-                            <i className="bi bi-check-lg"></i>
-                          )}
-                        </button>
-                        <button
-                          onClick={() => {
-                            setEditingCustomer(null);
-                            setShowPassword(false);
-                          }}
-                          className="btn cancel-btn"
-                          disabled={isLoading}
-                        >
-                          <i className="bi bi-x-lg"></i>
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="action-buttons">
-                       
-                        <button
-                          onClick={() => handleDeleteCustomer(customer.userId)}
-                          className="btn delete-btn"
-                        >
-                          <i className="bi bi-trash"></i>
-                        </button>
-                      </div>
-                    )}
+                    <div className="action-buttons">
+                      <button
+                        onClick={() => downloadCustomerPDF(customer)}
+                        className="btn pdf-btn"
+                        title="Download PDF"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <span className="spinner-border spinner-border-sm"></span>
+                        ) : (
+                          <i className="bi bi-file-earmark-pdf"></i>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCustomer(customer.userId)}
+                        className="btn delete-btn"
+                        title="Delete Customer"
+                        disabled={isLoading}
+                      >
+                        <i className="bi bi-trash"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -425,6 +371,25 @@ const CustomerDetails = ({ isActive, refreshKey }) => {
         <i className="bi bi-clock-history"></i>
         Last updated: {new Date().toLocaleString()}
       </div>
+
+      <Modal show={showImageModal} onHide={() => setShowImageModal(false)} centered size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Customer Image</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="text-center">
+          <img 
+            src={currentImage} 
+            alt="Customer Full Size" 
+            className="img-fluid modal-image"
+            style={{ maxHeight: '70vh' }}
+          />
+        </Modal.Body>
+        <Modal.Footer>
+          <button className="btn btn-secondary" onClick={() => setShowImageModal(false)}>
+            Close
+          </button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

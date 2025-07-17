@@ -1,3 +1,4 @@
+// src/components/restaurantmanager/restaurantmanager.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
@@ -19,21 +20,16 @@ import {
 import './RestaurantManager.css';
 
 const RestaurantManager = ({ isActive, staffId }) => {
-  // State for food items and loading
   const [foodItems, setFoodItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // State for filters and sorting
   const [searchTerm, setSearchTerm] = useState('');
   const [availabilityFilter, setAvailabilityFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
-  
-  // State for add/edit modal
   const [showFoodModal, setShowFoodModal] = useState(false);
-  const [modalType, setModalType] = useState('add'); // 'add' or 'edit'
+  const [modalType, setModalType] = useState('add');
   const [foodForm, setFoodForm] = useState({
     name: '',
     price: '',
@@ -43,16 +39,11 @@ const RestaurantManager = ({ isActive, staffId }) => {
     isAvailable: true
   });
   const [imagePreview, setImagePreview] = useState('');
-  
-  // State for view modal
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewFood, setViewFood] = useState(null);
-
-  // State for delete modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteFoodId, setDeleteFoodId] = useState(null);
 
-  // Fetch food items on component mount and when active
   useEffect(() => {
     const fetchFoodItems = async () => {
       try {
@@ -72,7 +63,6 @@ const RestaurantManager = ({ isActive, staffId }) => {
     }
   }, [isActive]);
 
-  // Filter and search logic
   const filteredItems = foodItems.filter(item => {
     const matchesSearch = item.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
     const matchesAvailability = 
@@ -82,7 +72,6 @@ const RestaurantManager = ({ isActive, staffId }) => {
     return matchesSearch && matchesAvailability;
   });
 
-  // Sorting logic
   const sortedItems = [...filteredItems].sort((a, b) => {
     const aValue = a[sortConfig.key] ?? '';
     const bValue = b[sortConfig.key] ?? '';
@@ -96,13 +85,11 @@ const RestaurantManager = ({ isActive, staffId }) => {
     return 0;
   });
 
-  // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = sortedItems.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
-  // Sort handler
   const requestSort = (key) => {
     let direction = 'asc';
     if (sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -111,7 +98,6 @@ const RestaurantManager = ({ isActive, staffId }) => {
     setSortConfig({ key, direction });
   };
 
-  // Refresh data
   const refreshData = async () => {
     try {
       setLoading(true);
@@ -125,7 +111,6 @@ const RestaurantManager = ({ isActive, staffId }) => {
     }
   };
 
-  // Toggle food availability
   const toggleAvailability = async (id) => {
     try {
       setLoading(true);
@@ -143,7 +128,6 @@ const RestaurantManager = ({ isActive, staffId }) => {
     }
   };
 
-  // Open add food modal
   const openAddModal = () => {
     setModalType('add');
     setFoodForm({
@@ -158,7 +142,6 @@ const RestaurantManager = ({ isActive, staffId }) => {
     setShowFoodModal(true);
   };
 
-  // Open edit food modal
   const openEditModal = async (id) => {
     try {
       setLoading(true);
@@ -183,7 +166,6 @@ const RestaurantManager = ({ isActive, staffId }) => {
     }
   };
 
-  // Handle form input changes
   const handleFormChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFoodForm(prev => ({
@@ -192,16 +174,13 @@ const RestaurantManager = ({ isActive, staffId }) => {
     }));
   };
 
-  // Handle image URL change
   const handleImageChange = (e) => {
     const url = e.target.value;
     setFoodForm(prev => ({ ...prev, image: url }));
     setImagePreview(url);
   };
 
-  // Submit food form (add or edit)
   const handleFoodSubmit = async () => {
-    // Validate required fields
     if (!foodForm.name || !foodForm.price || !foodForm.image || !foodForm.description) {
       setError('Please fill in all required fields (Name, Price, Image, Description).');
       return;
@@ -242,7 +221,6 @@ const RestaurantManager = ({ isActive, staffId }) => {
     }
   };
 
-  // Open view modal
   const openViewModal = async (id) => {
     try {
       setLoading(true);
@@ -257,13 +235,11 @@ const RestaurantManager = ({ isActive, staffId }) => {
     }
   };
 
-  // Open delete confirmation modal
   const openDeleteModal = (id) => {
     setDeleteFoodId(id);
     setShowDeleteModal(true);
   };
 
-  // Confirm delete
   const confirmDelete = async () => {
     try {
       setLoading(true);
@@ -512,7 +488,6 @@ const RestaurantManager = ({ isActive, staffId }) => {
         </Card.Body>
       </Card>
 
-      {/* Add/Edit Food Modal */}
       <Modal show={showFoodModal} onHide={() => setShowFoodModal(false)} centered size="lg">
         <Modal.Header closeButton className="modal-header-custom">
           <Modal.Title className="modal-title-custom">
@@ -637,7 +612,6 @@ const RestaurantManager = ({ isActive, staffId }) => {
         </Modal.Footer>
       </Modal>
 
-      {/* View Food Modal */}
       <Modal show={showViewModal} onHide={() => setShowViewModal(false)} centered size="lg">
         <Modal.Header closeButton className="modal-header-custom">
           <Modal.Title className="modal-title-custom">
@@ -661,16 +635,16 @@ const RestaurantManager = ({ isActive, staffId }) => {
               <Col md={7}>
                 <h4 className="mb-3">{viewFood.name || 'N/A'}</h4>
                 <p><strong>Price:</strong> ₹{viewFood.price ? viewFood.price.toFixed(2) : 'N/A'}</p>
-                <p><strong>Status:</strong> 
+                <p><strong>Description:</strong> {viewFood.description || 'No description'}</p>
+                <p><strong>Recipe:</strong> {viewFood.recipe || 'No recipe provided'}</p>
+                <p>
+                  <strong>Status:</strong>
                   <Badge bg={viewFood.isAvailable ? 'success' : 'danger'} className="ms-2">
                     {viewFood.isAvailable ? 'Available' : 'Unavailable'}
                   </Badge>
                 </p>
-                <p><strong>Description:</strong></p>
-                <p className="text-muted">{viewFood.description || 'No description'}</p>
-                <p><strong>Recipe:</strong></p>
-                <p className="text-muted">{viewFood.recipe || 'No recipe provided'}</p>
-                <p><small className="text-muted">Created: {viewFood.createdAt || 'N/A'}</small></p>
+                <p><strong>Added by:</strong> {viewFood.createdBy?.username || 'Unknown'}</p>
+                <p><strong>Created At:</strong> {viewFood.createdAt ? new Date(viewFood.createdAt).toLocaleString() : 'N/A'}</p>
               </Col>
             </Row>
           ) : (
@@ -684,15 +658,12 @@ const RestaurantManager = ({ isActive, staffId }) => {
         </Modal.Footer>
       </Modal>
 
-      {/* Delete Confirmation Modal */}
       <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
         <Modal.Header closeButton className="modal-header-custom">
-          <Modal.Title className="modal-title-custom">
-            Confirm Delete
-          </Modal.Title>
+          <Modal.Title className="modal-title-custom">Confirm Delete</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>Are you sure you want to delete this food item? This action cannot be undone.</p>
+          Are you sure you want to delete this food item? This action cannot be undone.
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>

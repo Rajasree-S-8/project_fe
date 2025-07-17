@@ -1,418 +1,726 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { 
-  Container, 
-  Card, 
-  Button, 
-  Badge, 
-  Row, 
-  Col, 
-  Alert, 
-  Spinner, 
-  Table,
-  Breadcrumb
-} from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Spinner, Alert, Table, Badge, Modal, Form, FormControl, Pagination } from 'react-bootstrap';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import Header from '../header1/header1.jsx';
 import './viewbooking.css';
 
-const BookingDetails = () => {
-  const { bookingId } = useParams();
+const CustomerBooking = () => {
   const navigate = useNavigate();
-  const [booking, setBooking] = useState(null);
+  const location = useLocation();
+  const [bookings, setBookings] = useState([]);
+  const [confirmedBookings, setConfirmedBookings] = useState([]);
+  const [cancelledBookings, setCancelledBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [cancelling, setCancelling] = useState(false);
-  const [authError, setAuthError] = useState(false);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [currentBooking, setCurrentBooking] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPageConfirmed, setCurrentPageConfirmed] = useState(1);
+  const [currentPageCancelled, setCurrentPageCancelled] = useState(1);
+  const bookingsPerPage = 10;
+  const maxRetries = 3;
 
-  useEffect(() => {
-    const fetchBookingDetails = async () => {
-      try {
-        const user = JSON.parse(localStorage.getItem('user'));
-        
-        if (!user || !user.userId) {
-          setAuthError(true);
-          setLoading(false);
-          return;
-        }
-
-        const response = await axios.get(`/api/bookings/${bookingId}/details`, {
-          headers: {
-            'X-Customer-Id': user.userId
-          }
-        });
-        setBooking(response.data);
-        setLoading(false);
-      } catch (err) {
-        if (err.response?.status === 401 || err.response?.status === 403) {
-          setAuthError(true);
-        } else {
-          setError(err.response?.data?.message || err.message || 'Failed to load booking details');
-        }
-        setLoading(false);
-      }
-    };
-
-    fetchBookingDetails();
-  }, [bookingId]);
-
-  const handleCancelBooking = async () => {
-    if (!window.confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) return;
-    
+  const getCustomerId = () => {
+    const customerData = localStorage.getItem('customer');
+    if (!customerData) {
+      navigate('/custlog');
+      return null;
+    }
     try {
-      setCancelling(true);
-      const user = JSON.parse(localStorage.getItem('user'));
-      await axios.post(`/api/bookings/${bookingId}/cancel`, {}, {
-        headers: {
-          'X-Customer-Id': user.userId
-        }
-      });
-      
-      // Refresh booking details after cancellation
-      const response = await axios.get(`/api/bookings/${bookingId}/details`, {
-        headers: {
-          'X-Customer-Id': user.userId
-        }
-      });
-      setBooking(response.data);
-      setCancelling(false);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to cancel booking');
-      setCancelling(false);
+      const customer = JSON.parse(customerData);
+      return customer?.userId || null;
+    } catch (e) {
+      console.error('Error parsing customer data:', e);
+      return null;
     }
   };
 
-  const handleLoginRedirect = () => {
-    navigate('/login', { state: { from: `/bookings/${bookingId}` } });
+  const fetchBookings = async (attempt = 1) => {
+    try {
+      const customerId = getCustomerId();
+      if (!customerId) return;
+
+      const response = await axios.get('http://localhost:8080/api/bookings/customer', {
+        headers: {
+          'X-Customer-Id': customerId.toString(),
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const bookingsData = Array.isArray(response.data) ? response.data : [];
+      setBookings(bookingsData);
+      setConfirmedBookings(bookingsData.filter(booking => booking.status?.toLowerCase() !== 'cancelled'));
+      setCancelledBookings(bookingsData.filter(booking => booking.status?.toLowerCase() === 'cancelled'));
+      setLoading(false);
+      setRetryCount(0);
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+      let errorMessage = 'Failed to load bookings. Please try again.';
+      
+      if (error.response) {
+        errorMessage = error.response.data?.message || `Error ${error.response.status}: ${error.response.statusText}`;
+        if (error.response.status === 401 || error.response.status === 403) {
+          navigate('/custlog');
+          return;
+        }
+      } else if (error.request) {
+        errorMessage = 'No response from server. Please check your connection.';
+      } else {
+        errorMessage = error.message;
+      }
+
+      if (attempt < maxRetries) {
+        setTimeout(() => {
+          setRetryCount(attempt);
+          fetchBookings(attempt + 1);
+        }, 2000);
+      } else {
+        setError(errorMessage);
+        setLoading(false);
+        setBookings([]);
+        setConfirmedBookings([]);
+        setCancelledBookings([]);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!localStorage.getItem('customer')) {
+      navigate('/custlog');
+    } else {
+      fetchBookings();
+    }
+  }, [location.state, location.search, navigate]);
+
+  const fetchBookingDetails = async (bookingId) => {
+    try {
+      setDetailsLoading(true);
+      const customerId = getCustomerId();
+      if (!customerId) {
+        throw new Error('Customer not authenticated');
+      }
+
+      const response = await axios.get(`http://localhost:8080/api/bookings/${bookingId}/details`, {
+        headers: {
+          'X-Customer-Id': customerId.toString(),
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.data) {
+        throw new Error('No booking details received');
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('Detailed error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        headers: error.config?.headers,
+      });
+
+      let errorMessage = 'Failed to load booking details.';
+      if (error.response) {
+        if (error.response.status === 403) {
+          errorMessage = 'You are not authorized to view these details.';
+        } else if (error.response.data?.message) {
+          errorMessage = error.response.data.message;
+        }
+      }
+      throw new Error(errorMessage);
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
+  const handleViewDetails = async (bookingId) => {
+    try {
+      setError(null);
+      const details = await fetchBookingDetails(bookingId);
+      setCurrentBooking(details);
+      setShowDetailsModal(true);
+    } catch (error) {
+      setError(error.message);
+      setShowDetailsModal(false);
+    }
+  };
+
+  const handleSearch = (e) => {
+    const query = e.target.value.toLowerCase();
+    setSearchQuery(query);
+    setCurrentPageConfirmed(1);
+    setCurrentPageCancelled(1);
+    
+    const filteredConfirmed = bookings.filter(booking => 
+      booking.status?.toLowerCase() !== 'cancelled' &&
+      (booking.room?.roomNumber?.toString().toLowerCase().includes(query) ||
+       booking.bookingId?.toString().toLowerCase().includes(query) ||
+       booking.status?.toLowerCase().includes(query))
+    );
+    const filteredCancelled = bookings.filter(booking => 
+      booking.status?.toLowerCase() === 'cancelled' &&
+      (booking.room?.roomNumber?.toString().toLowerCase().includes(query) ||
+       booking.bookingId?.toString().toLowerCase().includes(query) ||
+       booking.status?.toLowerCase().includes(query))
+    );
+    setConfirmedBookings(filteredConfirmed);
+    setCancelledBookings(filteredCancelled);
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!currentBooking) {
+      setError('No booking selected for download');
+      return;
+    }
+
+    try {
+      const customerId = getCustomerId();
+      if (!customerId) {
+        setError('Customer not authenticated');
+        return;
+      }
+
+      const response = await axios.get(`http://localhost:8080/api/bookings/${currentBooking.bookingId}/download`, {
+        headers: {
+          'X-Customer-Id': customerId.toString(),
+          'Content-Type': 'application/json',
+        },
+        responseType: 'blob',
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `booking_${currentBooking.bookingId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      setError('Failed to download PDF. Please try again.');
+    }
   };
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+    try {
+      const date = new Date(dateString);
+      return isNaN(date.getTime()) ? 'Invalid Date' : date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+    } catch (e) {
+      return 'Invalid Date';
+    }
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 2
-    }).format(amount);
+  const formatDateTime = (dateTimeString) => {
+    if (!dateTimeString) return 'N/A';
+    try {
+      const date = new Date(dateTimeString);
+      return isNaN(date.getTime()) ? 'Invalid Date' : date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch (e) {
+      return 'Invalid Date';
+    }
   };
 
-  const calculateNights = (checkIn, checkOut) => {
-    const diffTime = new Date(checkOut) - new Date(checkIn);
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const getStatusBadge = (status) => {
+    if (!status) return <Badge bg="secondary">Unknown</Badge>;
+    
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+        return <Badge bg="success">Confirmed</Badge>;
+      case 'pending':
+        return <Badge bg="warning">Pending Payment</Badge>;
+      case 'cancelled':
+        return <Badge bg="danger">Cancelled</Badge>;
+      default:
+        return <Badge bg="secondary">{status}</Badge>;
+    }
   };
 
-  if (loading) {
-    return (
-      <Container className="text-center my-5 py-5">
-        <Spinner animation="border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </Spinner>
-        <p className="mt-3">Loading booking details...</p>
-      </Container>
-    );
-  }
+  const indexOfLastConfirmed = currentPageConfirmed * bookingsPerPage;
+  const indexOfFirstConfirmed = indexOfLastConfirmed - bookingsPerPage;
+  const currentConfirmedBookings = confirmedBookings.slice(indexOfFirstConfirmed, indexOfLastConfirmed);
+  const totalPagesConfirmed = Math.ceil(confirmedBookings.length / bookingsPerPage);
 
-  if (authError) {
-    return (
-      <Container className="my-5 py-5">
-        <Alert variant="danger" className="text-center">
-          <div className="py-4">
-            <h4 className="mb-3">Authentication Required</h4>
-            <p>You need to be logged in to view this booking</p>
-            <div className="d-flex justify-content-center gap-3 mt-4">
-              <Button 
-                variant="primary" 
-                onClick={handleLoginRedirect}
-                className="px-4"
-              >
-                Login Now
-              </Button>
-              <Button 
-                variant="outline-secondary" 
-                onClick={() => navigate('/')}
-                className="px-4"
-              >
-                Back to Home
-              </Button>
-            </div>
-          </div>
-        </Alert>
-      </Container>
-    );
-  }
+  const indexOfLastCancelled = currentPageCancelled * bookingsPerPage;
+  const indexOfFirstCancelled = indexOfLastCancelled - bookingsPerPage;
+  const currentCancelledBookings = cancelledBookings.slice(indexOfFirstCancelled, indexOfLastCancelled);
+  const totalPagesCancelled = Math.ceil(cancelledBookings.length / bookingsPerPage);
 
-  if (error) {
-    return (
-      <Container className="my-5 py-5">
-        <Alert variant="danger" className="text-center">
-          <div className="py-4">
-            <h4 className="mb-3">Error Loading Booking</h4>
-            <p>{error}</p>
-            <Button 
-              variant="outline-primary" 
-              onClick={() => window.location.reload()}
-              className="mt-3"
-            >
-              Try Again
-            </Button>
-          </div>
-        </Alert>
-      </Container>
-    );
-  }
+  const handlePageChangeConfirmed = (pageNumber) => {
+    setCurrentPageConfirmed(pageNumber);
+  };
 
-  if (!booking) {
-    return (
-      <Container className="my-5 py-5">
-        <Alert variant="warning" className="text-center">
-          <div className="py-4">
-            <h4 className="mb-3">Booking Not Found</h4>
-            <p>The requested booking could not be found in our system.</p>
-            <Button 
-              variant="primary" 
-              onClick={() => navigate('/my-bookings')}
-              className="mt-3"
-            >
-              View My Bookings
-            </Button>
-          </div>
-        </Alert>
-      </Container>
-    );
-  }
-
-  const nights = calculateNights(booking.checkInDate, booking.checkOutDate);
+  const handlePageChangeCancelled = (pageNumber) => {
+    setCurrentPageCancelled(pageNumber);
+  };
 
   return (
-    <Container className="my-5 booking-details-container">
-      <Breadcrumb className="mb-4">
-        <Breadcrumb.Item linkAs={Link} linkProps={{ to: '/' }}>Home</Breadcrumb.Item>
-        <Breadcrumb.Item linkAs={Link} linkProps={{ to: '/my-bookings' }}>My Bookings</Breadcrumb.Item>
-        <Breadcrumb.Item active>Booking #{booking.bookingId}</Breadcrumb.Item>
-      </Breadcrumb>
+    <>
+      <div className="bookings-hero">
+        <Header />
+        <div className="hero-overlay">
+          <h1>Customer Bookings</h1>
+          <p>View your hotel reservations</p>
+        </div>
+      </div>
 
-      <Card className="shadow-sm">
-        <Card.Header className="d-flex justify-content-between align-items-center py-3">
-          <h2 className="mb-0">Booking #{booking.bookingId}</h2>
-          <Badge 
-            pill 
-            bg={
-              booking.status === 'confirmed' ? 'success' :
-              booking.status === 'cancelled' ? 'danger' : 
-              booking.status === 'completed' ? 'info' : 'warning'
-            }
-            className="fs-6 px-3 py-2"
-          >
-            {booking.status.toUpperCase()}
-          </Badge>
-        </Card.Header>
-        
-        <Card.Body className="p-4">
-          <Row className="g-4">
-            <Col lg={6}>
-              <Card className="h-100">
-                <Card.Header className="bg-light">
-                  <h5 className="mb-0">Room Information</h5>
-                </Card.Header>
-                <Card.Body>
-                  <Table borderless className="mb-0">
-                    <tbody>
-                      <tr>
-                        <td className="fw-bold" style={{ width: '140px' }}>Room Type:</td>
-                        <td>{booking.room?.roomType || 'N/A'}</td>
-                      </tr>
-                      <tr>
-                        <td className="fw-bold">Room Number:</td>
-                        <td>{booking.room?.roomNumber || 'N/A'}</td>
-                      </tr>
-                      <tr>
-                        <td className="fw-bold">Price per night:</td>
-                        <td>{formatCurrency(booking.room?.price)}</td>
-                      </tr>
-                      <tr>
-                        <td className="fw-bold">Capacity:</td>
-                        <td>{booking.room?.capacity || 'N/A'} guests</td>
-                      </tr>
-                      <tr>
-                        <td className="fw-bold">Amenities:</td>
-                        <td>
-                          {booking.room?.amenities ? (
-                            <ul className="list-unstyled mb-0">
-                              {booking.room.amenities.split(',').map((amenity, i) => (
-                                <li key={i}>{amenity.trim()}</li>
-                              ))}
-                            </ul>
-                          ) : 'N/A'}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </Table>
-                </Card.Body>
-              </Card>
-            </Col>
-            
-            <Col lg={6}>
-              <Card className="h-100">
-                <Card.Header className="bg-light">
-                  <h5 className="mb-0">Booking Dates</h5>
-                </Card.Header>
-                <Card.Body>
-                  <Table borderless className="mb-0">
-                    <tbody>
-                      <tr>
-                        <td className="fw-bold" style={{ width: '140px' }}>Check-in:</td>
-                        <td>{formatDate(booking.checkInDate)}</td>
-                      </tr>
-                      <tr>
-                        <td className="fw-bold">Check-out:</td>
-                        <td>{formatDate(booking.checkOutDate)}</td>
-                      </tr>
-                      <tr>
-                        <td className="fw-bold">Nights:</td>
-                        <td>{nights}</td>
-                      </tr>
-                      <tr>
-                        <td className="fw-bold">Guests:</td>
-                        <td>{booking.guests}</td>
-                      </tr>
-                      <tr>
-                        <td className="fw-bold">Booking Date:</td>
-                        <td>{formatDate(booking.bookingDate)}</td>
-                      </tr>
-                    </tbody>
-                  </Table>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-          
-          <Row className="mt-4">
-            <Col>
-              <Card>
-                <Card.Header className="bg-light">
-                  <h5 className="mb-0">Payment Summary</h5>
-                </Card.Header>
-                <Card.Body>
-                  <Table striped bordered className="mb-0">
-                    <thead>
-                      <tr>
-                        <th>Description</th>
-                        <th className="text-end">Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>
-                          {booking.room?.roomType} @ {formatCurrency(booking.room?.price)}/night × {nights} nights
-                        </td>
-                        <td className="text-end">{formatCurrency(booking.room?.price * nights)}</td>
-                      </tr>
-                      {booking.taxAmount > 0 && (
-                        <tr>
-                          <td>Taxes and Fees</td>
-                          <td className="text-end">{formatCurrency(booking.taxAmount)}</td>
-                        </tr>
-                      )}
-                      <tr className="fw-bold">
-                        <td>Total Amount</td>
-                        <td className="text-end">{formatCurrency(booking.totalPrice)}</td>
-                      </tr>
-                    </tbody>
-                  </Table>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-          
-          {booking.payments && booking.payments.length > 0 && (
-            <Row className="mt-4">
+      <Container className="my-5">
+        {error && (
+          <Alert variant="danger" onClose={() => setError(null)} dismissible>
+            <Alert.Heading>Error</Alert.Heading>
+            <p>{error}</p>
+            {retryCount > 0 && (
+              <div className="mt-2">
+                <Button 
+                  variant="outline-danger" 
+                  size="sm" 
+                  onClick={() => {
+                    setLoading(true);
+                    setError(null);
+                    fetchBookings();
+                  }}
+                >
+                  Retry ({maxRetries - retryCount} left)
+                </Button>
+              </div>
+            )}
+          </Alert>
+        )}
+
+        {loading ? (
+          <div className="text-center py-5">
+            <Spinner animation="border" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </Spinner>
+            <p className="mt-2">Loading your bookings...</p>
+          </div>
+        ) : bookings.length === 0 ? (
+          <Alert variant="info">
+            <Alert.Heading>No Bookings Found</Alert.Heading>
+            <p>You haven't made any bookings yet.</p>
+          </Alert>
+        ) : (
+          <>
+            <Row className="mb-5">
               <Col>
-                <Card>
-                  <Card.Header className="bg-light">
-                    <h5 className="mb-0">Payment History</h5>
-                  </Card.Header>
+                <Card className="shadow-sm">
                   <Card.Body>
-                    <div className="table-responsive">
-                      <Table striped bordered hover className="mb-0">
-                        <thead>
-                          <tr>
-                            <th>Date</th>
-                            <th>Amount</th>
-                            <th>Method</th>
-                            <th>Status</th>
-                            <th>Transaction ID</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {booking.payments.map((payment, index) => (
-                            <tr key={index}>
-                              <td>{formatDate(payment.paymentDate)}</td>
-                              <td>{formatCurrency(payment.amount)}</td>
-                              <td>{payment.paymentMethod}</td>
-                              <td>
-                                <Badge 
-                                  bg={
-                                    payment.status === 'completed' ? 'success' :
-                                    payment.status === 'failed' ? 'danger' : 'warning'
-                                  }
-                                  className="text-capitalize"
-                                >
-                                  {payment.status}
-                                </Badge>
-                              </td>
-                              <td className="text-truncate" style={{ maxWidth: '150px' }}>
-                                {payment.transactionId}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </Table>
+                    <div className="d-flex justify-content-between align-items-center mb-4">
+                      <Card.Title className="mb-0">Confirmed Bookings</Card.Title>
+                      <Form className="d-flex">
+                        <FormControl
+                          type="search"
+                          placeholder="Search by Room #, Booking ID, or Status"
+                          className="me-2"
+                          value={searchQuery}
+                          onChange={handleSearch}
+                        />
+                      </Form>
                     </div>
+                    {confirmedBookings.length === 0 ? (
+                      <Alert variant="info">No confirmed bookings found.</Alert>
+                    ) : (
+                      <>
+                        <div className="table-responsive">
+                          <Table striped hover className="align-middle">
+                            <thead className="table-dark">
+                              <tr>
+                                <th>#</th>
+                                <th>Booking ID</th>
+                                <th>Room Details</th>
+                                <th>Booking Dates</th>
+                                <th>Guests</th>
+                                <th>Total Price</th>
+                                <th>Status</th>
+                                <th>Details</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {currentConfirmedBookings.map((booking, index) => (
+                                <tr key={booking.bookingId || index}>
+                                  <td>{indexOfFirstConfirmed + index + 1}</td>
+                                  <td>{booking.bookingId}</td>
+                                  <td>
+                                    <div>
+                                      <strong>Room #{booking.room?.roomNumber || 'N/A'}</strong>
+                                      <div className="text-muted small">{booking.room?.roomType || 'N/A'}</div>
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <div>
+                                      <div><strong>Check-in:</strong> {formatDate(booking.checkInDate)}</div>
+                                      <div><strong>Check-out:</strong> {formatDate(booking.checkOutDate)}</div>
+                                    </div>
+                                  </td>
+                                  <td className="text-center">{booking.guests || 'N/A'}</td>
+                                  <td className="text-end">{booking.totalPrice ? `₹${booking.totalPrice.toFixed(2)}` : 'N/A'}</td>
+                                  <td className="text-center">
+                                    {getStatusBadge(booking.status)}
+                                  </td>
+                                  <td className="text-center">
+                                    <Button
+                                      variant="outline-primary"
+                                      size="sm"
+                                      onClick={() => handleViewDetails(booking.bookingId)}
+                                      disabled={detailsLoading}
+                                    >
+                                      {detailsLoading && currentBooking?.bookingId === booking.bookingId ? (
+                                        <>
+                                          <Spinner as="span" size="sm" animation="border" role="status" />
+                                          <span className="ms-2">Loading...</span>
+                                        </>
+                                      ) : (
+                                        'View'
+                                      )}
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </Table>
+                        </div>
+                        <div className="d-flex justify-content-center mt-4">
+                          <Pagination>
+                            <Pagination.First onClick={() => handlePageChangeConfirmed(1)} disabled={currentPageConfirmed === 1} />
+                            <Pagination.Prev onClick={() => handlePageChangeConfirmed(currentPageConfirmed - 1)} disabled={currentPageConfirmed === 1} />
+                            {[...Array(totalPagesConfirmed)].map((_, index) => (
+                              <Pagination.Item
+                                key={index + 1}
+                                active={index + 1 === currentPageConfirmed}
+                                onClick={() => handlePageChangeConfirmed(index + 1)}
+                              >
+                                {index + 1}
+                              </Pagination.Item>
+                            ))}
+                            <Pagination.Next onClick={() => handlePageChangeConfirmed(currentPageConfirmed + 1)} disabled={currentPageConfirmed === totalPagesConfirmed} />
+                            <Pagination.Last onClick={() => handlePageChangeConfirmed(totalPagesConfirmed)} disabled={currentPageConfirmed === totalPagesConfirmed} />
+                          </Pagination>
+                        </div>
+                      </>
+                    )}
                   </Card.Body>
                 </Card>
               </Col>
             </Row>
-          )}
-          
-          <Row className="mt-4">
-            <Col className="d-flex justify-content-between align-items-center">
-              <Button 
-                variant="outline-secondary" 
-                as={Link} 
-                to="/my-bookings"
-                className="px-4"
-              >
-                <i className="bi bi-arrow-left me-2"></i>Back to My Bookings
-              </Button>
-              
-              {booking.status === 'pending' && (
-                <Button 
-                  variant="danger" 
-                  onClick={handleCancelBooking}
-                  disabled={cancelling}
-                  className="px-4"
-                >
-                  {cancelling ? (
-                    <>
-                      <Spinner as="span" animation="border" size="sm" className="me-2" />
-                      Cancelling...
-                    </>
-                  ) : (
-                    <>
-                      <i className="bi bi-x-circle me-2"></i>Cancel Booking
-                    </>
-                  )}
-                </Button>
+
+            <Row>
+              <Col>
+                <Card className="shadow-sm">
+                  <Card.Body>
+                    <Card.Title className="mb-4">Cancelled Bookings</Card.Title>
+                    {cancelledBookings.length === 0 ? (
+                      <Alert variant="info">No cancelled bookings found.</Alert>
+                    ) : (
+                      <>
+                        <div className="table-responsive">
+                          <Table striped hover className="align-middle table-cancelled">
+                            <thead className="table-dark">
+                              <tr>
+                                <th>#</th>
+                                <th>Booking ID</th>
+                                <th>Room Details</th>
+                                <th>Booking Dates</th>
+                                <th>Guests</th>
+                                <th>Total Price</th>
+                                <th>Status</th>
+                                <th>Details</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {currentCancelledBookings.map((booking, index) => (
+                                <tr key={booking.bookingId || index}>
+                                  <td>{indexOfFirstCancelled + index + 1}</td>
+                                  <td>{booking.bookingId}</td>
+                                  <td>
+                                    <div>
+                                      <strong>Room #{booking.room?.roomNumber || 'N/A'}</strong>
+                                      <div className="text-muted small">{booking.room?.roomType || 'N/A'}</div>
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <div>
+                                      <div><strong>Check-in:</strong> {formatDate(booking.checkInDate)}</div>
+                                      <div><strong>Check-out:</strong> {formatDate(booking.checkOutDate)}</div>
+                                    </div>
+                                  </td>
+                                  <td className="text-center">{booking.guests || 'N/A'}</td>
+                                  <td className="text-end">{booking.totalPrice ? `₹${booking.totalPrice.toFixed(2)}` : 'N/A'}</td>
+                                  <td className="text-center">
+                                    {getStatusBadge(booking.status)}
+                                  </td>
+                                  <td className="text-center">
+                                    <Button
+                                      variant="outline-primary"
+                                      size="sm"
+                                      onClick={() => handleViewDetails(booking.bookingId)}
+                                      disabled={detailsLoading}
+                                    >
+                                      {detailsLoading && currentBooking?.bookingId === booking.bookingId ? (
+                                        <>
+                                          <Spinner as="span" size="sm" animation="border" role="status" />
+                                          <span className="ms-2">Loading...</span>
+                                        </>
+                                      ) : (
+                                        'View'
+                                      )}
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </Table>
+                        </div>
+                        <div className="d-flex justify-content-center mt-4">
+                          <Pagination>
+                            <Pagination.First onClick={() => handlePageChangeCancelled(1)} disabled={currentPageCancelled === 1} />
+                            <Pagination.Prev onClick={() => handlePageChangeCancelled(currentPageCancelled - 1)} disabled={currentPageCancelled === 1} />
+                            {[...Array(totalPagesCancelled)].map((_, index) => (
+                              <Pagination.Item
+                                key={index + 1}
+                                active={index + 1 === currentPageCancelled}
+                                onClick={() => handlePageChangeCancelled(index + 1)}
+                              >
+                                {index + 1}
+                              </Pagination.Item>
+                            ))}
+                            <Pagination.Next onClick={() => handlePageChangeCancelled(currentPageCancelled + 1)} disabled={currentPageCancelled === totalPagesCancelled} />
+                            <Pagination.Last onClick={() => handlePageChangeCancelled(totalPagesCancelled)} disabled={currentPageCancelled === totalPagesCancelled} />
+                          </Pagination>
+                        </div>
+                      </>
+                    )}
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
+          </>
+        )}
+      </Container>
+
+      <Modal show={showDetailsModal} onHide={() => setShowDetailsModal(false)} size="lg" centered>
+        <Modal.Header closeButton className="bg-primary text-white">
+          <Modal.Title>
+            Booking Details - #{currentBooking?.bookingId || ''}
+            {detailsLoading && (
+              <Spinner animation="border" size="sm" className="ms-2" />
+            )}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="modal-body-custom">
+          {!detailsLoading && currentBooking ? (
+            <div className="booking-details">
+              <Row className="justify-content-center">
+                <Col md={10}>
+                  <Card className="border-0 shadow-sm mb-4 card-section">
+                    <Card.Header>
+                      <h5 className="mb-0">Booking Information</h5>
+                    </Card.Header>
+                    <Card.Body>
+                      <Table borderless className="mb-0 table-details">
+                        <tbody>
+                          <tr>
+                            <th>Booking ID:</th>
+                            <td>{currentBooking.bookingId || 'N/A'}</td>
+                          </tr>
+                          <tr>
+                            <th>Status:</th>
+                            <td>{getStatusBadge(currentBooking.status)}</td>
+                          </tr>
+                          <tr>
+                            <th>Booking Date:</th>
+                            <td>{formatDate(currentBooking.bookingDate)}</td>
+                          </tr>
+                          <tr>
+                            <th>Check-in:</th>
+                            <td>{formatDate(currentBooking.checkInDate)}</td>
+                          </tr>
+                          <tr>
+                            <th>Check-out:</th>
+                            <td>{formatDate(currentBooking.checkOutDate)}</td>
+                          </tr>
+                          <tr>
+                            <th>Duration:</th>
+                            <td>
+                              {currentBooking.checkInDate && currentBooking.checkOutDate
+                                ? `${Math.ceil(
+                                    (new Date(currentBooking.checkOutDate) -
+                                      new Date(currentBooking.checkInDate)) /
+                                      (1000 * 60 * 60 * 24)
+                                  )} nights`
+                                : 'N/A'}
+                            </td>
+                          </tr>
+                          <tr>
+                            <th>Guests:</th>
+                            <td>{currentBooking.guests || 'N/A'}</td>
+                          </tr>
+                          <tr>
+                            <th>Total Price:</th>
+                            <td className="fw-bold">{currentBooking.totalPrice ? `₹${currentBooking.totalPrice.toFixed(2)}` : 'N/A'}</td>
+                          </tr>
+                        </tbody>
+                      </Table>
+                    </Card.Body>
+                  </Card>
+                </Col>
+                <Col md={10}>
+                  <Card className="border-0 shadow-sm mb-4 card-section">
+                    <Card.Header>
+                      <h5 className="mb-0">Room Information</h5>
+                    </Card.Header>
+                    <Card.Body>
+                      {currentBooking.room && (
+                        <Table borderless className="mb-0 table-details">
+                          <tbody>
+                            <tr>
+                              <th>Room Number:</th>
+                              <td>{currentBooking.room.roomNumber || 'N/A'}</td>
+                            </tr>
+                            <tr>
+                              <th>Room Type:</th>
+                              <td>{currentBooking.room.roomType || 'N/A'}</td>
+                            </tr>
+                            <tr>
+                              <th>Price Per Night:</th>
+                              <td>{currentBooking.room.price ? `₹${currentBooking.room.price.toFixed(2)}` : 'N/A'}</td>
+                            </tr>
+                            <tr>
+                              <th>AC Type:</th>
+                              <td>{currentBooking.room.acType || 'N/A'}</td>
+                            </tr>
+                            <tr>
+                              <th>Capacity:</th>
+                              <td>{currentBooking.room.capacity || 'N/A'}</td>
+                            </tr>
+                          </tbody>
+                        </Table>
+                      )}
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </Row>
+              {currentBooking.customer && (
+                <Row className="justify-content-center">
+                  <Col md={10}>
+                    <Card className="border-0 shadow-sm card-section">
+                      <Card.Header>
+                        <h5 className="mb-0">Customer Information</h5>
+                      </Card.Header>
+                      <Card.Body>
+                        <Table borderless className="mb-0 table-details">
+                          <tbody>
+                            <tr>
+                              <th>Name:</th>
+                              <td>{currentBooking.customer.name || 'N/A'}</td>
+                            </tr>
+                            <tr>
+                              <th>Email:</th>
+                              <td>{currentBooking.customer.email || 'N/A'}</td>
+                            </tr>
+                            <tr>
+                              <th>Phone Number:</th>
+                              <td>{currentBooking.customer.phoneNumber || 'N/A'}</td>
+                            </tr>
+                            <tr>
+                              <th>Address:</th>
+                              <td>{currentBooking.customer.address || 'N/A'}</td>
+                            </tr>
+                            <tr>
+                              <th>Customer ID:</th>
+                              <td>{currentBooking.customer.userId || 'N/A'}</td>
+                            </tr>
+                          </tbody>
+                        </Table>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                </Row>
               )}
-            </Col>
-          </Row>
-        </Card.Body>
-      </Card>
-    </Container>
+              {currentBooking.payments && currentBooking.payments.length > 0 && (
+                <Row className="justify-content-center">
+                  <Col md={10}>
+                    <Card className="border-0 shadow-sm card-section">
+                      <Card.Header>
+                        <h5 className="mb-0">Payment History</h5>
+                      </Card.Header>
+                      <Card.Body>
+                        <div className="table-responsive">
+                          <Table striped hover className="table-details">
+                            <thead>
+                              <tr>
+                                <th>#</th>
+                                <th>Transaction ID</th>
+                                <th>Amount</th>
+                                <th>Payment Method</th>
+                                <th>Card Brand</th>
+                                <th>Card Last Four</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {currentBooking.payments.map((payment, index) => (
+                                <tr key={index}>
+                                  <td>{index + 1}</td>
+                                  <td className="text-nowrap">{payment.transactionId || 'N/A'}</td>
+                                  <td className="text-end">{payment.amount ? `₹${payment.amount.toFixed(2)}` : 'N/A'}</td>
+                                  <td>
+                                    {payment.paymentMethod === 'credit_card' ? 'Credit Card' : 
+                                     payment.paymentMethod === 'debit_card' ? 'Debit Card' : 
+                                     payment.paymentMethod || 'N/A'}
+                                  </td>
+                                  <td>{payment.cardBrand || 'N/A'}</td>
+                                  <td>{payment.cardLastFour || 'N/A'}</td>
+                                  <td className="text-nowrap">{formatDateTime(payment.paymentDate)}</td>
+                                  <td>
+                                    {payment.status === 'completed' ? 
+                                      <Badge bg="success">Completed</Badge> : 
+                                      <Badge bg="warning">Pending</Badge>}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </Table>
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                </Row>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <Spinner animation="border" variant="primary" />
+              <p className="mt-2">Loading booking details...</p>
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer className="bg-light">
+          <Button variant="secondary" onClick={() => setShowDetailsModal(false)}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={handleDownloadPDF} disabled={detailsLoading || !currentBooking}>
+            Download PDF
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </>
   );
 };
 
-export default BookingDetails;
+export default CustomerBooking;

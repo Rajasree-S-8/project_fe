@@ -1,3 +1,4 @@
+// src/components/addstaff/addstaff.jsx
 import React, { useState } from 'react';
 import './AddStaff.css';
 
@@ -10,16 +11,39 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
     Age: '',
     phoneNumber: '',
     password: '',
-    role: ''
+    role: '',
+    image: null
   });
   const [passwordError, setPasswordError] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [imageError, setImageError] = useState('');
   const [showPasswordPopup, setShowPasswordPopup] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, files } = e.target;
+
+    if (name === 'image') {
+      const file = files[0];
+      if (file) {
+        const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        if (!validTypes.includes(file.type)) {
+          setImageError('Please upload a valid image (JPEG, PNG, or GIF)');
+          return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          setImageError('Image size must be less than 5MB');
+          return;
+        }
+        setImageError('');
+        setFormData(prev => ({
+          ...prev,
+          image: file
+        }));
+      }
+      return;
+    }
 
     if (name === 'phoneNumber') {
       if (value === '' || (/^\d+$/.test(value) && value.length <= 10)) {
@@ -36,7 +60,6 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
         ...prev,
         [name]: value
       }));
-      
       if (value.length > 0) {
         validateEmail(value);
       } else {
@@ -50,7 +73,6 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
         ...prev,
         [name]: value
       }));
-      
       if (value.length > 0) {
         validatePassword(value);
       } else {
@@ -67,24 +89,20 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
 
   const validateEmail = (email) => {
     const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    
     if (!regex.test(email)) {
       setEmailError('Please enter a valid email address (e.g., user@example.com)');
       return false;
     }
-    
     setEmailError('');
     return true;
   };
 
   const validatePassword = (password) => {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,50}$/;
-    
     if (!regex.test(password)) {
       setPasswordError('Password must be 8-50 characters with at least one uppercase, one lowercase, one number, and one special character');
       return false;
     }
-    
     setPasswordError('');
     return true;
   };
@@ -94,7 +112,6 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
     setSubmitAttempted(true);
     setIsSubmitting(true);
 
-    // Validate all required fields
     const requiredFields = ['username', 'fullName', 'email', 'address', 'Age', 'phoneNumber', 'password', 'role'];
     for (const field of requiredFields) {
       if (!formData[field]) {
@@ -104,27 +121,25 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
       }
     }
 
-    // Validate phone number
     if (formData.phoneNumber.length !== 10) {
       showNotification('Phone number must be exactly 10 digits', 'error');
       setIsSubmitting(false);
       return;
     }
 
-    // Validate email format
     if (!validateEmail(formData.email)) {
       setIsSubmitting(false);
       return;
     }
 
-    // Validate password strength
     if (!validatePassword(formData.password)) {
       setShowPasswordPopup(true);
       setIsSubmitting(false);
       return;
     }
 
-    const backendFormData = {
+    const formDataToSend = new FormData();
+    formDataToSend.append('staff', new Blob([JSON.stringify({
       username: formData.username,
       fullname: formData.fullName,
       email: formData.email,
@@ -133,15 +148,15 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
       phonenumber: formData.phoneNumber,
       password: formData.password,
       role: formData.role
-    };
+    })], { type: 'application/json' }));
+    if (formData.image) {
+      formDataToSend.append('image', formData.image);
+    }
 
     try {
       const response = await fetch('http://localhost:8080/api/staff/add', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(backendFormData)
+        body: formDataToSend
       });
 
       if (!response.ok) {
@@ -150,8 +165,6 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
       }
 
       showNotification('Staff added successfully!', 'success');
-      
-      // Reset form
       setFormData({
         username: '',
         fullName: '',
@@ -160,10 +173,12 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
         Age: '',
         phoneNumber: '',
         password: '',
-        role: ''
+        role: '',
+        image: null
       });
       setPasswordError('');
       setEmailError('');
+      setImageError('');
       setShowPasswordPopup(false);
       setSubmitAttempted(false);
       if (onStaffAdded) onStaffAdded();
@@ -179,13 +194,12 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
     const notification = document.createElement('div');
     notification.className = `staff-${type}-notification show`;
     notification.innerHTML = `
-      <div class="notification-content">
-        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+      <div className="notification-content">
+        <i className="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
         ${message}
       </div>
     `;
     document.body.appendChild(notification);
-    
     setTimeout(() => {
       notification.classList.remove('show');
       setTimeout(() => notification.remove(), 300);
@@ -197,72 +211,68 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
     return regex.test(formData.password);
   };
 
+  if (!isActive) return null;
+
   return (
-    <div id="add-staff" className={`add-staff-container ${!isActive ? 'd-none' : ''}`}>
+    <div id="add-staff" className="add-staff-container">
       <div className="add-staff-header">
         <h1 className="add-staff-title">Add New Staff Member</h1>
         <p className="add-staff-subtitle">Fill in the details below to register a new staff member</p>
       </div>
-      
       <div className="add-staff-card">
         <div className="add-staff-card-body">
           <form onSubmit={handleSubmit} className="add-staff-form">
             <div className="add-staff-form-grid">
-              {/* Username */}
               <div className="add-staff-form-group">
                 <label htmlFor="username" className="add-staff-label">
                   <i className="fas fa-user-tie"></i> Username
                 </label>
                 <div className="add-staff-input-container">
-                  <input 
-                    type="text" 
-                    className="add-staff-input" 
-                    id="username" 
-                    name="username" 
+                  <input
+                    type="text"
+                    className="add-staff-input"
+                    id="username"
+                    name="username"
                     value={formData.username}
                     onChange={handleChange}
                     placeholder="Enter username"
-                    required 
+                    required
                   />
                   <div className="input-underline"></div>
                 </div>
               </div>
-
-              {/* Full Name */}
               <div className="add-staff-form-group">
                 <label htmlFor="fullName" className="add-staff-label">
                   <i className="fas fa-id-card"></i> Full Name
                 </label>
                 <div className="add-staff-input-container">
-                  <input 
-                    type="text" 
-                    className="add-staff-input" 
-                    id="fullName" 
-                    name="fullName" 
+                  <input
+                    type="text"
+                    className="add-staff-input"
+                    id="fullName"
+                    name="fullName"
                     value={formData.fullName}
                     onChange={handleChange}
                     placeholder="Enter full name"
-                    required 
+                    required
                   />
                   <div className="input-underline"></div>
                 </div>
               </div>
-
-              {/* Email */}
               <div className="add-staff-form-group">
                 <label htmlFor="email" className="add-staff-label">
                   <i className="fas fa-envelope"></i> Email
                 </label>
                 <div className="add-staff-input-container">
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     className={`add-staff-input ${emailError ? 'input-error' : ''}`}
-                    id="email" 
-                    name="email" 
+                    id="email"
+                    name="email"
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="Enter email address"
-                    required 
+                    required
                   />
                   <div className="input-underline"></div>
                 </div>
@@ -272,87 +282,79 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                   </div>
                 )}
               </div>
-
-              {/* Address */}
               <div className="add-staff-form-group">
                 <label htmlFor="address" className="add-staff-label">
                   <i className="fas fa-map-marker-alt"></i> Address
                 </label>
                 <div className="add-staff-input-container">
-                  <input 
-                    type="text" 
-                    className="add-staff-input" 
-                    id="address" 
-                    name="address" 
+                  <input
+                    type="text"
+                    className="add-staff-input"
+                    id="address"
+                    name="address"
                     value={formData.address}
                     onChange={handleChange}
                     placeholder="Enter street address"
-                    required 
+                    required
                   />
                   <div className="input-underline"></div>
                 </div>
               </div>
-
-              {/* Age */}
               <div className="add-staff-form-group">
                 <label htmlFor="Age" className="add-staff-label">
                   <i className="fas fa-birthday-cake"></i> Age
                 </label>
                 <div className="add-staff-input-container">
-                  <input 
-                    type="number" 
-                    className="add-staff-input" 
-                    id="Age" 
-                    name="Age" 
+                  <input
+                    type="number"
+                    className="add-staff-input"
+                    id="Age"
+                    name="Age"
                     value={formData.Age}
                     onChange={handleChange}
                     placeholder="Enter age"
                     min="18"
                     max="100"
-                    required 
+                    required
                   />
                   <div className="input-underline"></div>
                 </div>
               </div>
-
-              {/* Phone Number */}
               <div className="add-staff-form-group">
                 <label htmlFor="phoneNumber" className="add-staff-label">
                   <i className="fas fa-phone"></i> Phone Number
                 </label>
                 <div className="add-staff-input-container">
-                  <input 
-                    type="tel" 
-                    className="add-staff-input" 
-                    id="phoneNumber" 
-                    name="phoneNumber" 
+                  <input
+                    type="tel"
+                    className="add-staff-input"
+                    id="phoneNumber"
+                    name="phoneNumber"
                     value={formData.phoneNumber}
                     onChange={handleChange}
                     placeholder="Enter 10-digit phone number"
                     maxLength="10"
-                    required 
+                    required
                   />
                   <div className="input-underline"></div>
                 </div>
               </div>
-
-              {/* Password */}
               <div className="add-staff-form-group">
                 <label htmlFor="password" className="add-staff-label">
                   <i className="fas fa-key"></i> Password
                 </label>
                 <div className="add-staff-input-container">
-                  <input 
-                    type="password" 
+                  <input
+                    type="password"
                     className={`add-staff-input ${passwordError && submitAttempted ? 'input-error' : ''}`}
-                    id="password" 
-                    name="password" 
+                    id="password"
+                    name="password"
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="Create a strong password"
                     minLength="8"
                     maxLength="50"
-                    required 
+                    required
                   />
                   <div className="input-underline"></div>
                 </div>
@@ -361,7 +363,6 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                     <i className="fas fa-exclamation-circle"></i> {passwordError}
                   </div>
                 )}
-                
                 {showPasswordPopup && !isPasswordValid() && (
                   <div className="password-requirements-popup">
                     <div className="popup-header">
@@ -392,34 +393,52 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                   </div>
                 )}
               </div>
-
-              {/* Role */}
               <div className="add-staff-form-group">
                 <label htmlFor="role" className="add-staff-label">
                   <i className="fas fa-user-tag"></i> Role
                 </label>
                 <div className="add-staff-input-container">
-                  <select 
-                    className="add-staff-select" 
-                    id="role" 
-                    name="role" 
+                  <select
+                    className="add-staff-select"
+                    id="role"
+                    name="role"
                     value={formData.role}
                     onChange={handleChange}
                     required
                   >
                     <option value="" disabled>Select staff role</option>
                     <option value="Hotel Manager">Hotel Manager</option>
-                    <option value="Restaurant Manager">Restaurant Manager</option>         
+                    <option value="Restaurant Manager">Restaurant Manager</option>
                     <option value="Other">Other</option>
                   </select>
                   <div className="input-underline"></div>
                 </div>
               </div>
+              <div className="add-staff-form-group">
+                <label htmlFor="image" className="add-staff-label">
+                  <i className="fas fa-image"></i> Profile Image
+                </label>
+                <div className="add-staff-input-container">
+                  <input
+                    type="file"
+                    className={`add-staff-input ${imageError ? 'input-error' : ''}`}
+                    id="image"
+                    name="image"
+                    accept="image/jpeg,image/png,image/gif"
+                    onChange={handleChange}
+                  />
+                  <div className="input-underline"></div>
+                </div>
+                {imageError && (
+                  <div className="input-error-message">
+                    <i className="fas fa-exclamation-circle"></i> {imageError}
+                  </div>
+                )}
+              </div>
             </div>
-            
             <div className="add-staff-actions">
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="add-staff-submit-btn"
                 disabled={isSubmitting}
               >

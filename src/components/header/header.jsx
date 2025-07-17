@@ -10,7 +10,7 @@ function Header() {
   };
 
   const gotAdmin = () => {
-    navigate('/Admin');
+    navigate('/admin-login');
   };
 
   const gotHotelManager = () => {

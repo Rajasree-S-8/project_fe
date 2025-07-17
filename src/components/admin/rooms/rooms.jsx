@@ -1,5 +1,6 @@
+// src/components/rooms/rooms.jsx
 import React, { useState, useEffect } from 'react';
-import './rooms.css'; // Add a separate CSS file for Rooms-specific styling
+import './rooms.css';
 
 const Rooms = ({ isActive }) => {
   const [rooms, setRooms] = useState([]);
@@ -7,7 +8,7 @@ const Rooms = ({ isActive }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [itemsPerPage, setItemsPerPage] = useState(9); // Default to 9 for 3x3 grid
+  const [itemsPerPage, setItemsPerPage] = useState(9);
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -25,7 +26,6 @@ const Rooms = ({ isActive }) => {
       );
     }
 
-    // Sort rooms by room number (numeric sort)
     filtered.sort((a, b) => {
       const roomNumberA = parseInt(a.roomNumber, 10);
       const roomNumberB = parseInt(b.roomNumber, 10);
@@ -69,8 +69,10 @@ const Rooms = ({ isActive }) => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  if (!isActive) return null;
+
   return (
-    <div id="rooms" className={`mt-5 ${!isActive ? 'd-none' : ''}`}>
+    <div id="rooms" className="mt-5">
       <h1 className="h3 fw-bold mb-1">Rooms</h1>
       <p className="text-muted mb-4">View room details</p>
       <div className="card shadow-sm">

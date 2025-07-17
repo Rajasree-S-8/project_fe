@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Header from '../header1/header1.jsx';
 import './viewroom.css';
 
 const ViewRooms = () => {
@@ -222,6 +223,7 @@ const ViewRooms = () => {
 
   return (
     <div className="view-rooms-container">
+      <Header />
       <div className="view-rooms-content">
         <div className="title-container">
           <h1 className="view-rooms-title">My Rooms</h1>

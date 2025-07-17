@@ -29,10 +29,25 @@
 .order-table td {
   padding: 12px 15px;
   vertical-align: middle;
+  background-color: #ffffff; /* Updated: Set table row background to white */
+  color: #212529; /* Updated: Set text color to dark for readability */
 }
 
 .order-actions {
   white-space: nowrap;
+}
+
+.order-actions .dropdown-menu {
+  background-color: #ffffff; /* Updated: Set dropdown background to white */
+  color: #212529; /* Updated: Set dropdown text color to dark for readability */
+}
+
+.order-actions .dropdown-item {
+  color: #212529; /* Updated: Ensure dropdown items have dark text */
+}
+
+.order-actions .dropdown-item:hover {
+  background-color: #f8f9fa; /* Updated: Light hover effect for dropdown items */
 }
 
 .order-item-thumb {

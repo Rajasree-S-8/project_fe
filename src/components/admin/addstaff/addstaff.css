@@ -2,298 +2,298 @@
 
 /* Base Styles */
 .add-staff-container {
-  font-family: 'Poppins', sans-serif;
-  max-width: 1200px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-  animation: fadeIn 0.5s ease;
+    font-family: 'Poppins', sans-serif;
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    animation: fadeIn 0.5s ease;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* Header Styles */
 .add-staff-header {
-  margin-bottom: 2rem;
-  text-align: center;
+    margin-bottom: 2rem;
+    text-align: center;
 }
 
 .add-staff-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(90deg, #3498db, #2c3e50);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(90deg, #3498db, #2c3e50);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .add-staff-subtitle {
-  color: #7f8c8d;
-  font-size: 1rem;
-  font-weight: 400;
+    color: #7f8c8d;
+    font-size: 1rem;
+    font-weight: 400;
 }
 
 /* Card Styles */
 .add-staff-card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .add-staff-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
 }
 
 .add-staff-card-body {
-  padding: 2rem;
+    padding: 2rem;
 }
 
 /* Form Layout */
 .add-staff-form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
 }
 
 .add-staff-form-group {
-  margin-bottom: 1rem;
+    margin-bottom: 1rem;
 }
 
 /* Label Styles */
 .add-staff-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: #34495e;
-  font-size: 0.9rem;
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #34495e;
+    font-size: 0.9rem;
 }
 
 .add-staff-label i {
-  margin-right: 8px;
-  color: #3498db;
+    margin-right: 8px;
+    color: #3498db;
 }
 
 /* Input Container */
 .add-staff-input-container {
-  position: relative;
+    position: relative;
 }
 
 /* Input and Select Styles */
 .add-staff-input,
 .add-staff-select {
-  width: 100%;
-  padding: 0.75rem 0;
-  border: none;
-  border-bottom: 2px solid #ecf0f1;
-  background-color: transparent;
-  font-size: 0.95rem;
-  color: #2c3e50;
-  transition: all 0.3s ease;
+    width: 100%;
+    padding: 0.75rem 0;
+    border: none;
+    border-bottom: 2px solid #ecf0f1;
+    background-color: transparent;
+    font-size: 0.95rem;
+    color: #2c3e50;
+    transition: all 0.3s ease;
+}
+
+.add-staff-input[type="file"] {
+    padding: 0.5rem 0;
 }
 
 .add-staff-input:focus,
 .add-staff-select:focus {
-  outline: none;
-  border-bottom-color: #3498db;
+    outline: none;
+    border-bottom-color: #3498db;
 }
 
 .add-staff-input::placeholder {
-  color: #bdc3c7;
+    color: #bdc3c7;
 }
 
 /* Input Underline Animation */
 .input-underline {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background-color: #3498db;
-  transition: width 0.3s ease;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #3498db;
+    transition: width 0.3s ease;
 }
 
 .add-staff-input:focus ~ .input-underline,
 .add-staff-select:focus ~ .input-underline {
-  width: 100%;
+    width: 100%;
 }
 
 /* Error States */
 .input-error {
-  border-bottom-color: #e74c3c;
+    border-bottom-color: #e74c3c;
 }
 
 .input-error ~ .input-underline {
-  background-color: #e74c3c;
+    background-color: #e74c3c;
 }
 
 .input-error-message {
-  margin-top: 0.5rem;
-  font-size: 0.8rem;
-  color: #e74c3c;
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: #e74c3c;
 }
 
 .input-error-message i {
-  margin-right: 5px;
+    margin-right: 5px;
 }
 
 /* Password Requirements Popup */
 .password-requirements-popup {
-  margin-top: 1rem;
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .popup-header {
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
 }
 
 .popup-header i {
-  margin-right: 8px;
-  color: #3498db;
+    margin-right: 8px;
+    color: #3498db;
 }
 
 .requirements-list {
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
-  font-size: 0.85rem;
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+    font-size: 0.85rem;
 }
 
 .requirements-list li {
-  margin-bottom: 0.3rem;
-  display: flex;
-  align-items: center;
+    margin-bottom: 0.3rem;
+    display: flex;
+    align-items: center;
 }
 
 .requirements-list li i {
-  margin-right: 8px;
-  width: 16px;
-  text-align: center;
+    margin-right: 8px;
+    width: 16px;
+    text-align: center;
 }
 
 .requirements-list .valid {
-  color: #27ae60;
+    color: #27ae60;
 }
 
 .requirements-list .invalid {
-  color: #e74c3c;
+    color: #e74c3c;
 }
 
 /* Submit Button */
 .add-staff-actions {
-  text-align: center;
-  margin-top: 2rem;
+    text-align: center;
+    margin-top: 2rem;
 }
 
 .add-staff-submit-btn {
-  background: linear-gradient(135deg, #3498db, #2980b9);
-  color: white;
-  border: none;
-  padding: 0.8rem 2rem;
-  font-size: 1rem;
-  font-weight: 500;
-  border-radius: 50px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 200px;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 200px;
 }
 
 .add-staff-submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
 }
 
 .add-staff-submit-btn:active {
-  transform: translateY(0);
+    transform: translateY(0);
 }
 
 .add-staff-submit-btn:disabled {
-  background: #bdc3c7;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+    background: #bdc3c7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 .add-staff-submit-btn i {
-  margin-right: 8px;
+    margin-right: 8px;
 }
 
 /* Notifications */
 .staff-added-notification,
 .staff-error-notification {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  padding: 1rem 1.5rem;
-  border-radius: 8px;
-  color: white;
-  font-weight: 500;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transform: translateX(120%);
-  transition: transform 0.3s ease;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateX(120%);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
 }
 
 .staff-added-notification {
-  background-color: #27ae60;
+    background-color: #27ae60;
 }
 
 .staff-error-notification {
-  background-color: #e74c3c;
+    background-color: #e74c3c;
 }
 
 .staff-added-notification.show,
 .staff-error-notification.show {
-  transform: translateX(0);
+    transform: translateX(0);
 }
 
 .notification-content i {
-  margin-right: 8px;
+    margin-right: 8px;
 }
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
-  .add-staff-title {
-    font-size: 1.5rem;
-  }
-  
-  .add-staff-card-body {
-    padding: 1.5rem;
-  }
-  
-  .add-staff-form-grid {
-    grid-template-columns: 1fr;
-  }
+    .add-staff-title {
+        font-size: 1.5rem;
+    }
+    .add-staff-card-body {
+        padding: 1.5rem;
+    }
+    .add-staff-form-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 480px) {
-  .add-staff-container {
-    padding: 0 0.5rem;
-  }
-  
-  .add-staff-card-body {
-    padding: 1rem;
-  }
-  
-  .add-staff-submit-btn {
-    width: 100%;
-    padding: 0.8rem;
-  }
+    .add-staff-container {
+        padding: 0 0.5rem;
+    }
+    .add-staff-card-body {
+        padding: 1rem;
+    }
+    .add-staff-submit-btn {
+        width: 100%;
+        padding: 0.8rem;
+    }
 }

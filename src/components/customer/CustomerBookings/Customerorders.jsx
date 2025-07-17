@@ -9,7 +9,9 @@ import { useNavigate } from 'react-router-dom';
 import { 
   BsEye, BsPrinter, BsDownload, BsClockHistory, 
   BsCheckCircle, BsXCircle, BsArrowRepeat, BsFilter,
-  BsSearch, BsCalendar, BsInfoCircle, BsStarFill
+  BsSearch, BsCalendar, BsInfoCircle, BsStarFill,
+  BsChevronDown, BsChevronUp, BsThreeDotsVertical,
+  BsBoxSeam, BsTruck, BsCreditCard
 } from 'react-icons/bs';
 import { format, parseISO } from 'date-fns';
 import { debounce } from 'lodash';
@@ -79,21 +81,17 @@ const CustomerOrders = () => {
     fetchOrders();
   }, [fetchOrders]);
 
-  // Filter and sort orders
   useEffect(() => {
     let result = [...orders];
 
-    // Apply tab filter
     if (activeTab !== 'all') {
       result = result.filter(order => order.status.toLowerCase() === activeTab);
     }
 
-    // Apply status filter
     if (statusFilter !== 'all') {
       result = result.filter(order => order.status.toLowerCase() === statusFilter);
     }
 
-    // Apply date filter
     if (dateFilter !== 'all') {
       const now = new Date();
       result = result.filter(order => {
@@ -116,7 +114,6 @@ const CustomerOrders = () => {
       });
     }
 
-    // Apply search
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(order => 
@@ -126,7 +123,6 @@ const CustomerOrders = () => {
       );
     }
 
-    // Apply sorting
     if (sortConfig.key) {
       result.sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {
@@ -140,7 +136,7 @@ const CustomerOrders = () => {
     }
 
     setFilteredOrders(result);
-    setCurrentPage(1); // Reset to first page when filters change
+    setCurrentPage(1);
   }, [orders, activeTab, statusFilter, dateFilter, searchTerm, sortConfig]);
 
   const handleSort = (key) => {
@@ -158,6 +154,31 @@ const CustomerOrders = () => {
   const handleRefresh = () => {
     setIsRefreshing(true);
     fetchOrders();
+  };
+
+  const handleCancelOrder = async (orderId) => {
+    try {
+      const customer = JSON.parse(localStorage.getItem('customer'));
+      if (!customer || !customer.userId) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await axios.post(
+        `${API_BASE_URL}/orders/${orderId}/cancel`,
+        {},
+        {
+          headers: {
+            'X-Customer-Id': customer.userId
+          }
+        }
+      );
+
+      alert(response.data.message || 'Order cancelled successfully');
+      fetchOrders(); // Refresh orders after cancellation
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to cancel order');
+    }
   };
 
   const formatDate = (dateString) => {
@@ -185,15 +206,15 @@ const CustomerOrders = () => {
   const getPaymentStatusBadge = (status) => {
     switch (status.toLowerCase()) {
       case 'completed':
-        return <Badge bg="success" pill>Paid</Badge>;
+        return <Badge bg="success" pill><BsCreditCard className="me-1" /> Paid</Badge>;
       case 'pending':
-        return <Badge bg="warning" pill>Pending</Badge>;
+        return <Badge bg="warning" pill><BsCreditCard className="me-1" /> Pending</Badge>;
       case 'failed':
-        return <Badge bg="danger" pill>Failed</Badge>;
+        return <Badge bg="danger" pill><BsCreditCard className="me-1" /> Failed</Badge>;
       case 'refunded':
-        return <Badge bg="secondary" pill>Refunded</Badge>;
+        return <Badge bg="secondary" pill><BsCreditCard className="me-1" /> Refunded</Badge>;
       default:
-        return <Badge bg="secondary" pill>{status}</Badge>;
+        return <Badge bg="secondary" pill><BsCreditCard className="me-1" /> {status}</Badge>;
     }
   };
 
@@ -209,26 +230,45 @@ const CustomerOrders = () => {
   };
 
   const handlePrintOrder = () => {
-    // In a real app, this would generate a printable version
     window.print();
   };
 
-  const handleDownloadInvoice = () => {
-    // In a real app, this would generate and download an invoice PDF
-    alert('Invoice download would be triggered here');
+  const handleDownloadInvoice = async (orderId) => {
+    try {
+      const customer = JSON.parse(localStorage.getItem('customer'));
+      if (!customer || !customer.userId) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await axios.get(`${API_BASE_URL}/orders/${orderId}/invoice`, {
+        headers: {
+          'X-Customer-Id': customer.userId
+        },
+        responseType: 'blob'
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `invoice_${orderId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+    } catch (error) {
+      console.error('Error downloading invoice:', error);
+      alert('Failed to download invoice');
+    }
   };
 
   const handleReorder = (order) => {
-    // In a real app, this would add all items to cart
-    navigate('/menu', { state: { reorderItems: order.items } });
+    navigate('/custfood', { state: { reorderItems: order.items } });
   };
 
   const handleRateOrder = (order) => {
-    // In a real app, this would open a rating modal
     alert(`Rating system would open for order #${order.orderId}`);
   };
 
-  // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
@@ -236,15 +276,15 @@ const CustomerOrders = () => {
 
   const renderSortIcon = (key) => {
     if (sortConfig.key !== key) return null;
-    return sortConfig.direction === 'asc' ? '↑' : '↓';
+    return sortConfig.direction === 'asc' ? <BsChevronUp /> : <BsChevronDown />;
   };
 
   const renderOrderStatusTimeline = (order) => {
     const statuses = [
-      { id: 1, status: 'placed', label: 'Order Placed', date: order.orderDate },
-      { id: 2, status: 'processing', label: 'Processing', date: order.processingDate },
-      { id: 3, status: 'shipped', label: 'Shipped', date: order.shippedDate },
-      { id: 4, status: 'delivered', label: 'Delivered', date: order.deliveredDate },
+      { id: 1, status: 'placed', label: 'Order Placed', icon: <BsBoxSeam />, date: order.orderDate },
+      { id: 2, status: 'processing', label: 'Processing', icon: <BsArrowRepeat />, date: order.processingDate },
+      { id: 3, status: 'shipped', label: 'Shipped', icon: <BsTruck />, date: order.shippedDate },
+      { id: 4, status: 'delivered', label: 'Delivered', icon: <BsCheckCircle />, date: order.deliveredDate },
     ];
     
     const currentStatusIndex = statuses.findIndex(s => s.status === order.status.toLowerCase()) || 0;
@@ -256,10 +296,12 @@ const CustomerOrders = () => {
             key={step.id} 
             className={`timeline-step ${index <= currentStatusIndex ? 'completed' : ''} ${index === currentStatusIndex ? 'current' : ''}`}
           >
-            <div className="timeline-marker"></div>
+            <div className="timeline-marker">
+              {step.icon}
+            </div>
             <div className="timeline-content">
               <h6>{step.label}</h6>
-              {step.date && <small>{formatDate(step.date)}</small>}
+              {step.date && <small className="text-muted">{formatDate(step.date)}</small>}
             </div>
           </div>
         ))}
@@ -282,10 +324,13 @@ const CustomerOrders = () => {
       
       <Container className="my-5 customer-orders-container">
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2 className="mb-0">
-            <BsClockHistory className="me-2" />
-            My Orders
-          </h2>
+          <div>
+            <h2 className="mb-1">
+              <BsClockHistory className="me-2" />
+              My Orders
+            </h2>
+            <p className="text-muted mb-0">View and manage all your orders in one place</p>
+          </div>
           <div>
             <Button 
               variant="outline-primary" 
@@ -298,7 +343,7 @@ const CustomerOrders = () => {
               {isRefreshing ? ' Refreshing...' : ' Refresh'}
             </Button>
             <Button variant="primary" size="sm" onClick={() => navigate('/custfood')}>
-              Order Again
+              Order Food
             </Button>
           </div>
         </div>
@@ -310,19 +355,20 @@ const CustomerOrders = () => {
           </Alert>
         )}
 
-        <Card className="mb-4">
-          <Card.Body>
-            <Row className="g-3">
+        <Card className="mb-4 border-0 shadow-sm">
+          <Card.Body className="p-3">
+            <Row className="g-3 align-items-center">
               <Col md={6}>
-                <Form.Group>
-                  <div className="input-group">
-                    <span className="input-group-text">
+                <Form.Group className="mb-0">
+                  <div className="input-group search-box">
+                    <span className="input-group-text bg-white border-end-0">
                       <BsSearch />
                     </span>
                     <Form.Control
                       type="text"
                       placeholder="Search orders by ID, item name, or address"
                       onChange={(e) => handleSearch(e.target.value)}
+                      className="border-start-0"
                     />
                   </div>
                 </Form.Group>
@@ -331,6 +377,7 @@ const CustomerOrders = () => {
                 <Form.Select 
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
+                  className="filter-select"
                 >
                   {statusOptions.map(option => (
                     <option key={option.value} value={option.value}>
@@ -343,6 +390,7 @@ const CustomerOrders = () => {
                 <Form.Select 
                   value={dateFilter}
                   onChange={(e) => setDateFilter(e.target.value)}
+                  className="filter-select"
                 >
                   {dateOptions.map(option => (
                     <option key={option.value} value={option.value}>
@@ -358,7 +406,8 @@ const CustomerOrders = () => {
         <Tabs
           activeKey={activeTab}
           onSelect={(k) => setActiveTab(k)}
-          className="mb-4"
+          className="mb-4 order-tabs"
+          fill
         >
           <Tab eventKey="all" title={`All (${orders.length})`} />
           <Tab eventKey="pending" title={`Pending (${orders.filter(o => o.status === 'pending').length})`} />
@@ -368,13 +417,18 @@ const CustomerOrders = () => {
         </Tabs>
 
         {filteredOrders.length === 0 ? (
-          <Alert variant="info" className="text-center">
-            <h5>No orders found</h5>
-            <p>You haven't placed any orders matching your criteria.</p>
-            <Button variant="primary" onClick={() => navigate('/menu')}>
-              Browse our menu
-            </Button>
-          </Alert>
+          <Card className="text-center py-5 border-0 shadow-sm">
+            <Card.Body>
+              <div className="empty-state-icon mb-3">
+                <BsBoxSeam size={48} className="text-muted" />
+              </div>
+              <h5>No orders found</h5>
+              <p className="text-muted mb-4">You haven't placed any orders matching your criteria.</p>
+              <Button variant="primary" onClick={() => navigate('/menu')}>
+                Browse our menu
+              </Button>
+            </Card.Body>
+          </Card>
         ) : (
           <>
             <div className="table-responsive">
@@ -382,14 +436,23 @@ const CustomerOrders = () => {
                 <thead>
                   <tr>
                     <th onClick={() => handleSort('orderId')} className="sortable">
-                      Order # {renderSortIcon('orderId')}
+                      <div className="d-flex align-items-center">
+                        Order #
+                        <span className="ms-1">{renderSortIcon('orderId')}</span>
+                      </div>
                     </th>
                     <th onClick={() => handleSort('orderDate')} className="sortable">
-                      Date {renderSortIcon('orderDate')}
+                      <div className="d-flex align-items-center">
+                        Date
+                        <span className="ms-1">{renderSortIcon('orderDate')}</span>
+                      </div>
                     </th>
                     <th>Items</th>
                     <th onClick={() => handleSort('total')} className="sortable">
-                      Total {renderSortIcon('total')}
+                      <div className="d-flex align-items-center">
+                        Total
+                        <span className="ms-1">{renderSortIcon('total')}</span>
+                      </div>
                     </th>
                     <th>Status</th>
                     <th>Payment</th>
@@ -403,16 +466,27 @@ const CustomerOrders = () => {
                         <strong>#{order.orderId}</strong>
                       </td>
                       <td>
-                        <small>{formatDate(order.orderDate)}</small>
+                        <small className="text-muted">{formatDate(order.orderDate)}</small>
                       </td>
                       <td>
                         <div className="d-flex align-items-center">
                           {order.items?.slice(0, 2).map(item => (
-                            <div key={item.orderItemId} className="me-2">
-                              <span className="d-block">
-                                {item.food?.name || 'Item'} (x{item.quantity})
-                              </span>
-                              <small className="text-muted">₹{item.priceAtOrder?.toFixed(2)} each</small>
+                            <div key={item.orderItemId} className="me-3 d-flex align-items-center">
+                              {item.food?.image && (
+                                <img 
+                                  src={item.food.image} 
+                                  alt={item.food.name} 
+                                  className="order-item-thumb me-2" 
+                                  onError={(e) => {
+                                    e.target.onerror = null; 
+                                    e.target.src = '/placeholder-food.jpg'
+                                  }}
+                                />
+                              )}
+                              <div>
+                                <span className="d-block">{item.food?.name || 'Item'} (x{item.quantity})</span>
+                                <small className="text-muted">₹{item.priceAtOrder?.toFixed(2)} each</small>
+                              </div>
                             </div>
                           ))}
                           {order.items?.length > 2 && (
@@ -437,14 +511,14 @@ const CustomerOrders = () => {
                       </td>
                       <td className="order-actions">
                         <Dropdown>
-                          <Dropdown.Toggle variant="outline-primary" size="sm" id="dropdown-basic">
-                            Actions
+                          <Dropdown.Toggle variant="light" size="sm" id="dropdown-basic" className="d-flex align-items-center">
+                            <BsThreeDotsVertical />
                           </Dropdown.Toggle>
                           <Dropdown.Menu>
                             <Dropdown.Item onClick={() => handleViewDetails(order)}>
                               <BsEye className="me-2" /> View Details
                             </Dropdown.Item>
-                            {order.status === 'delivered' && (
+                            {order.status.toLowerCase() === 'delivered' && (
                               <>
                                 <Dropdown.Item onClick={() => handleReorder(order)}>
                                   <BsArrowRepeat className="me-2" /> Reorder
@@ -454,10 +528,18 @@ const CustomerOrders = () => {
                                 </Dropdown.Item>
                               </>
                             )}
+                            {(order.status.toLowerCase() === 'pending' || 
+                              order.status.toLowerCase() === 'processing' || 
+                              order.status.toLowerCase() === 'completed') && (
+                              <Dropdown.Item onClick={() => handleCancelOrder(order.orderId)}>
+                                <BsXCircle className="me-2" /> Cancel Order
+                              </Dropdown.Item>
+                            )}
+                            <Dropdown.Divider />
                             <Dropdown.Item onClick={handlePrintOrder}>
                               <BsPrinter className="me-2" /> Print
                             </Dropdown.Item>
-                            <Dropdown.Item onClick={handleDownloadInvoice}>
+                            <Dropdown.Item onClick={() => handleDownloadInvoice(order.orderId)}>
                               <BsDownload className="me-2" /> Invoice
                             </Dropdown.Item>
                           </Dropdown.Menu>
@@ -518,12 +600,12 @@ const CustomerOrders = () => {
           </>
         )}
 
-        {/* Order Details Modal */}
         <Modal 
           show={showModal} 
           onHide={() => setShowModal(false)} 
           size="xl"
           centered
+          className="order-details-modal"
         >
           <Modal.Header closeButton className="border-0 pb-0">
             <Modal.Title>
@@ -543,7 +625,7 @@ const CustomerOrders = () => {
             {selectedOrder && (
               <Row>
                 <Col lg={8}>
-                  <Card className="mb-4">
+                  <Card className="mb-4 border-0 shadow-sm">
                     <Card.Header className="bg-light">
                       <h5 className="mb-0">Order Summary</h5>
                     </Card.Header>
@@ -554,17 +636,17 @@ const CustomerOrders = () => {
                         <h6 className="mb-3">Delivery Information</h6>
                         <Row>
                           <Col md={6}>
-                            <p>
-                              <strong>Delivery Address:</strong><br />
-                              {selectedOrder.deliveryAddress}
-                            </p>
+                            <div className="delivery-info-card p-3 mb-3">
+                              <h6 className="mb-2">Delivery Address</h6>
+                              <p className="mb-0">{selectedOrder.deliveryAddress}</p>
+                            </div>
                           </Col>
                           <Col md={6}>
                             {selectedOrder.expectedDelivery && (
-                              <p>
-                                <strong>Expected Delivery:</strong><br />
-                                {formatDate(selectedOrder.expectedDelivery)}
-                              </p>
+                              <div className="delivery-info-card p-3 mb-3">
+                                <h6 className="mb-2">Expected Delivery</h6>
+                                <p className="mb-0">{formatDate(selectedOrder.expectedDelivery)}</p>
+                              </div>
                             )}
                           </Col>
                         </Row>
@@ -572,157 +654,171 @@ const CustomerOrders = () => {
                     </Card.Body>
                   </Card>
 
-                  <Card className="mb-4">
+                  <Card className="mb-4 border-0 shadow-sm">
                     <Card.Header className="bg-light">
                       <h5 className="mb-0">Order Items</h5>
                     </Card.Header>
-                    <Card.Body>
-                      <Table borderless className="mb-0">
-                        <thead>
-                          <tr className="border-bottom">
-                            <th>Item</th>
-                            <th className="text-end">Price</th>
-                            <th className="text-end">Qty</th>
-                            <th className="text-end">Total</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {selectedOrder.items?.map(item => (
-                            <tr key={item.orderItemId} className="border-bottom">
-                              <td>
-                                <div className="d-flex align-items-center">
-                                  <img 
-                                    src={item.food?.image || '/placeholder-food.jpg'} 
-                                    alt={item.food?.name} 
-                                    className="order-item-image me-3" 
-                                  />
-                                  <div>
-                                    <h6 className="mb-1">{item.food?.name || 'Item'}</h6>
-                                    <small className="text-muted">
-                                      {item.food?.description || 'No description available'}
-                                    </small>
+                    <Card.Body className="p-0">
+                      <div className="table-responsive">
+                        <Table borderless className="mb-0 order-items-table">
+                          <thead>
+                            <tr className="border-bottom">
+                              <th>Item</th>
+                              <th className="text-end">Price</th>
+                              <th className="text-end">Qty</th>
+                              <th className="text-end">Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {selectedOrder.items?.map(item => (
+                              <tr key={item.orderItemId} className="border-bottom">
+                                <td>
+                                  <div className="d-flex align-items-center">
+                                    <img 
+                                      src={item.food?.image || '/placeholder-food.jpg'} 
+                                      alt={item.food?.name} 
+                                      className="order-item-image me-3" 
+                                      onError={(e) => {
+                                        e.target.onerror = null; 
+                                        e.target.src = '/placeholder-food.jpg'
+                                      }}
+                                    />
+                                    <div>
+                                      <h6 className="mb-1">{item.food?.name || 'Item'}</h6>
+                                      <small className="text-muted">
+                                        {item.food?.description || 'No description available'}
+                                      </small>
+                                    </div>
                                   </div>
-                                </div>
-                              </td>
-                              <td className="text-end">₹{item.priceAtOrder?.toFixed(2)}</td>
-                              <td className="text-end">{item.quantity}</td>
+                                </td>
+                                <td className="text-end">₹{item.priceAtOrder?.toFixed(2)}</td>
+                                <td className="text-end">{item.quantity}</td>
+                                <td className="text-end">
+                                  ₹{(item.priceAtOrder * item.quantity).toFixed(2)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                          <tfoot>
+                            <tr>
+                              <td colSpan="3" className="text-end"><strong>Subtotal:</strong></td>
+                              <td className="text-end">₹{calculateTotal(selectedOrder.items)}</td>
+                            </tr>
+                            <tr>
+                              <td colSpan="3" className="text-end"><strong>Delivery Fee:</strong></td>
+                              <td className="text-end">₹{selectedOrder.deliveryFee?.toFixed(2) || '0.00'}</td>
+                            </tr>
+                            <tr>
+                              <td colSpan="3" className="text-end"><strong>Tax:</strong></td>
+                              <td className="text-end">₹{selectedOrder.taxAmount?.toFixed(2) || '0.00'}</td>
+                            </tr>
+                            <tr className="border-top">
+                              <td colSpan="3" className="text-end"><h6 className="mb-0">Total:</h6></td>
                               <td className="text-end">
-                                ₹{(item.priceAtOrder * item.quantity).toFixed(2)}
+                                <h6 className="mb-0">
+                                  ₹{(parseFloat(calculateTotal(selectedOrder.items)) + 
+                                    (selectedOrder.deliveryFee || 0) + 
+                                    (selectedOrder.taxAmount || 0)).toFixed(2)}
+                                </h6>
                               </td>
                             </tr>
-                          ))}
-                        </tbody>
-                        <tfoot>
-                          <tr>
-                            <td colSpan="3" className="text-end"><strong>Subtotal:</strong></td>
-                            <td className="text-end">₹{calculateTotal(selectedOrder.items)}</td>
-                          </tr>
-                          <tr>
-                            <td colSpan="3" className="text-end"><strong>Delivery Fee:</strong></td>
-                            <td className="text-end">₹{selectedOrder.deliveryFee?.toFixed(2) || '0.00'}</td>
-                          </tr>
-                          <tr>
-                            <td colSpan="3" className="text-end"><strong>Tax:</strong></td>
-                            <td className="text-end">₹{selectedOrder.taxAmount?.toFixed(2) || '0.00'}</td>
-                          </tr>
-                          <tr className="border-top">
-                            <td colSpan="3" className="text-end"><h6 className="mb-0">Total:</h6></td>
-                            <td className="text-end">
-                              <h6 className="mb-0">
-                                ₹{(parseFloat(calculateTotal(selectedOrder.items)) + 
-                                  (selectedOrder.deliveryFee || 0) + 
-                                  (selectedOrder.taxAmount || 0)).toFixed(2)}
-                              </h6>
-                            </td>
-                          </tr>
-                        </tfoot>
-                      </Table>
+                          </tfoot>
+                        </Table>
+                      </div>
                     </Card.Body>
                   </Card>
 
                   {selectedOrder.notes && (
-                    <Card className="mb-4">
+                    <Card className="mb-4 border-0 shadow-sm">
                       <Card.Header className="bg-light">
                         <h5 className="mb-0">Order Notes</h5>
                       </Card.Header>
                       <Card.Body>
-                        <p>{selectedOrder.notes}</p>
+                        <div className="order-notes p-3">
+                          <p className="mb-0">{selectedOrder.notes}</p>
+                        </div>
                       </Card.Body>
                     </Card>
                   )}
                 </Col>
                 <Col lg={4}>
-                  <Card className="mb-4">
+                  <Card className="mb-4 border-0 shadow-sm">
                     <Card.Header className="bg-light">
                       <h5 className="mb-0">Payment Information</h5>
                     </Card.Header>
                     <Card.Body>
                       {selectedOrder.payments?.length > 0 ? (
-                        selectedOrder.payments.map(payment => (
-                          <div key={payment.paymentId}>
-                            <div className="d-flex justify-content-between mb-3">
-                              <span>Status:</span>
-                              <span>{getPaymentStatusBadge(payment.status)}</span>
-                            </div>
-                            <div className="d-flex justify-content-between mb-3">
-                              <span>Amount:</span>
-                              <span>₹{payment.amount?.toFixed(2)}</span>
-                            </div>
-                            <div className="d-flex justify-content-between mb-3">
-                              <span>Method:</span>
-                              <span>{payment.paymentMethod}</span>
-                            </div>
-                            <div className="d-flex justify-content-between mb-3">
-                              <span>Date:</span>
-                              <span>{formatDate(payment.paymentDate)}</span>
-                            </div>
-                            {payment.transactionId && (
-                              <div className="d-flex justify-content-between mb-3">
-                                <span>Transaction ID:</span>
-                                <span className="text-truncate" style={{ maxWidth: '150px' }}>
-                                  <OverlayTrigger
-                                    placement="top"
-                                    overlay={<Tooltip>{payment.transactionId}</Tooltip>}
-                                  >
-                                    <span>{payment.transactionId}</span>
-                                  </OverlayTrigger>
-                                </span>
+                        <div className="payment-details">
+                          {selectedOrder.payments.map(payment => (
+                            <div key={payment.paymentId} className="mb-3">
+                              <div className="d-flex justify-content-between mb-2">
+                                <span className="text-muted">Status:</span>
+                                <span>{getPaymentStatusBadge(payment.status)}</span>
                               </div>
-                            )}
-                            {payment.cardLastFour && (
-                              <div className="d-flex justify-content-between">
-                                <span>Card:</span>
-                                <span>**** **** **** {payment.cardLastFour}</span>
+                              <div className="d-flex justify-content-between mb-2">
+                                <span className="text-muted">Amount:</span>
+                                <span>₹{payment.amount?.toFixed(2)}</span>
                               </div>
-                            )}
-                          </div>
-                        ))
+                              <div className="d-flex justify-content-between mb-2">
+                                <span className="text-muted">Method:</span>
+                                <span>{payment.paymentMethod}</span>
+                              </div>
+                              <div className="d-flex justify-content-between mb-2">
+                                <span className="text-muted">Date:</span>
+                                <span>{formatDate(payment.paymentDate)}</span>
+                              </div>
+                              {payment.transactionId && (
+                                <div className="d-flex justify-content-between mb-2">
+                                  <span className="text-muted">Transaction ID:</span>
+                                  <span className="text-truncate" style={{ maxWidth: '150px' }}>
+                                    <OverlayTrigger
+                                      placement="top"
+                                      overlay={<Tooltip>{payment.transactionId}</Tooltip>}
+                                    >
+                                      <span>{payment.transactionId}</span>
+                                    </OverlayTrigger>
+                                  </span>
+                                </div>
+                              )}
+                              {payment.cardLastFour && (
+                                <div className="d-flex justify-content-between">
+                                  <span className="text-muted">Card:</span>
+                                  <span>**** **** **** {payment.cardLastFour}</span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       ) : (
-                        <p>No payment information available</p>
+                        <div className="text-center py-3">
+                          <p className="text-muted">No payment information available</p>
+                        </div>
                       )}
                     </Card.Body>
                   </Card>
 
-                  <Card className="mb-4">
+                  <Card className="mb-4 border-0 shadow-sm">
                     <Card.Header className="bg-light">
                       <h5 className="mb-0">Customer Support</h5>
                     </Card.Header>
                     <Card.Body>
-                      <p>
-                        Need help with this order? Our customer service team is here to assist you.
-                      </p>
-                      <Button variant="outline-primary" className="me-2">
-                        Contact Support
-                      </Button>
-                      {selectedOrder.status === 'delivered' && (
-                        <Button variant="outline-secondary" onClick={() => handleRateOrder(selectedOrder)}>
-                          Rate Order
+                      <div className="support-card p-3 mb-3">
+                        <p className="mb-3">
+                          Need help with this order? Our customer service team is here to assist you.
+                        </p>
+                        <Button variant="outline-primary" className="me-2">
+                          Contact Support
                         </Button>
-                      )}
+                        {selectedOrder.status === 'delivered' && (
+                          <Button variant="outline-secondary" onClick={() => handleRateOrder(selectedOrder)}>
+                            <BsStarFill className="me-1" /> Rate Order
+                          </Button>
+                        )}
+                      </div>
                     </Card.Body>
                   </Card>
 
-                  <Card>
+                  <Card className="border-0 shadow-sm">
                     <Card.Header className="bg-light">
                       <h5 className="mb-0">Order Actions</h5>
                     </Card.Header>
@@ -732,15 +828,33 @@ const CustomerOrders = () => {
                           variant="primary" 
                           onClick={() => handleReorder(selectedOrder)}
                           disabled={selectedOrder.status === 'cancelled'}
+                          className="mb-2"
                         >
                           Reorder All Items
                         </Button>
-                        <Button variant="outline-primary" onClick={handlePrintOrder}>
-                          <BsPrinter className="me-2" /> Print Order
-                        </Button>
-                        <Button variant="outline-secondary" onClick={handleDownloadInvoice}>
-                          <BsDownload className="me-2" /> Download Invoice
-                        </Button>
+                        {(selectedOrder.status.toLowerCase() === 'pending' || 
+                          selectedOrder.status.toLowerCase() === 'processing' || 
+                          selectedOrder.status.toLowerCase() === 'completed') && (
+                          <Button 
+                            variant="outline-danger" 
+                            onClick={() => handleCancelOrder(selectedOrder.orderId)}
+                            className="mb-2"
+                          >
+                            <BsXCircle className="me-1" /> Cancel Order
+                          </Button>
+                        )}
+                        <div className="d-flex gap-2">
+                          <Button variant="outline-primary" onClick={handlePrintOrder} className="flex-grow-1">
+                            <BsPrinter className="me-1" /> Print
+                          </Button>
+                          <Button 
+                            variant="outline-secondary" 
+                            onClick={() => handleDownloadInvoice(selectedOrder.orderId)} 
+                            className="flex-grow-1"
+                          >
+                            <BsDownload className="me-1" /> Invoice
+                          </Button>
+                        </div>
                       </div>
                     </Card.Body>
                   </Card>

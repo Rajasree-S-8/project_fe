@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Spinner, Alert, Table, Badge, Modal, Form } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Spinner, Alert, Table, Badge, Modal, Form, FormControl, Pagination } from 'react-bootstrap';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import CustHeader from '../header/CustHeader';
 import './CustomerBooking.css';
 
@@ -9,6 +11,7 @@ const CustomerBooking = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [bookings, setBookings] = useState([]);
+  const [filteredBookings, setFilteredBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -22,6 +25,11 @@ const CustomerBooking = () => {
   const [bookingToCancel, setBookingToCancel] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const bookingsPerPage = 5;
+  const maxRetries = 3;
+
   const [paymentData, setPaymentData] = useState({
     cardType: 'credit',
     cardNumber: '',
@@ -30,7 +38,6 @@ const CustomerBooking = () => {
     name: '',
     address: '',
   });
-  const maxRetries = 3;
 
   const formatCardNumber = (value) => {
     const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
@@ -123,13 +130,13 @@ const CustomerBooking = () => {
       if (paymentResponse.status === 200) {
         setPaymentSuccess(true);
         setShowPaymentModal(false);
-        fetchBookings(); // Refresh bookings to show updated status
+        fetchBookings();
       }
     } catch (error) {
       console.error('Payment error:', error);
       let errorMessage = 'Payment failed. Please try again.';
       if (error.response) {
-        errorMessage = error.response.data.error || `Error ${error.response.status}: ${error.response.statusText}`;
+        errorMessage = error.response.data.message || `Error ${error.response.status}: ${error.response.statusText}`;
       } else if (error.request) {
         errorMessage = 'No response from server. Please check if the server is running.';
       } else {
@@ -171,7 +178,6 @@ const CustomerBooking = () => {
       const bookingsData = Array.isArray(response.data) ? response.data : [];
       let updatedBookings = [...bookingsData];
 
-      // Check for payment success in URL params
       const searchParams = new URLSearchParams(location.search);
       const paymentSuccessParam = searchParams.get('paymentSuccess');
       const bookingIdParam = searchParams.get('bookingId');
@@ -183,7 +189,6 @@ const CustomerBooking = () => {
         }
       }
 
-      // Check for new booking from navigation state
       const { paymentSuccess: success, bookingDetails } = location.state || {};
       if (success && bookingDetails) {
         const bookingExists = updatedBookings.some(b => b.bookingId === bookingDetails.bookingId);
@@ -194,6 +199,7 @@ const CustomerBooking = () => {
       }
 
       setBookings(updatedBookings);
+      setFilteredBookings(updatedBookings);
       setLoading(false);
       setRetryCount(0);
     } catch (error) {
@@ -221,6 +227,7 @@ const CustomerBooking = () => {
         setError(errorMessage);
         setLoading(false);
         setBookings([]);
+        setFilteredBookings([]);
       }
     }
   };
@@ -317,18 +324,18 @@ const CustomerBooking = () => {
         setBookings(prev => prev.map(booking => 
           booking.bookingId === bookingToCancel.bookingId ? { ...booking, status: 'cancelled' } : booking
         ));
+        setFilteredBookings(prev => prev.map(booking => 
+          booking.bookingId === bookingToCancel.bookingId ? { ...booking, status: 'cancelled' } : booking
+        ));
         
-        // Check if refund is applicable
-        const hasPayment = currentBooking?.payments?.some(p => p.status === 'completed');
-        const refundAmount = hasPayment ? bookingToCancel.totalPrice * 0.8 : 0; // 80% refund
+        const refundAmount = response.data?.refundAmount || 0;
         
         setCancelMessage(
-          hasPayment 
+          refundAmount > 0 
             ? `Your booking has been cancelled. A refund of ₹${refundAmount.toFixed(2)} will be processed to your original payment method within 5-7 business days.`
             : 'Your booking has been cancelled successfully.'
         );
         
-        // Update current booking status if it's the one being viewed
         if (currentBooking?.bookingId === bookingToCancel.bookingId) {
           setCurrentBooking(prev => ({ ...prev, status: 'cancelled' }));
         }
@@ -338,6 +345,7 @@ const CustomerBooking = () => {
         error: error,
         response: error.response?.data,
       });
+      
       let errorMessage = 'Failed to cancel booking. Please try again.';
       if (error.response) {
         errorMessage = error.response.data?.message || `Error ${error.response.status}: ${error.response.statusText}`;
@@ -362,6 +370,54 @@ const CustomerBooking = () => {
     });
     setShowPaymentModal(true);
     setError(null);
+  };
+
+  const handleSearch = (e) => {
+    const query = e.target.value.toLowerCase();
+    setSearchQuery(query);
+    setCurrentPage(1);
+    
+    const filtered = bookings.filter(booking => 
+      booking.room?.roomNumber?.toString().toLowerCase().includes(query) ||
+      booking.bookingId?.toString().toLowerCase().includes(query) ||
+      booking.status?.toLowerCase().includes(query)
+    );
+    setFilteredBookings(filtered);
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!currentBooking) {
+      setError('No booking selected for download');
+      return;
+    }
+
+    try {
+      const customerId = getCustomerId();
+      if (!customerId) {
+        setError('Customer not authenticated');
+        return;
+      }
+
+      const response = await axios.get(`http://localhost:8080/api/bookings/${currentBooking.bookingId}/download`, {
+        headers: {
+          'X-Customer-Id': customerId.toString(),
+          'Content-Type': 'application/json',
+        },
+        responseType: 'blob',
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `booking_${currentBooking.bookingId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      setError('Failed to download PDF. Please try again.');
+    }
   };
 
   const formatDate = (dateString) => {
@@ -424,13 +480,22 @@ const CustomerBooking = () => {
     }
   };
 
+  const indexOfLastBooking = currentPage * bookingsPerPage;
+  const indexOfFirstBooking = indexOfLastBooking - bookingsPerPage;
+  const currentBookings = filteredBookings.slice(indexOfFirstBooking, indexOfLastBooking);
+  const totalPages = Math.ceil(filteredBookings.length / bookingsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   return (
     <>
       <CustHeader />
       <div className="bookings-hero">
         <div className="hero-overlay">
           <h1>My Bookings</h1>
-          <p>View and manage your hotel bookings.</p>
+          <p>Manage your hotel reservations with ease</p>
         </div>
       </div>
 
@@ -471,7 +536,7 @@ const CustomerBooking = () => {
             </Spinner>
             <p className="mt-2">Loading your bookings...</p>
           </div>
-        ) : bookings.length === 0 ? (
+        ) : filteredBookings.length === 0 ? (
           <Alert variant="info">
             <Alert.Heading>No Bookings Found</Alert.Heading>
             <p>You haven't made any bookings yet.</p>
@@ -479,11 +544,22 @@ const CustomerBooking = () => {
         ) : (
           <Row>
             <Col>
-              <Card>
+              <Card className="shadow-sm">
                 <Card.Body>
-                  <Card.Title>Your Bookings</Card.Title>
+                  <div className="d-flex justify-content-between align-items-center mb-4">
+                    <Card.Title className="mb-0">Your Bookings</Card.Title>
+                    <Form className="d-flex">
+                      <FormControl
+                        type="search"
+                        placeholder="Search by Room #, Booking ID, or Status"
+                        className="me-2"
+                        value={searchQuery}
+                        onChange={handleSearch}
+                      />
+                    </Form>
+                  </div>
                   <div className="table-responsive">
-                    <Table striped bordered hover className="align-middle">
+                    <Table striped hover className="align-middle modern-table">
                       <thead className="table-dark">
                         <tr>
                           <th>#</th>
@@ -496,9 +572,9 @@ const CustomerBooking = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {bookings.map((booking, index) => (
+                        {currentBookings.map((booking, index) => (
                           <tr key={booking.bookingId || index}>
-                            <td>{index + 1}</td>
+                            <td>{indexOfFirstBooking + index + 1}</td>
                             <td>
                               <div>
                                 <strong>Room #{booking.room?.roomNumber || 'N/A'}</strong>
@@ -547,12 +623,12 @@ const CustomerBooking = () => {
                                     Pay Now
                                   </Button>
                                 )}
-                                {(booking.status === 'pending' || booking.status === 'confirmed') && (
+                                {booking.status !== 'cancelled' && (
                                   <Button
                                     variant="outline-danger"
                                     size="sm"
                                     onClick={() => handleCancelConfirmation(booking)}
-                                    disabled={cancelLoading[booking.bookingId]}
+                                    disabled={cancelLoading[booking.bookingId] || new Date(booking.checkInDate) < new Date()}
                                   >
                                     {cancelLoading[booking.bookingId] ? (
                                       <>
@@ -577,6 +653,23 @@ const CustomerBooking = () => {
                       </tbody>
                     </Table>
                   </div>
+                  <div className="d-flex justify-content-center mt-4">
+                    <Pagination>
+                      <Pagination.First onClick={() => handlePageChange(1)} disabled={currentPage === 1} />
+                      <Pagination.Prev onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} />
+                      {[...Array(totalPages)].map((_, index) => (
+                        <Pagination.Item
+                          key={index + 1}
+                          active={index + 1 === currentPage}
+                          onClick={() => handlePageChange(index + 1)}
+                        >
+                          {index + 1}
+                        </Pagination.Item>
+                      ))}
+                      <Pagination.Next onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} />
+                      <Pagination.Last onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages} />
+                    </Pagination>
+                  </div>
                 </Card.Body>
               </Card>
             </Col>
@@ -584,9 +677,8 @@ const CustomerBooking = () => {
         )}
       </Container>
 
-      {/* Booking Details Modal */}
       <Modal show={showDetailsModal} onHide={() => setShowDetailsModal(false)} size="xl" centered>
-        <Modal.Header closeButton className="bg-dark text-white">
+        <Modal.Header closeButton className="bg-primary text-white">
           <Modal.Title>
             Booking Details - #{currentBooking?.bookingId || ''}
             {detailsLoading && (
@@ -599,7 +691,7 @@ const CustomerBooking = () => {
             <div className="booking-details">
               <Row className="mb-4">
                 <Col md={6}>
-                  <Card className="mb-4">
+                  <Card className="border-0 shadow-sm mb-4">
                     <Card.Header className="bg-light">
                       <h5 className="mb-0">Booking Information</h5>
                     </Card.Header>
@@ -648,7 +740,7 @@ const CustomerBooking = () => {
                   </Card>
                 </Col>
                 <Col md={6}>
-                  <Card className="mb-4">
+                  <Card className="border-0 shadow-sm mb-4">
                     <Card.Header className="bg-light">
                       <h5 className="mb-0">Room Information</h5>
                     </Card.Header>
@@ -684,16 +776,46 @@ const CustomerBooking = () => {
                 </Col>
               </Row>
 
+              {currentBooking.customer && (
+                <Row className="mb-4">
+                  <Col>
+                    <Card className="border-0 shadow-sm">
+                      <Card.Header className="bg-light">
+                        <h5 className="mb-0">Customer Information</h5>
+                      </Card.Header>
+                      <Card.Body>
+                        <Table borderless className="mb-0">
+                          <tbody>
+                            <tr>
+                              <th width="40%">Name:</th>
+                              <td>{currentBooking.customer.name || 'N/A'}</td>
+                            </tr>
+                            <tr>
+                              <th>Email:</th>
+                              <td>{currentBooking.customer.email || 'N/A'}</td>
+                            </tr>
+                            <tr>
+                              <th>Customer ID:</th>
+                              <td>{currentBooking.customer.userId || 'N/A'}</td>
+                            </tr>
+                          </tbody>
+                        </Table>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                </Row>
+              )}
+
               {currentBooking.payments && currentBooking.payments.length > 0 && (
                 <Row>
                   <Col>
-                    <Card>
+                    <Card className="border-0 shadow-sm">
                       <Card.Header className="bg-light">
                         <h5 className="mb-0">Payment History</h5>
                       </Card.Header>
                       <Card.Body>
                         <div className="table-responsive">
-                          <Table striped bordered hover>
+                          <Table striped hover>
                             <thead>
                               <tr>
                                 <th>#</th>
@@ -753,6 +875,9 @@ const CustomerBooking = () => {
           <Button variant="secondary" onClick={() => setShowDetailsModal(false)}>
             Close
           </Button>
+          <Button variant="primary" onClick={handleDownloadPDF}>
+            Download PDF
+          </Button>
           {currentBooking?.status === 'pending' && (
             <Button 
               variant="success" 
@@ -764,13 +889,14 @@ const CustomerBooking = () => {
               Pay Now
             </Button>
           )}
-          {(currentBooking?.status === 'pending' || currentBooking?.status === 'confirmed') && (
+          {currentBooking?.status !== 'cancelled' && (
             <Button 
               variant="danger" 
               onClick={() => {
                 setShowDetailsModal(false);
                 handleCancelConfirmation(currentBooking);
               }}
+              disabled={new Date(currentBooking?.checkInDate) < new Date()}
             >
               Cancel Booking
             </Button>
@@ -778,7 +904,6 @@ const CustomerBooking = () => {
         </Modal.Footer>
       </Modal>
 
-      {/* Cancel Confirmation Modal */}
       <Modal show={showCancelModal} onHide={() => setShowCancelModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Cancel Booking #{bookingToCancel?.bookingId}</Modal.Title>
@@ -791,9 +916,14 @@ const CustomerBooking = () => {
           ) : (
             <>
               <p>Are you sure you want to cancel this booking?</p>
-              {currentBooking?.payments?.some(p => p.status === 'completed') && (
+              {bookingToCancel?.payments?.some(p => p.status === 'completed') && (
                 <Alert variant="info">
-                  <strong>Refund Policy:</strong> A refund of 80% of the total amount will be issued to your original payment method.
+                  <strong>Refund Policy:</strong> 
+                  <ul className="mb-0">
+                    <li>Cancellation before check-in: 80% refund</li>
+                    <li>After check-in: No refund</li>
+                    <li>Refunds take 5-7 business days to process</li>
+                  </ul>
                 </Alert>
               )}
             </>
@@ -808,7 +938,7 @@ const CustomerBooking = () => {
               <Button 
                 variant="danger" 
                 onClick={handleCancelBooking}
-                disabled={cancelLoading[bookingToCancel?.bookingId]}
+                disabled={cancelLoading[bookingToCancel?.bookingId] || new Date(bookingToCancel?.checkInDate) < new Date()}
               >
                 {cancelLoading[bookingToCancel?.bookingId] ? (
                   <>
@@ -828,9 +958,8 @@ const CustomerBooking = () => {
         </Modal.Footer>
       </Modal>
 
-      {/* Payment Modal */}
       <Modal show={showPaymentModal} onHide={() => setShowPaymentModal(false)} size="lg" centered>
-        <Modal.Header closeButton>
+        <Modal.Header closeButton className="bg-primary text-white">
           <Modal.Title>Complete Payment for Booking #{currentBooking?.bookingId}</Modal.Title>
         </Modal.Header>
         <Modal.Body>

@@ -20,7 +20,7 @@ const AdminLogin = () => {
     const { username, password } = formData;
 
     if (username === 'admin' && password === 'admin123') {
-      navigate('/adminlog');
+      navigate('/admin');
     } else {
       setError('Invalid username or password');
     }

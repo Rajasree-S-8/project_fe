@@ -1,48 +1,301 @@
-.bg-info {
-  background-color: #17a2b8 !important;
+/* Container for the entire booking view */
+.view-booking-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Arial', sans-serif;
+  background-color: #f8f9fa;
 }
 
+/* Hero section styling */
+.bookings-hero {
+  background: linear-gradient(135deg, #007bff, #00c4b4);
+  color: white;
+  padding: 60px 0;
+  text-align: center;
+  position: relative;
+  border-radius: 10px;
+  margin-bottom: 30px;
+}
+
+.hero-overlay {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-overlay h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.hero-overlay p {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+/* Card styling for tables */
 .card {
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: #fff;
 }
 
-.card-header {
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Card sections in modal */
+.card-section {
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid #e0e0e0;
+  text-align: center; /* Center align the content */
+}
+
+/* Card header styling for centered headings */
+.card-section .card-header {
+  background-color: #007bff;
+  color: #fff;
+  text-align: center; /* Center the heading text */
+  padding: 10px;
+}
+
+/* Table styling for details to ensure content is centered */
+.table-details th,
+.table-details td {
+  text-align: center; /* Center align table cells */
+  padding: 10px;
+}
+
+/* Ensure modal body has proper padding and alignment */
+.modal-body-custom {
+  padding: 30px;
   background-color: #f8f9fa;
-  font-size: 1.5rem;
-  font-weight: 600;
-  padding: 1rem;
+  text-align: center; /* Center align the overall modal body */
 }
 
-.table th {
-  white-space: nowrap;
-  background-color: #f1f3f5;
+/* Adjust table responsiveness */
+.table-details {
+  margin: 0 auto; /* Center the table horizontally */
+  display: inline-block; /* Allow table to adjust width */
+  width: auto; /* Let the table size adjust to content */
 }
 
-.table td {
+/* Table styling for confirmed bookings */
+.bookings-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.bookings-table th,
+.bookings-table td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
   vertical-align: middle;
 }
 
-.table-responsive {
-  margin-top: 1rem;
+.bookings-table th {
+  background-color: #343a40;
+  color: #fff;
+  font-weight: 600;
 }
 
-@media (max-width: 768px) {
-  .table-responsive {
-    display: block;
-    width: 100%;
-    overflow-x: auto;
-  }
+.bookings-table tr:hover {
+  background-color: #f9f9f9;
 }
 
+/* Table styling for cancelled bookings */
+.table-cancelled {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table-cancelled th {
+  background-color: #dc3545;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Modal content styling */
 .modal-content {
   border-radius: 10px;
+  border: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
-.modal-header {
-  background-color: #f8f9fa;
+/* Status badge styling */
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 0.9em;
+  font-weight: 500;
+  text-transform: capitalize;
 }
 
-.modal-title {
-  font-weight: 600;
+.status-badge.bg-success {
+  background-color: #28a745 !important;
+}
+
+.status-badge.bg-warning {
+  background-color: #ffc107 !important;
+}
+
+.status-badge.bg-danger {
+  background-color: #dc3545 !important;
+}
+
+.status-badge.bg-secondary {
+  background-color: #6c757d !important;
+}
+
+/* Button styling */
+.btn-details,
+.btn-cancel,
+.btn-primary,
+.btn-secondary {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9em;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-details {
+  background-color: #17a2b8;
+  color: white;
+  border: none;
+}
+
+.btn-details:hover {
+  background-color: #138496;
+  transform: translateY(-2px);
+}
+
+.btn-cancel {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+}
+
+.btn-cancel:hover {
+  background-color: #c82333;
+  transform: translateY(-2px);
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+  border-color: #5a6268;
+  transform: translateY(-2px);
+}
+
+/* Pagination styling */
+.pagination .page-link {
+  color: #007bff;
+  border-radius: 5px;
+  margin: 0 3px;
+  transition: background-color 0.3s ease;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: #fff;
+}
+
+.pagination .page-link:hover {
+  background-color: #e9ecef;
+}
+
+/* Form input styling */
+.form-control {
+  border-radius: 20px;
+  padding: 10px 15px;
+  border: 1px solid #ced4da;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+
+/* Alert styling */
+.alert {
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+/* Loading and error states */
+.loading {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.error {
+  color: #dc3545;
+  padding: 20px;
+  text-align: center;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .bookings-table,
+  .table-cancelled {
+    display: block;
+    overflow-x: auto;
+  }
+
+  .table-details {
+    width: 100%; /* Full width on smaller screens */
+    display: block; /* Ensure table is block level */
+    overflow-x: auto; /* Allow horizontal scrolling if needed */
+  }
+
+  .card-section .card-header {
+    font-size: 1.1rem; /* Slightly reduce font size for mobile */
+  }
+
+  .modal-body-custom {
+    padding: 20px;
+  }
+
+  .hero-overlay h1 {
+    font-size: 2rem;
+  }
+
+  .hero-overlay p {
+    font-size: 1rem;
+  }
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Header from '../header1/header1.jsx';
 import './addrooms.css';
 
 const AddRoom = () => {
@@ -115,6 +116,7 @@ const [expandedImage, setExpandedImage] = null;
 
   return (
     <div className="add-room-page">
+      <Header />
       <div className="card add-room-container">
         <div className="card-header">
           <h2>

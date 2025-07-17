@@ -6,11 +6,11 @@ import AddStaff from './addstaff/addstaff';
 import StaffDetails from './staffdetails/staffdetails';
 import FoodOrders from './food/food';
 import Rooms from './rooms/rooms';
-import RatingsReviews from './rating/rating';
 import HotelManager from './hotelmanager/hotelmanager';
 import RestaurantManager from './restaurantmanager/restaurantmanager';
 import Adcustomer from './Customer/Customer';
-import CustomerRoomBook from './Customer/customerroombook'; // Corrected import
+import CustomerRoomBook from './Customer/customerroombook';
+import CustomerFoodOrders from './Customer/foodorder';
 
 const Admin = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -18,6 +18,34 @@ const Admin = () => {
   const handleNavClick = (e, section) => {
     e.preventDefault();
     setActiveSection(section);
+  };
+
+  // Map activeSection to the corresponding component
+  const renderActiveSection = () => {
+    switch (activeSection) {
+      case 'dashboard':
+        return <Dashboard isActive={true} />;
+      case 'add-staff':
+        return <AddStaff isActive={true} />;
+      case 'staff-details':
+        return <StaffDetails isActive={true} />;
+      case 'foods':
+        return <FoodOrders isActive={true} />;
+      case 'rooms':
+        return <Rooms isActive={true} />;
+      case 'hotel-manager':
+        return <HotelManager isActive={true} />;
+      case 'restaurant-manager':
+        return <RestaurantManager isActive={true} />;
+      case 'customers':
+        return <Adcustomer isActive={true} />;
+      case 'customer-registrations':
+        return <CustomerRoomBook isActive={true} />;
+      case 'customer-food-orders':
+        return <CustomerFoodOrders isActive={true} />;
+      default:
+        return <Dashboard isActive={true} />;
+    }
   };
 
   return (
@@ -33,16 +61,7 @@ const Admin = () => {
       <div className="d-flex">
         <Sidebar activeSection={activeSection} handleNavClick={handleNavClick} />
         <main className="flex-grow-1 p-4">
-          <Dashboard isActive={activeSection === 'dashboard'} />
-          <AddStaff isActive={activeSection === 'add-staff'} />
-          <StaffDetails isActive={activeSection === 'staff-details'} />
-          <FoodOrders isActive={activeSection === 'foods'} />
-          <Rooms isActive={activeSection === 'rooms'} />
-          <RatingsReviews isActive={activeSection === 'ratings-reviews'} />
-          <HotelManager isActive={activeSection === 'hotel-manager'} />
-          <RestaurantManager isActive={activeSection === 'restaurant-manager'} />
-          <Adcustomer isActive={activeSection === 'customers'} />
-          <CustomerRoomBook isActive={activeSection === 'customer-registrations'} /> {/* Added rendering */}
+          {renderActiveSection()}
         </main>
       </div>
     </>

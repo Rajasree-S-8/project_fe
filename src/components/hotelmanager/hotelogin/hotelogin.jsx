@@ -70,7 +70,7 @@ function Login() {
       password: '',
     });
     console.log('Successfully Logged In!', staff);
-    navigate('/hotelhome');
+    navigate('/hotel');
     setTimeout(() => setSuccess(false), 3000);
   } catch (err) {
     console.error('Login error:', err);

@@ -1,37 +1,33 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './header1.css';
 
-const HeaderNavbar = ({ activeSection = 'home', setActiveSection }) => {
+const HeaderNavbar = () => {
   const [navbarExpanded, setNavbarExpanded] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const username = localStorage.getItem('username');
 
   const handleLogout = (e) => {
     e.preventDefault();
     localStorage.removeItem('staffId');
     localStorage.removeItem('username');
-    localStorage.removeItem('activeSection');
     navigate('/hotelogin');
   };
 
-  // Get the first letter of the username or fallback to 'L'
   const profileInitial = username ? username.charAt(0).toUpperCase() : 'L';
+
+  const isActive = (path) => {
+    return location.pathname === path;
+  };
 
   return (
     <header>
       <nav className="navbar navbar-expand-lg navbar-dark">
         <div className="container-fluid">
-          <a
-            className="navbar-brand"
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              setActiveSection('home');
-            }}
-          >
+          <Link className="navbar-brand" to="/hotelhome">
             <i className="fas fa-hotel icon-logo"></i> Revzz Hotel
-          </a>
+          </Link>
 
           <button
             className="navbar-toggler"
@@ -46,68 +42,48 @@ const HeaderNavbar = ({ activeSection = 'home', setActiveSection }) => {
           <div className={`collapse navbar-collapse ${navbarExpanded ? 'show' : ''}`} id="navbarNav">
             <ul className="navbar-nav">
               <li className="nav-item">
-                <a
-                  className={`nav-link ${activeSection === 'home' ? 'active' : ''}`}
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setActiveSection('home');
-                  }}
+                <Link 
+                  className={`nav-link ${isActive('/hotelhome') ? 'active' : ''}`} 
+                  to="/hotelhome"
                 >
                   <i className="bi bi-house-door"></i> Home
-                </a>
+                </Link>
               </li>
 
               <li className="nav-item">
-                <a
-                  className={`nav-link ${activeSection === 'addRoom' ? 'active' : ''}`}
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setActiveSection('addRoom');
-                  }}
+                <Link 
+                  className={`nav-link ${isActive('/hotel/addroom') ? 'active' : ''}`} 
+                  to="/hotel/addroom"
                 >
                   <i className="bi bi-plus-circle"></i> Add Room
-                </a>
+                </Link>
               </li>
 
               <li className="nav-item">
-                <a
-                  className={`nav-link ${activeSection === 'viewRooms' ? 'active' : ''}`}
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setActiveSection('viewRooms');
-                  }}
+                <Link 
+                  className={`nav-link ${isActive('/hotel/viewrooms') ? 'active' : ''}`} 
+                  to="/hotel/viewrooms"
                 >
                   <i className="bi bi-door-closed"></i> View Rooms
-                </a>
+                </Link>
               </li>
 
               <li className="nav-item">
-                <a
-                  className={`nav-link ${activeSection === 'viewCustomers' ? 'active' : ''}`}
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setActiveSection('viewCustomers');
-                  }}
+                <Link 
+                  className={`nav-link ${isActive('/hotel/viewcustomers') ? 'active' : ''}`} 
+                  to="/hotel/viewcustomers"
                 >
                   <i className="bi bi-people"></i> View Customers
-                </a>
+                </Link>
               </li>
 
               <li className="nav-item">
-                <a
-                  className={`nav-link ${activeSection === 'viewBookings' ? 'active' : ''}`}
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setActiveSection('viewBookings');
-                  }}
+                <Link 
+                  className={`nav-link ${isActive('/hotel/view-bookings') ? 'active' : ''}`} 
+                  to="/hotel/view-bookings"
                 >
                   <i className="bi bi-calendar-check"></i> View Bookings
-                </a>
+                </Link>
               </li>
             </ul>
 
@@ -136,16 +112,9 @@ const HeaderNavbar = ({ activeSection = 'home', setActiveSection }) => {
                   {username ? (
                     <>
                       <li>
-                        <a
-                          className="dropdown-item"
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setActiveSection('profile');
-                          }}
-                        >
+                        <Link className="dropdown-item" to="/profile1">
                           <i className="bi bi-person"></i> Profile
-                        </a>
+                        </Link>
                       </li>
                       <li>
                         <a className="dropdown-item" href="#" onClick={handleLogout}>
@@ -155,16 +124,9 @@ const HeaderNavbar = ({ activeSection = 'home', setActiveSection }) => {
                     </>
                   ) : (
                     <li>
-                      <a
-                        className="dropdown-item"
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          navigate('/hotelogin');
-                        }}
-                      >
+                      <Link className="dropdown-item" to="/hotelogin">
                         <i className="bi bi-box-arrow-in-right"></i> Login
-                      </a>
+                      </Link>
                     </li>
                   )}
                 </ul>
