@@ -6,14 +6,12 @@ import './hotelhome.css';
 function HotelHome() {
   const navigate = useNavigate();
 
-  // Data for stats cards
   const stats = [
     { icon: '🏨', value: '120+', label: 'Rooms Available' },
     { icon: '🌟', value: '4.9', label: 'Average Rating' },
     { icon: '👥', value: '5K+', label: 'Happy Guests' }
   ];
 
-  // Data for feature cards
   const features = [
     { 
       icon: '➕', 
@@ -41,62 +39,60 @@ function HotelHome() {
     }
   ];
 
-  // Data for quick actions
   const quickActions = [
     { 
       text: 'Add New Room', 
-      className: 'action-btn primary',
+      className: 'hotel-action-btn hotel-primary',
       path: '/hotel/addroom'
     },
     { 
       text: 'Check Bookings', 
-      className: 'action-btn secondary',
+      className: 'hotel-action-btn hotel-secondary',
       path: '/hotel/view-bookings'
     },
     { 
       text: 'View Customers', 
-      className: 'action-btn accent',
+      className: 'hotel-action-btn hotel-accent',
       path: '/hotel/viewcustomers'
     }
   ];
 
   return (
-    <div className="app-container">
+    <div className="hotel-app-container">
       <Header />
-      <div className="home-content">
-        {/* Hero Section */}
-        <section className="hotel-hero">
-          <div className="hero-overlay"></div>
-          <div className="hero-content">
-            <h1 className="hero-title">Welcome to <span>Revzz Hotel</span></h1>
-            <p className="hero-subtitle">Elevating hospitality through seamless management</p>
-            
-            <div className="stats-container">
+      <div className="hotel-home-content mt-5">
+        <section className="hotel-hero-section">
+          <div className="hotel-hero-overlay"></div>
+          <div className="hotel-hero-content">
+            <h1 className="hotel-hero-title">
+              Welcome to <span>Revzz Hotel</span>
+            </h1>
+            <p className="hotel-hero-subtitle">Elevating hospitality through seamless management</p>
+            <div className="hotel-stats-container">
               {stats.map((stat, index) => (
-                <div key={index} className="stat-card">
-                  <div className="stat-icon">{stat.icon}</div>
-                  <div className="stat-value">{stat.value}</div>
-                  <div className="stat-label">{stat.label}</div>
+                <div key={index} className="hotel-stat-card">
+                  <div className="hotel-stat-icon">{stat.icon}</div>
+                  <div className="hotel-stat-value">{stat.value}</div>
+                  <div className="hotel-stat-label">{stat.label}</div>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Features Section */}
-        <section className="features-section">
-          <h2 className="section-title">Management Features</h2>
-          <div className="features-grid">
+        <section className="hotel-features-section">
+          <h2 className="hotel-section-title">Management Features</h2>
+          <div className="hotel-features-grid">
             {features.map((feature, index) => (
               <div 
                 key={index} 
-                className="feature-card" 
+                className="hotel-feature-card" 
                 onClick={() => navigate(feature.path)}
                 role="button"
                 tabIndex={0}
                 onKeyPress={(e) => e.key === 'Enter' && navigate(feature.path)}
               >
-                <div className="feature-icon">{feature.icon}</div>
+                <div className="hotel-feature-icon">{feature.icon}</div>
                 <h3>{feature.title}</h3>
                 <p>{feature.description}</p>
               </div>
@@ -104,10 +100,9 @@ function HotelHome() {
           </div>
         </section>
 
-        {/* Quick Actions Section */}
-        <section className="quick-actions">
-          <h2 className="section-title">Quick Actions</h2>
-          <div className="action-buttons">
+        <section className="hotel-quick-actions">
+          <h2 className="hotel-section-title">Quick Actions</h2>
+          <div className="hotel-action-buttons">
             {quickActions.map((action, index) => (
               <button 
                 key={index}

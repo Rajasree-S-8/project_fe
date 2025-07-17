@@ -73,7 +73,7 @@ const HeaderNavbar = () => {
                   className={`nav-link ${isActive('/hotel/viewcustomers') ? 'active' : ''}`} 
                   to="/hotel/viewcustomers"
                 >
-                  <i className="bi bi-people"></i> View Customers
+                  <i className="bi bi-people"></i> View Ratings
                 </Link>
               </li>
 

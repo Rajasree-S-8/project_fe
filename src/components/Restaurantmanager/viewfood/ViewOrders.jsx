@@ -146,7 +146,7 @@ const ViewOrders = () => {
     <div className="bg-light">
       <Header />
       
-      <Container className="py-5">
+      <Container className="py-5 mt-5">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h1 className="text-primary fw-bold">My Orders</h1>
           <div className="position-relative" style={{ width: '300px' }}>
@@ -196,6 +196,7 @@ const ViewOrders = () => {
                 <thead className="bg-primary text-white">
                   <tr>
                     <th className="ps-4 py-3">Order #</th>
+                    <th className="py-3">Customer</th> {/* Added Customer column */}
                     <th className="py-3">Date</th>
                     <th className="py-3">Items</th>
                     <th className="py-3">Total</th>
@@ -207,6 +208,7 @@ const ViewOrders = () => {
                   {currentItems.map(order => (
                     <tr key={order.orderId} className="border-bottom">
                       <td className="ps-4 fw-bold align-middle">#{order.orderId}</td>
+                      <td className="align-middle">{customerName}</td> {/* Display customer name */}
                       <td className="align-middle">
                         <div className="text-muted">{formatDate(order.orderDate)}</div>
                       </td>

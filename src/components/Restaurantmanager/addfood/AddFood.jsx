@@ -58,7 +58,7 @@ const AddFood = () => {
   return (
     <div className="add-food-page">
       <Header />
-      <div className="container my-5">
+      <div className="container mt-5">
         <h1 className="text-center mb-4">Add New Food Item</h1>
         
         {error && (

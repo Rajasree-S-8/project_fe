@@ -159,13 +159,15 @@ const CustomerBooking = () => {
       booking.status?.toLowerCase() !== 'cancelled' &&
       (booking.room?.roomNumber?.toString().toLowerCase().includes(query) ||
        booking.bookingId?.toString().toLowerCase().includes(query) ||
-       booking.status?.toLowerCase().includes(query))
+       booking.status?.toLowerCase().includes(query) ||
+       booking.customer?.fullName?.toLowerCase().includes(query))
     );
     const filteredCancelled = bookings.filter(booking => 
       booking.status?.toLowerCase() === 'cancelled' &&
       (booking.room?.roomNumber?.toString().toLowerCase().includes(query) ||
        booking.bookingId?.toString().toLowerCase().includes(query) ||
-       booking.status?.toLowerCase().includes(query))
+       booking.status?.toLowerCase().includes(query) ||
+       booking.customer?.fullName?.toLowerCase().includes(query))
     );
     setConfirmedBookings(filteredConfirmed);
     setCancelledBookings(filteredCancelled);
@@ -325,7 +327,7 @@ const CustomerBooking = () => {
                       <Form className="d-flex">
                         <FormControl
                           type="search"
-                          placeholder="Search by Room #, Booking ID, or Status"
+                          placeholder="Search by Room #, Booking ID, Status, or Customer Name"
                           className="me-2"
                           value={searchQuery}
                           onChange={handleSearch}
@@ -342,6 +344,7 @@ const CustomerBooking = () => {
                               <tr>
                                 <th>#</th>
                                 <th>Booking ID</th>
+                                <th>Customer Name</th>
                                 <th>Room Details</th>
                                 <th>Booking Dates</th>
                                 <th>Guests</th>
@@ -355,6 +358,7 @@ const CustomerBooking = () => {
                                 <tr key={booking.bookingId || index}>
                                   <td>{indexOfFirstConfirmed + index + 1}</td>
                                   <td>{booking.bookingId}</td>
+                                  <td>{booking.customer?.fullName || 'N/A'}</td>
                                   <td>
                                     <div>
                                       <strong>Room #{booking.room?.roomNumber || 'N/A'}</strong>
@@ -433,6 +437,7 @@ const CustomerBooking = () => {
                               <tr>
                                 <th>#</th>
                                 <th>Booking ID</th>
+                                <th>Customer Name</th>
                                 <th>Room Details</th>
                                 <th>Booking Dates</th>
                                 <th>Guests</th>
@@ -446,6 +451,7 @@ const CustomerBooking = () => {
                                 <tr key={booking.bookingId || index}>
                                   <td>{indexOfFirstCancelled + index + 1}</td>
                                   <td>{booking.bookingId}</td>
+                                  <td>{booking.customer?.fullName || 'N/A'}</td>
                                   <td>
                                     <div>
                                       <strong>Room #{booking.room?.roomNumber || 'N/A'}</strong>
