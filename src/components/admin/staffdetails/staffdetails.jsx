@@ -1,4 +1,3 @@
-// src/components/staffdetails/staffdetails.jsx
 import React, { useState, useEffect } from 'react';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './StaffDetails.css';
@@ -116,7 +115,7 @@ const StaffDetails = ({ isActive, refreshKey }) => {
       password: '********'
     });
     setImageFile(null);
-    setImagePreview(null);
+    setImagePreview(staff.image ? `http://localhost:8080/api/files/uploads/${staff.image}` : null);
     setShowPassword(false);
   };
 
@@ -131,6 +130,14 @@ const StaffDetails = ({ isActive, refreshKey }) => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Image size should be less than 2MB');
+        return;
+      }
+      if (!file.type.match('image.*')) {
+        alert('Please select an image file (JPEG, PNG, etc.)');
+        return;
+      }
       setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -146,7 +153,7 @@ const StaffDetails = ({ isActive, refreshKey }) => {
     setIsLoading(true);
     try {
       const formData = new FormData();
-      formData.append('staff', JSONRU.stringify({
+      formData.append('staff', JSON.stringify({
         username: editFormData.username,
         fullname: editFormData.fullname,
         email: editFormData.email,
@@ -208,40 +215,155 @@ const StaffDetails = ({ isActive, refreshKey }) => {
     }
   };
 
-  const downloadPDF = () => {
+  const downloadIndividualPDF = (staff) => {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm'
+    });
+
+    // Add header with logo and hotel name
+    doc.setFontSize(16);
+    doc.setTextColor(40, 53, 147);
+    doc.text('Revuzz Hotel', 105, 15, { align: 'center' });
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text('Kollam, Kerala, 691572, Thiruvanathapuram', 105, 20, { align: 'center' });
+    doc.text('Phone: +91 9876543210 | Email: revuzz@hotel.com', 105, 25, { align: 'center' });
+
+    // Add title
+    doc.setFontSize(18);
+    doc.setTextColor(40, 53, 147);
+    doc.text(`Staff Profile: ${staff.fullname}`, 105, 35, { align: 'center' });
+
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 105, 42, { align: 'center' });
+
+    // Add staff image if available
+    if (staff.image) {
+      try {
+        const img = new Image();
+        img.src = `http://localhost:8080/api/files/uploads/${staff.image}`;
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+          const imgWidth = 40;
+          const imgHeight = 40;
+          const pageWidth = doc.internal.pageSize.getWidth();
+          const x = (pageWidth - imgWidth) / 2;
+          
+          doc.addImage(img, 'JPEG', x, 50, imgWidth, imgHeight);
+          addStaffDetails(doc, staff, 95);
+          doc.save(`staff_profile_${staff.staffId}_${new Date().toISOString().slice(0, 10)}.pdf`);
+        };
+        img.onerror = () => {
+          addStaffDetails(doc, staff, 50);
+          doc.save(`staff_profile_${staff.staffId}_${new Date().toISOString().slice(0, 10)}.pdf`);
+        };
+      } catch (error) {
+        console.error('Error loading image:', error);
+        addStaffDetails(doc, staff, 50);
+        doc.save(`staff_profile_${staff.staffId}_${new Date().toISOString().slice(0, 10)}.pdf`);
+      }
+    } else {
+      addStaffDetails(doc, staff, 50);
+      doc.save(`staff_profile_${staff.staffId}_${new Date().toISOString().slice(0, 10)}.pdf`);
+    }
+  };
+
+  const addStaffDetails = (doc, staff, startY) => {
+    const tableColumn = ["Field", "Details"];
+    const tableRows = [
+      ["ID", staff.staffId],
+      ["Username", staff.username],
+      ["Full Name", staff.fullname],
+      ["Email", staff.email],
+      ["Age", staff.age],
+      ["Phone", staff.phonenumber],
+      ["Role", staff.role],
+      ["Join Date", new Date(staff.createdAt).toLocaleDateString()]
+    ];
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: startY,
+      styles: {
+        fontSize: 10,
+        cellPadding: 3,
+        valign: 'middle'
+      },
+      headStyles: {
+        fillColor: [106, 17, 203],
+        textColor: 255,
+        fontStyle: 'bold'
+      },
+      alternateRowStyles: {
+        fillColor: [240, 240, 240]
+      },
+      columnStyles: {
+        0: { cellWidth: 50, fontStyle: 'bold' },
+        1: { cellWidth: 130 }
+      }
+    });
+
+    // Add footer
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text('Thank you for choosing our hotel management system!', 105, doc.internal.pageSize.getHeight() - 20, { align: 'center' });
+    doc.text('For any inquiries, please contact us at revuzz@hotel.com', 105, doc.internal.pageSize.getHeight() - 15, { align: 'center' });
+
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(100);
+      doc.text(`Page ${i} of ${pageCount}`, 190, 280, { align: 'right' });
+    }
+  };
+
+  const downloadTotalPDF = () => {
     const doc = new jsPDF({
       orientation: 'landscape',
       unit: 'mm'
     });
 
+    // Add header with logo and hotel name
+    doc.setFontSize(16);
+    doc.setTextColor(40, 53, 147);
+    doc.text('Revuzz Hotel', 148, 15, { align: 'center' });
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text('Kollam, Kerala, 691572, Thiruvanathapuram', 148, 20, { align: 'center' });
+    doc.text('Phone: +91 9876543210 | Email: revuzz@hotel.com', 148, 25, { align: 'center' });
+
+    // Add title
     doc.setFontSize(20);
     doc.setTextColor(40, 53, 147);
-    doc.text('Staff Management Report', 105, 15, { align: 'center' });
+    doc.text('Staff Management Report', 148, 35, { align: 'center' });
 
     doc.setFontSize(10);
     doc.setTextColor(100);
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 105, 22, { align: 'center' });
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 148, 42, { align: 'center' });
+    doc.text(`Total Staff Members: ${staffList.length}`, 148, 48, { align: 'center' });
 
-    const tableColumn = ["ID", "Username", "Full Name", "Email", "Age", "Phone", "Role"];
-    const tableRows = [];
-
-    staffList.forEach(staff => {
-      const staffData = [
-        staff.staffId,
-        staff.username,
-        staff.fullname,
-        staff.email,
-        staff.age,
-        staff.phonenumber,
-        staff.role
-      ];
-      tableRows.push(staffData);
-    });
+    const tableColumn = ["ID", "Username", "Full Name", "Email", "Age", "Phone", "Role", "Join Date"];
+    const tableRows = staffList.map(staff => [
+      staff.staffId,
+      staff.username,
+      staff.fullname,
+      staff.email,
+      staff.age,
+      staff.phonenumber,
+      staff.role,
+      new Date(staff.createdAt).toLocaleDateString()
+    ]);
 
     doc.autoTable({
       head: [tableColumn],
       body: tableRows,
-      startY: 30,
+      startY: 55,
       styles: {
         fontSize: 8,
         cellPadding: 2,
@@ -262,16 +384,42 @@ const StaffDetails = ({ isActive, refreshKey }) => {
         3: { cellWidth: 40 },
         4: { cellWidth: 15 },
         5: { cellWidth: 25 },
-        6: { cellWidth: 30 }
+        6: { cellWidth: 30 },
+        7: { cellWidth: 25 }
       }
     });
+
+    // Add summary statistics
+    const roleCounts = staffList.reduce((acc, staff) => {
+      acc[staff.role] = (acc[staff.role] || 0) + 1;
+      return acc;
+    }, {});
+
+    let summaryY = doc.lastAutoTable.finalY + 15;
+    doc.setFontSize(12);
+    doc.setTextColor(40, 53, 147);
+    doc.text('Staff Summary', 20, summaryY);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    summaryY += 7;
+    
+    Object.entries(roleCounts).forEach(([role, count], index) => {
+      doc.text(`${role}: ${count} members`, 20, summaryY + (index * 5));
+    });
+
+    // Add footer
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text('Thank you for choosing our hotel management system!', 148, doc.internal.pageSize.getHeight() - 20, { align: 'center' });
+    doc.text('For any inquiries, please contact us at revuzz@hotel.com', 148, doc.internal.pageSize.getHeight() - 15, { align: 'center' });
 
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(8);
       doc.setTextColor(100);
-      doc.text(`Page ${i} of ${pageCount}`, 200, 200, { align: 'right' });
+      doc.text(`Page ${i} of ${pageCount}`, 280, 200, { align: 'right' });
     }
 
     doc.save(`staff_report_${new Date().toISOString().slice(0, 10)}.pdf`);
@@ -308,13 +456,14 @@ const StaffDetails = ({ isActive, refreshKey }) => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div>
+        <div className="control-buttons">
           <button 
-            onClick={downloadPDF}
+            onClick={downloadTotalPDF}
             className="pdf-btn"
+            disabled={isLoading || staffList.length === 0}
           >
             <i className="bi bi-file-earmark-pdf me-2"></i>
-            Download PDF
+            Download All PDF
           </button>
           <span className="total-badge">
             <i className="bi bi-people-fill me-1"></i>
@@ -352,12 +501,56 @@ const StaffDetails = ({ isActive, refreshKey }) => {
                 <tr key={staff.staffId} className="staff-row">
                   <td>{getDisplayId(index)}</td>
                   <td>
-                    {staff.image && (
-                      <img 
-                        src={`http://localhost:8080/api/files/uploads/${staff.image}`} 
-                        alt="Staff" 
-                        className="staff-image"
-                      />
+                    {editingStaff === staff.staffId ? (
+                      <div className="image-upload-wrapper">
+                        <div className="image-preview-container">
+                          {imagePreview ? (
+                            <img src={imagePreview} alt="Preview" className="image-preview" />
+                          ) : (
+                            <div className="image-placeholder">
+                              <i className="bi bi-person-square"></i>
+                              <span>No image selected</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="image-upload-controls">
+                          <label className="image-upload-button">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageChange}
+                              className="image-upload-input"
+                            />
+                            <span className="upload-text">
+                              <i className="bi bi-upload me-1"></i>
+                              {imagePreview ? 'Change Image' : 'Upload Image'}
+                            </span>
+                          </label>
+                          {imagePreview && (
+                            <button 
+                              className="remove-image-button"
+                              onClick={() => {
+                                setImagePreview(null);
+                                setImageFile(null);
+                              }}
+                            >
+                              <i className="bi bi-trash"></i> Remove
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      staff.image ? (
+                        <img 
+                          src={`http://localhost:8080/api/files/uploads/${staff.image}`} 
+                          alt="Staff" 
+                          className="staff-image"
+                        />
+                      ) : (
+                        <div className="image-placeholder">
+                          <i className="bi bi-person-square"></i>
+                        </div>
+                      )
                     )}
                   </td>
                   <td>
@@ -516,6 +709,13 @@ const StaffDetails = ({ isActive, refreshKey }) => {
                         >
                           <i className="bi bi-trash"></i>
                         </button>
+                        <button
+                          onClick={() => downloadIndividualPDF(staff)}
+                          className="btn pdf-btn"
+                          disabled={isLoading}
+                        >
+                          <i className="bi bi-file-earmark-pdf"></i>
+                        </button>
                       </div>
                     )}
                   </td>
@@ -541,6 +741,7 @@ const StaffDetails = ({ isActive, refreshKey }) => {
                 <button 
                   className="page-link prev-next" 
                   onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
                 >
                   <i className="bi bi-chevron-left"></i>
                 </button>
@@ -561,6 +762,7 @@ const StaffDetails = ({ isActive, refreshKey }) => {
                 <button 
                   className="page-link prev-next" 
                   onClick={() => paginate(currentPage + 1)}
+                  disabled={currentPage === totalPages}
                 >
                   <i className="bi bi-chevron-right"></i>
                 </button>
@@ -574,56 +776,6 @@ const StaffDetails = ({ isActive, refreshKey }) => {
         <i className="bi bi-clock-history"></i>
         Last updated: {new Date().toLocaleString()}
       </div>
-
-      {editingStaff && (
-        <div className="modal-overlay">
-          <div className="edit-modal">
-            <h3>Edit Staff Member</h3>
-            <div className="form-group">
-              <label>Staff Image</label>
-              <div className="image-upload-container">
-                {imagePreview ? (
-                  <img src={imagePreview} alt="Preview" className="image-preview" />
-                ) : (
-                  <div className="image-placeholder">
-                    <i className="bi bi-person-square"></i>
-                    <span>No image selected</span>
-                  </div>
-                )}
-                <input
-                  type="file"
-                  id="imageUpload"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="form-control"
-                />
-                <label htmlFor="imageUpload" className="upload-btn">
-                  <i className="bi bi-upload"></i> Choose Image
-                </label>
-              </div>
-            </div>
-            <div className="modal-actions">
-              <button 
-                onClick={() => handleUpdateStaff(editingStaff)}
-                className="btn btn-primary"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button 
-                onClick={() => {
-                  setEditingStaff(null);
-                  setImageFile(null);
-                  setImagePreview(null);
-                }}
-                className="btn btn-secondary"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

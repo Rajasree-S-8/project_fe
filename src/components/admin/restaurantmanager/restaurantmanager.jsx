@@ -1,4 +1,3 @@
-// src/components/restaurantmanager/restaurantmanager.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
@@ -19,7 +18,7 @@ import {
 } from 'react-bootstrap';
 import './RestaurantManager.css';
 
-const RestaurantManager = ({ isActive, staffId }) => {
+const RestaurantManager = ({ isActive, staffId, userRole }) => {
   const [foodItems, setFoodItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -43,12 +42,17 @@ const RestaurantManager = ({ isActive, staffId }) => {
   const [viewFood, setViewFood] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteFoodId, setDeleteFoodId] = useState(null);
+  const [currentFoodId, setCurrentFoodId] = useState(null);
+
+  const isAdmin = userRole === 'Admin';
 
   useEffect(() => {
     const fetchFoodItems = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:8080/api/food/');
+        const response = await axios.get('http://localhost:8080/api/food/', {
+          headers: isAdmin ? { role: 'Admin' } : { staffId }
+        });
         setFoodItems(response.data);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to fetch food items');
@@ -61,7 +65,7 @@ const RestaurantManager = ({ isActive, staffId }) => {
     if (isActive) {
       fetchFoodItems();
     }
-  }, [isActive]);
+  }, [isActive, staffId, isAdmin]);
 
   const filteredItems = foodItems.filter(item => {
     const matchesSearch = item.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
@@ -101,7 +105,9 @@ const RestaurantManager = ({ isActive, staffId }) => {
   const refreshData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:8080/api/food/');
+      const response = await axios.get('http://localhost:8080/api/food/', {
+        headers: isAdmin ? { role: 'Admin' } : { staffId }
+      });
       setFoodItems(response.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to refresh food items');
@@ -115,9 +121,7 @@ const RestaurantManager = ({ isActive, staffId }) => {
     try {
       setLoading(true);
       await axios.put(`http://localhost:8080/api/food/${id}/availability`, {}, {
-        headers: {
-          'staffId': staffId,
-        },
+        headers: isAdmin ? { role: 'Admin' } : { staffId }
       });
       await refreshData();
     } catch (err) {
@@ -139,15 +143,19 @@ const RestaurantManager = ({ isActive, staffId }) => {
       isAvailable: true
     });
     setImagePreview('');
+    setCurrentFoodId(null);
     setShowFoodModal(true);
   };
 
   const openEditModal = async (id) => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:8080/api/food/${id}`);
+      const response = await axios.get(`http://localhost:8080/api/food/${id}`, {
+        headers: isAdmin ? { role: 'Admin' } : { staffId }
+      });
       const food = response.data;
       setModalType('edit');
+      setCurrentFoodId(id);
       setFoodForm({
         name: food.name || '',
         price: food.price ? food.price.toString() : '',
@@ -199,15 +207,11 @@ const RestaurantManager = ({ isActive, staffId }) => {
 
       if (modalType === 'add') {
         await axios.post('http://localhost:8080/api/food/', foodData, {
-          headers: {
-            'staffId': staffId,
-          },
+          headers: isAdmin ? { role: 'Admin' } : { staffId }
         });
       } else {
-        await axios.put(`http://localhost:8080/api/food/${viewFood?.foodId}`, foodData, {
-          headers: {
-            'staffId': staffId,
-          },
+        await axios.put(`http://localhost:8080/api/food/${currentFoodId}`, foodData, {
+          headers: isAdmin ? { role: 'Admin' } : { staffId }
         });
       }
 
@@ -224,7 +228,9 @@ const RestaurantManager = ({ isActive, staffId }) => {
   const openViewModal = async (id) => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:8080/api/food/${id}`);
+      const response = await axios.get(`http://localhost:8080/api/food/${id}`, {
+        headers: isAdmin ? { role: 'Admin' } : { staffId }
+      });
       setViewFood(response.data);
       setShowViewModal(true);
     } catch (err) {
@@ -244,9 +250,7 @@ const RestaurantManager = ({ isActive, staffId }) => {
     try {
       setLoading(true);
       await axios.delete(`http://localhost:8080/api/food/${deleteFoodId}`, {
-        headers: {
-          'staffId': staffId,
-        },
+        headers: isAdmin ? { role: 'Admin' } : { staffId }
       });
       setShowDeleteModal(false);
       setDeleteFoodId(null);
@@ -643,7 +647,7 @@ const RestaurantManager = ({ isActive, staffId }) => {
                     {viewFood.isAvailable ? 'Available' : 'Unavailable'}
                   </Badge>
                 </p>
-                <p><strong>Added by:</strong> {viewFood.createdBy?.username || 'Unknown'}</p>
+                <p><strong>Added by:</strong> {viewFood.staff?.username || 'Unknown'}</p>
                 <p><strong>Created At:</strong> {viewFood.createdAt ? new Date(viewFood.createdAt).toLocaleString() : 'N/A'}</p>
               </Col>
             </Row>

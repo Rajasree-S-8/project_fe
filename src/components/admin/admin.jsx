@@ -14,6 +14,8 @@ import CustomerFoodOrders from './Customer/foodorder';
 
 const Admin = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [userRole, setUserRole] = useState('Admin'); // Set this based on your authentication
+  
 
   const handleNavClick = (e, section) => {
     e.preventDefault();
@@ -36,7 +38,7 @@ const Admin = () => {
       case 'hotel-manager':
         return <HotelManager isActive={true} />;
       case 'restaurant-manager':
-        return <RestaurantManager isActive={true} />;
+        return <RestaurantManager isActive={true} userRole={userRole} />;
       case 'customers':
         return <Adcustomer isActive={true} />;
       case 'customer-registrations':
