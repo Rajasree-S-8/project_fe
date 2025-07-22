@@ -122,7 +122,7 @@ const CustomerLogin = () => {
             )}
 
             <Form onSubmit={handleSubmit} className="auth-form">
-              <FloatingLabel controlId="username" label="Username" className="mb-3">
+              <FloatingLabel controlId="username" className="mb-3">
                 <InputGroup>
                   <InputGroup.Text className="input-group-icon">
                     <FontAwesomeIcon icon={faUser} className="input-icon" />
@@ -142,7 +142,7 @@ const CustomerLogin = () => {
                 )}
               </FloatingLabel>
 
-              <FloatingLabel controlId="password" label="Password" className="mb-3">
+              <FloatingLabel controlId="password" className="mb-3">
                 <InputGroup>
                   <InputGroup.Text className="input-group-icon">
                     <FontAwesomeIcon icon={faLock} className="input-icon" />
