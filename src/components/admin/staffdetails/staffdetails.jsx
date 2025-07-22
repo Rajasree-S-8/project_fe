@@ -43,13 +43,11 @@ const StaffDetails = ({ isActive, refreshKey }) => {
   }, [refreshKey, isActive]);
 
   useEffect(() => {
-    const filterStaff = (staff) => {
-      return Object.values(staff).some(value => {
-        if (!value) return false;
-        return value.toString().toLowerCase().includes(searchTerm.toLowerCase());
-      });
-    };
-    const filtered = staffList.filter(filterStaff);
+    const filtered = staffList.filter(staff =>
+      Object.values(staff).some(value =>
+        value && value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
     setFilteredStaffList(filtered);
     setCurrentPage(1);
   }, [searchTerm, staffList]);
@@ -61,11 +59,13 @@ const StaffDetails = ({ isActive, refreshKey }) => {
       const response = await fetch('http://localhost:8080/api/staff/all', {
         headers: { 'Accept': 'application/json' },
       });
-      if (!response.ok) throw new Error('Failed to fetch staff data');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch staff data');
+      }
       const data = await response.json();
-      const sortedData = data.sort((a, b) => a.staffId - b.staffId);
-      setStaffList(sortedData);
-      setFilteredStaffList(sortedData);
+      setStaffList(data.sort((a, b) => a.staffId - b.staffId));
+      setFilteredStaffList(data);
     } catch (error) {
       console.error('Error fetching staff data:', error);
       setError(error.message);
@@ -102,6 +102,22 @@ const StaffDetails = ({ isActive, refreshKey }) => {
       alert('Password must be at least 8 characters long and contain at least one letter and one number');
       return false;
     }
+    if (editFormData.dateOfBirth && !/^\d{4}-\d{2}-\d{2}$/.test(editFormData.dateOfBirth)) {
+      alert('Date of Birth must be in YYYY-MM-DD format');
+      return false;
+    }
+    if (editFormData.joiningDate && !/^\d{4}-\d{2}-\d{2}$/.test(editFormData.joiningDate)) {
+      alert('Joining Date must be in YYYY-MM-DD format');
+      return false;
+    }
+    if (editFormData.age && (isNaN(editFormData.age) || editFormData.age < 18 || editFormData.age > 100)) {
+      alert('Age must be between 18 and 100');
+      return false;
+    }
+    if (editFormData.experience && (isNaN(editFormData.experience) || editFormData.experience < 0)) {
+      alert('Experience must be a positive number');
+      return false;
+    }
     return true;
   };
 
@@ -115,12 +131,12 @@ const StaffDetails = ({ isActive, refreshKey }) => {
   const handleEditClick = (staff) => {
     setEditingStaff(staff.staffId);
     setEditFormData({
-      username: staff.username,
-      fullname: staff.fullname,
-      email: staff.email,
+      username: staff.username || '',
+      fullname: staff.fullname || '',
+      email: staff.email || '',
       age: staff.age || '',
-      phonenumber: staff.phonenumber,
-      role: staff.role,
+      phonenumber: staff.phonenumber || '',
+      role: staff.role || '',
       address: staff.address || '',
       dateOfBirth: staff.dateOfBirth || '',
       joiningDate: staff.joiningDate || '',
@@ -151,15 +167,6 @@ const StaffDetails = ({ isActive, refreshKey }) => {
       }
       setUploadProgress(0);
       setImageFile(file);
-      const interval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(interval);
-            return 100;
-          }
-          return prev + 10;
-        });
-      }, 100);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
@@ -207,9 +214,9 @@ const StaffDetails = ({ isActive, refreshKey }) => {
       setImageFile(null);
       setImagePreview(null);
       setShowPassword(false);
-      fetchStaffData();
+      await fetchStaffData();
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error updating staff:', error);
       alert(`Error: ${error.message}`);
     } finally {
       setIsLoading(false);
@@ -229,9 +236,9 @@ const StaffDetails = ({ isActive, refreshKey }) => {
         throw new Error(errorData.message || 'Failed to delete staff');
       }
       alert('Staff deleted successfully!');
-      fetchStaffData();
+      await fetchStaffData();
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error deleting staff:', error);
       alert(`Error: ${error.message}`);
     } finally {
       setIsLoading(false);
@@ -353,6 +360,8 @@ const StaffDetails = ({ isActive, refreshKey }) => {
         'Phone',
         'Role',
         'Join Date',
+        'Experience',
+        'Qualification',
       ];
       const tableRows = [];
       for (const staff of staffData) {
@@ -371,6 +380,8 @@ const StaffDetails = ({ isActive, refreshKey }) => {
           staff.phonenumber,
           staff.role,
           staff.joiningDate ? new Date(staff.joiningDate).toLocaleDateString() : 'N/A',
+          staff.experience ? `${staff.experience} years` : 'N/A',
+          staff.qualification || 'N/A',
         ]);
       }
       doc.autoTable({
@@ -390,6 +401,8 @@ const StaffDetails = ({ isActive, refreshKey }) => {
           6: { cellWidth: 25 },
           7: { cellWidth: 30 },
           8: { cellWidth: 25 },
+          9: { cellWidth: 20 },
+          10: { cellWidth: 30 },
         },
         didParseCell: (data) => {
           if (data.column.index === 1 && data.cell.raw && typeof data.cell.raw === 'object' && data.cell.raw.img) {
@@ -475,6 +488,62 @@ const StaffDetails = ({ isActive, refreshKey }) => {
     }
   };
 
+  const downloadStaffJSON = (staff) => {
+    const staffData = {
+      staffId: staff.staffId,
+      username: staff.username,
+      fullname: staff.fullname,
+      email: staff.email,
+      age: staff.age || null,
+      phonenumber: staff.phonenumber,
+      role: staff.role,
+      address: staff.address || null,
+      dateOfBirth: staff.dateOfBirth || null,
+      joiningDate: staff.joiningDate || null,
+      experience: staff.experience || null,
+      qualification: staff.qualification || null,
+      image: staff.image ? `http://localhost:8080/api/files/uploads/${staff.image}` : null,
+    };
+    const jsonStr = JSON.stringify(staffData, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `staff_${staff.staffId}_details.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadAllStaffJSON = () => {
+    const allStaffData = staffList.map(staff => ({
+      staffId: staff.staffId,
+      username: staff.username,
+      fullname: staff.fullname,
+      email: staff.email,
+      age: staff.age || null,
+      phonenumber: staff.phonenumber,
+      role: staff.role,
+      address: staff.address || null,
+      dateOfBirth: staff.dateOfBirth || null,
+      joiningDate: staff.joiningDate || null,
+      experience: staff.experience || null,
+      qualification: staff.qualification || null,
+      image: staff.image ? `http://localhost:8080/api/files/uploads/${staff.image}` : null,
+    }));
+    const jsonStr = JSON.stringify(allStaffData, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `all_staff_details_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleViewDetails = (staff) => {
     setSelectedStaff(staff);
     setShowDetailsModal(true);
@@ -514,6 +583,13 @@ const StaffDetails = ({ isActive, refreshKey }) => {
           >
             <i className="bi bi-file-earmark-pdf"></i> Download All Staff PDF
           </button>
+          <button
+            onClick={downloadAllStaffJSON}
+            className="json-btn"
+            disabled={isLoading || filteredStaffList.length === 0}
+          >
+            <i className="bi bi-file-code"></i> Download All Staff JSON
+          </button>
           <span className="total-badge">
             <i className="bi bi-people-fill"></i> Total: {filteredStaffList.length}
           </span>
@@ -530,25 +606,30 @@ const StaffDetails = ({ isActive, refreshKey }) => {
           currentItems.map((staff) => (
             <div key={staff.staffId} className="staff-card">
               <div className="card-header">
-                {staff.image ? (
-                  <img
-                    src={`http://localhost:8080/api/files/uploads/${staff.image}`}
-                    alt="Staff"
-                    className="staff-image"
-                    onError={(e) => {
-                      console.error(`Failed to load image for staff ID ${staff.staffId}`);
-                      e.target.src = '/placeholder.png';
-                    }}
-                  />
-                ) : (
-                  <div className="image-placeholder">
-                    <i className="bi bi-person-square"></i>
-                  </div>
-                )}
-                <h3>{staff.fullname}</h3>
-                <span className={`role-badge ${staff.role.toLowerCase().replace(' ', '-')}`}>
-                  {staff.role}
-                </span>
+                <div className="image-container">
+                  {staff.image ? (
+                    <img
+                      src={`http://localhost:8080/api/files/uploads/${staff.image}`}
+                      alt="Staff"
+                      className="staff-image"
+                      onError={(e) => {
+                        console.error(`Failed to load image for staff ID ${staff.staffId}`);
+                        e.target.src = '/placeholder.png';
+                      }}
+                    />
+                  ) : (
+                    <div className="image-placeholder">
+                      <i className="bi bi-person-circle"></i>
+                    </div>
+                  )}
+                  <div className="role-indicator" data-role={staff.role.toLowerCase().replace(' ', '-')}></div>
+                </div>
+                <div className="header-content">
+                  <h3>{staff.fullname}</h3>
+                  <span className={`role-badge ${staff.role.toLowerCase().replace(' ', '-')}`}>
+                    {staff.role}
+                  </span>
+                </div>
               </div>
               {editingStaff === staff.staffId ? (
                 <div className="edit-form">
@@ -565,7 +646,7 @@ const StaffDetails = ({ isActive, refreshKey }) => {
                         </>
                       ) : (
                         <div className="image-placeholder">
-                          <i className="bi bi-person-square"></i>
+                          <i className="bi bi-person-circle"></i>
                           <span>No image selected</span>
                         </div>
                       )}
@@ -655,7 +736,7 @@ const StaffDetails = ({ isActive, refreshKey }) => {
                     value={editFormData.dateOfBirth}
                     onChange={handleEditFormChange}
                     className="edit-input"
-                    placeholder="Date of Birth"
+                    placeholder="Date of Birth (YYYY-MM-DD)"
                   />
                   <input
                     type="date"
@@ -663,7 +744,7 @@ const StaffDetails = ({ isActive, refreshKey }) => {
                     value={editFormData.joiningDate}
                     onChange={handleEditFormChange}
                     className="edit-input"
-                    placeholder="Joining Date"
+                    placeholder="Joining Date (YYYY-MM-DD)"
                   />
                   <input
                     type="number"
@@ -739,9 +820,18 @@ const StaffDetails = ({ isActive, refreshKey }) => {
                 </div>
               ) : (
                 <div className="card-body">
-                  <p><strong>Email:</strong> {staff.email}</p>
-                  <p><strong>Age:</strong> {staff.age || 'N/A'}</p>
-                  <p><strong>Phone:</strong> {staff.phonenumber}</p>
+                  <div className="info-row">
+                    <i className="bi bi-envelope-fill"></i>
+                    <p><strong>Email:</strong> {staff.email}</p>
+                  </div>
+                  <div className="info-row">
+                    <i className="bi bi-person-fill"></i>
+                    <p><strong>Age:</strong> {staff.age || 'N/A'}</p>
+                  </div>
+                  <div className="info-row">
+                    <i className="bi bi-telephone-fill"></i>
+                    <p><strong>Phone:</strong> {staff.phonenumber}</p>
+                  </div>
                   <div className="action-buttons">
                     <button onClick={() => handleViewDetails(staff)} className="view-btn">
                       <i className="bi bi-eye"></i> View
@@ -754,6 +844,9 @@ const StaffDetails = ({ isActive, refreshKey }) => {
                     </button>
                     <button onClick={() => downloadIndividualPDF(staff)} className="pdf-btn" disabled={isLoading}>
                       <i className="bi bi-file-earmark-pdf"></i> PDF
+                    </button>
+                    <button onClick={() => downloadStaffJSON(staff)} className="json-btn" disabled={isLoading}>
+                      <i className="bi bi-file-code"></i> JSON
                     </button>
                   </div>
                 </div>
@@ -821,7 +914,7 @@ const StaffDetails = ({ isActive, refreshKey }) => {
                   />
                 ) : (
                   <div className="image-placeholder">
-                    <i className="bi bi-person-square"></i>
+                    <i className="bi bi-person-circle"></i>
                   </div>
                 )}
               </div>
@@ -848,6 +941,9 @@ const StaffDetails = ({ isActive, refreshKey }) => {
           </Button>
           <Button variant="primary" onClick={() => downloadIndividualPDF(selectedStaff)} disabled={isLoading}>
             Download PDF
+          </Button>
+          <Button variant="info" onClick={() => downloadStaffJSON(selectedStaff)} disabled={isLoading}>
+            Download JSON
           </Button>
         </Modal.Footer>
       </Modal>

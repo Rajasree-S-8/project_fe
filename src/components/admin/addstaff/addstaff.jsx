@@ -15,12 +15,27 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
     joiningDate: '',
     experience: '',
     qualification: '',
+    age: '',
     image: null
   });
-  const [passwordError, setPasswordError] = useState('');
-  const [confirmPasswordError, setConfirmPasswordError] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [imageError, setImageError] = useState('');
+
+  const [errors, setErrors] = useState({
+    username: '',
+    fullName: '',
+    email: '',
+    address: '',
+    dateOfBirth: '',
+    phoneNumber: '',
+    password: '',
+    confirmPassword: '',
+    role: '',
+    joiningDate: '',
+    experience: '',
+    qualification: '',
+    age: '',
+    image: ''
+  });
+
   const [showPasswordPopup, setShowPasswordPopup] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,79 +50,83 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
     }
   }, [showSuccess]);
 
+  const validateField = (name, value) => {
+    let error = '';
+    
+    switch (name) {
+      case 'username':
+        if (!value.trim()) error = 'Username is required';
+        else if (value.length < 3) error = 'Username must be at least 3 characters';
+        break;
+      case 'fullName':
+        if (!value.trim()) error = 'Full name is required';
+        else if (!/^[a-zA-Z ]+$/.test(value)) error = 'Full name should contain only letters';
+        break;
+      case 'email':
+        if (!value.trim()) error = 'Email is required';
+        else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) 
+          error = 'Please enter a valid email address';
+        break;
+      case 'phoneNumber':
+        if (!value.trim()) error = 'Phone number is required';
+        else if (!/^\d{10}$/.test(value)) error = 'Phone number must be 10 digits';
+        break;
+      case 'password':
+        if (!value.trim()) error = 'Password is required';
+        else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,50}$/.test(value)) {
+          error = 'Password must be 8-50 characters with uppercase, lowercase, number, and special character';
+          setShowPasswordPopup(true);
+        } else {
+          setShowPasswordPopup(false);
+        }
+        break;
+      case 'confirmPassword':
+        if (!value.trim()) error = 'Please confirm your password';
+        else if (value !== formData.password) error = 'Passwords do not match';
+        break;
+      case 'age':
+        if (!value) error = 'Age is required';
+        else if (value < 18) error = 'Staff must be at least 18 years old';
+        else if (value > 100) error = 'Please enter a valid age';
+        break;
+      case 'experience':
+        if (!value) error = 'Experience is required';
+        else if (value < 0) error = 'Experience cannot be negative';
+        else if (value > 50) error = 'Please enter a valid experience';
+        break;
+      case 'dateOfBirth':
+      case 'joiningDate':
+        if (!value) error = 'This field is required';
+        break;
+      default:
+        if (!value) error = 'This field is required';
+    }
+
+    setErrors(prev => ({ ...prev, [name]: error }));
+    return !error;
+  };
+
   const handleChange = (e) => {
     const { name, value, files } = e.target;
 
     if (name === 'image') {
       const file = files[0];
+      let error = '';
+      
       if (file) {
         const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
         if (!validTypes.includes(file.type)) {
-          setImageError('Please upload a valid image (JPEG, PNG, or GIF)');
-          return;
+          error = 'Please upload a valid image (JPEG, PNG, or GIF)';
+        } else if (file.size > 5 * 1024 * 1024) {
+          error = 'Image size must be less than 5MB';
         }
-        if (file.size > 5 * 1024 * 1024) {
-          setImageError('Image size must be less than 5MB');
-          return;
-        }
-        setImageError('');
-        setFormData(prev => ({
-          ...prev,
-          image: file
-        }));
       }
-      return;
-    }
 
-    if (name === 'phoneNumber') {
-      if (value === '' || (/^\d+$/.test(value) && value.length <= 10)) {
-        setFormData(prev => ({
-          ...prev,
-          [name]: value
-        }));
-      }
-      return;
-    }
-
-    if (name === 'email') {
+      setErrors(prev => ({ ...prev, [name]: error }));
       setFormData(prev => ({
         ...prev,
-        [name]: value
+        [name]: error ? null : file
       }));
-      if (value.length > 0) {
-        validateEmail(value);
-      } else {
-        setEmailError('');
-      }
-      return;
-    }
-
-    if (name === 'password') {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-      if (value.length > 0) {
-        validatePassword(value);
-      } else {
-        setPasswordError('');
-      }
-      if (formData.confirmPassword) {
-        validateConfirmPassword(value, formData.confirmPassword);
-      }
-      return;
-    }
-
-    if (name === 'confirmPassword') {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-      if (value.length > 0) {
-        validateConfirmPassword(formData.password, value);
-      } else {
-        setConfirmPasswordError('');
-      }
       return;
     }
 
@@ -115,35 +134,37 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
       ...prev,
       [name]: value
     }));
+
+    if (submitAttempted) {
+      validateField(name, value);
+    }
   };
 
-  const validateEmail = (email) => {
-    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!regex.test(email)) {
-      setEmailError('Please enter a valid email address (e.g., user@example.com)');
-      return false;
-    }
-    setEmailError('');
-    return true;
-  };
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = { ...errors };
 
-  const validatePassword = (password) => {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,50}$/;
-    if (!regex.test(password)) {
-      setPasswordError('Password must be 8-50 characters with at least one uppercase, one lowercase, one number, and one special character');
-      return false;
-    }
-    setPasswordError('');
-    return true;
-  };
+    Object.keys(formData).forEach(key => {
+      if (key !== 'image') { // Image is optional
+        if (!validateField(key, formData[key])) {
+          isValid = false;
+        }
+      }
+    });
 
-  const validateConfirmPassword = (password, confirmPassword) => {
-    if (password !== confirmPassword) {
-      setConfirmPasswordError('Passwords do not match');
-      return false;
+    // Additional validation for dates
+    if (formData.dateOfBirth && formData.joiningDate) {
+      const dob = new Date(formData.dateOfBirth);
+      const joinDate = new Date(formData.joiningDate);
+      
+      if (joinDate < dob) {
+        newErrors.joiningDate = 'Joining date cannot be before date of birth';
+        isValid = false;
+      }
     }
-    setConfirmPasswordError('');
-    return true;
+
+    setErrors(newErrors);
+    return isValid;
   };
 
   const handleSubmit = async (e) => {
@@ -151,34 +172,9 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
     setSubmitAttempted(true);
     setIsSubmitting(true);
 
-    const requiredFields = ['username', 'fullName', 'email', 'address', 'dateOfBirth', 'phoneNumber', 'password', 'confirmPassword', 'role', 'joiningDate', 'experience', 'qualification'];
-    for (const field of requiredFields) {
-      if (!formData[field]) {
-        showNotification(`Please fill in ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`, 'error');
-        setIsSubmitting(false);
-        return;
-      }
-    }
-
-    if (formData.phoneNumber.length !== 10) {
-      showNotification('Phone number must be exactly 10 digits', 'error');
+    if (!validateForm()) {
       setIsSubmitting(false);
-      return;
-    }
-
-    if (!validateEmail(formData.email)) {
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (!validatePassword(formData.password)) {
-      setShowPasswordPopup(true);
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (!validateConfirmPassword(formData.password, formData.confirmPassword)) {
-      setIsSubmitting(false);
+      showNotification('Please fix the errors in the form', 'error');
       return;
     }
 
@@ -194,8 +190,10 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
       role: formData.role,
       joiningDate: formData.joiningDate,
       experience: parseInt(formData.experience),
-      qualification: formData.qualification
+      qualification: formData.qualification,
+      age: parseInt(formData.age)
     })], { type: 'application/json' }));
+
     if (formData.image) {
       formDataToSend.append('image', formData.image);
     }
@@ -213,6 +211,8 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
 
       setShowSuccess(true);
       showNotification('Staff added successfully!', 'success');
+      
+      // Reset form
       setFormData({
         username: '',
         fullName: '',
@@ -226,14 +226,28 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
         joiningDate: '',
         experience: '',
         qualification: '',
+        age: '',
         image: null
       });
-      setPasswordError('');
-      setConfirmPasswordError('');
-      setEmailError('');
-      setImageError('');
-      setShowPasswordPopup(false);
+      setErrors({
+        username: '',
+        fullName: '',
+        email: '',
+        address: '',
+        dateOfBirth: '',
+        phoneNumber: '',
+        password: '',
+        confirmPassword: '',
+        role: '',
+        joiningDate: '',
+        experience: '',
+        qualification: '',
+        age: '',
+        image: ''
+      });
       setSubmitAttempted(false);
+      setShowPasswordPopup(false);
+      
       if (onStaffAdded) onStaffAdded();
     } catch (error) {
       console.error('Error:', error);
@@ -293,10 +307,12 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
         <h1 className="add-staff-title">Add New Staff Member</h1>
         <p className="add-staff-subtitle">Fill in the details below to register a new staff member</p>
       </div>
+      
       <div className="add-staff-card">
         <div className="add-staff-card-body">
           <form onSubmit={handleSubmit} className="add-staff-form">
             <div className="add-staff-form-grid">
+              {/* Username */}
               <div className="add-staff-form-group">
                 <label htmlFor="username" className="add-staff-label">
                   <i className="fas fa-user-tie"></i> Username
@@ -304,17 +320,23 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                 <div className="add-staff-input-container">
                   <input
                     type="text"
-                    className="add-staff-input"
+                    className={`add-staff-input ${errors.username ? 'input-error' : ''}`}
                     id="username"
                     name="username"
                     value={formData.username}
                     onChange={handleChange}
                     placeholder="Enter username"
-                    required
                   />
                   <div className="input-underline"></div>
                 </div>
+                {errors.username && (
+                  <div className="input-error-message">
+                    <i className="fas fa-exclamation-circle"></i> {errors.username}
+                  </div>
+                )}
               </div>
+
+              {/* Full Name */}
               <div className="add-staff-form-group">
                 <label htmlFor="fullName" className="add-staff-label">
                   <i className="fas fa-id-card"></i> Full Name
@@ -322,17 +344,23 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                 <div className="add-staff-input-container">
                   <input
                     type="text"
-                    className="add-staff-input"
+                    className={`add-staff-input ${errors.fullName ? 'input-error' : ''}`}
                     id="fullName"
                     name="fullName"
                     value={formData.fullName}
                     onChange={handleChange}
                     placeholder="Enter full name"
-                    required
                   />
                   <div className="input-underline"></div>
                 </div>
+                {errors.fullName && (
+                  <div className="input-error-message">
+                    <i className="fas fa-exclamation-circle"></i> {errors.fullName}
+                  </div>
+                )}
               </div>
+
+              {/* Email */}
               <div className="add-staff-form-group">
                 <label htmlFor="email" className="add-staff-label">
                   <i className="fas fa-envelope"></i> Email
@@ -340,22 +368,23 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                 <div className="add-staff-input-container">
                   <input
                     type="email"
-                    className={`add-staff-input ${emailError ? 'input-error' : ''}`}
+                    className={`add-staff-input ${errors.email ? 'input-error' : ''}`}
                     id="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="Enter email address"
-                    required
                   />
                   <div className="input-underline"></div>
                 </div>
-                {emailError && (
+                {errors.email && (
                   <div className="input-error-message">
-                    <i className="fas fa-exclamation-circle"></i> {emailError}
+                    <i className="fas fa-exclamation-circle"></i> {errors.email}
                   </div>
                 )}
               </div>
+
+              {/* Address */}
               <div className="add-staff-form-group">
                 <label htmlFor="address" className="add-staff-label">
                   <i className="fas fa-map-marker-alt"></i> Address
@@ -363,17 +392,23 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                 <div className="add-staff-input-container">
                   <input
                     type="text"
-                    className="add-staff-input"
+                    className={`add-staff-input ${errors.address ? 'input-error' : ''}`}
                     id="address"
                     name="address"
                     value={formData.address}
                     onChange={handleChange}
                     placeholder="Enter street address"
-                    required
                   />
                   <div className="input-underline"></div>
                 </div>
+                {errors.address && (
+                  <div className="input-error-message">
+                    <i className="fas fa-exclamation-circle"></i> {errors.address}
+                  </div>
+                )}
               </div>
+
+              {/* Date of Birth */}
               <div className="add-staff-form-group">
                 <label htmlFor="dateOfBirth" className="add-staff-label">
                   <i className="fas fa-birthday-cake"></i> Date of Birth
@@ -381,16 +416,23 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                 <div className="add-staff-input-container">
                   <input
                     type="date"
-                    className="add-staff-input"
+                    className={`add-staff-input ${errors.dateOfBirth ? 'input-error' : ''}`}
                     id="dateOfBirth"
                     name="dateOfBirth"
                     value={formData.dateOfBirth}
                     onChange={handleChange}
-                    required
+                    max={new Date().toISOString().split('T')[0]}
                   />
                   <div className="input-underline"></div>
                 </div>
+                {errors.dateOfBirth && (
+                  <div className="input-error-message">
+                    <i className="fas fa-exclamation-circle"></i> {errors.dateOfBirth}
+                  </div>
+                )}
               </div>
+
+              {/* Phone Number */}
               <div className="add-staff-form-group">
                 <label htmlFor="phoneNumber" className="add-staff-label">
                   <i className="fas fa-phone"></i> Phone Number
@@ -398,18 +440,24 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                 <div className="add-staff-input-container">
                   <input
                     type="tel"
-                    className="add-staff-input"
+                    className={`add-staff-input ${errors.phoneNumber ? 'input-error' : ''}`}
                     id="phoneNumber"
                     name="phoneNumber"
                     value={formData.phoneNumber}
                     onChange={handleChange}
                     placeholder="Enter 10-digit phone number"
                     maxLength="10"
-                    required
                   />
                   <div className="input-underline"></div>
                 </div>
+                {errors.phoneNumber && (
+                  <div className="input-error-message">
+                    <i className="fas fa-exclamation-circle"></i> {errors.phoneNumber}
+                  </div>
+                )}
               </div>
+
+              {/* Password */}
               <div className="add-staff-form-group">
                 <label htmlFor="password" className="add-staff-label">
                   <i className="fas fa-key"></i> Password
@@ -417,7 +465,7 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                 <div className="add-staff-input-container">
                   <input
                     type="password"
-                    className={`add-staff-input ${passwordError && submitAttempted ? 'input-error' : ''}`}
+                    className={`add-staff-input ${errors.password ? 'input-error' : ''}`}
                     id="password"
                     name="password"
                     value={formData.password}
@@ -425,13 +473,12 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                     placeholder="Create a strong password"
                     minLength="8"
                     maxLength="50"
-                    required
                   />
                   <div className="input-underline"></div>
                 </div>
-                {passwordError && submitAttempted && (
+                {errors.password && (
                   <div className="input-error-message">
-                    <i className="fas fa-exclamation-circle"></i> {passwordError}
+                    <i className="fas fa-exclamation-circle"></i> {errors.password}
                   </div>
                 )}
                 {showPasswordPopup && !isPasswordValid() && (
@@ -464,6 +511,8 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                   </div>
                 )}
               </div>
+
+              {/* Confirm Password */}
               <div className="add-staff-form-group">
                 <label htmlFor="confirmPassword" className="add-staff-label">
                   <i className="fas fa-key"></i> Confirm Password
@@ -471,7 +520,7 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                 <div className="add-staff-input-container">
                   <input
                     type="password"
-                    className={`add-staff-input ${confirmPasswordError && submitAttempted ? 'input-error' : ''}`}
+                    className={`add-staff-input ${errors.confirmPassword ? 'input-error' : ''}`}
                     id="confirmPassword"
                     name="confirmPassword"
                     value={formData.confirmPassword}
@@ -479,28 +528,28 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                     placeholder="Confirm password"
                     minLength="8"
                     maxLength="50"
-                    required
                   />
                   <div className="input-underline"></div>
                 </div>
-                {confirmPasswordError && submitAttempted && (
+                {errors.confirmPassword && (
                   <div className="input-error-message">
-                    <i className="fas fa-exclamation-circle"></i> {confirmPasswordError}
+                    <i className="fas fa-exclamation-circle"></i> {errors.confirmPassword}
                   </div>
                 )}
               </div>
+
+              {/* Role */}
               <div className="add-staff-form-group">
                 <label htmlFor="role" className="add-staff-label">
                   <i className="fas fa-user-tag"></i> Role
                 </label>
                 <div className="add-staff-input-container">
                   <select
-                    className="add-staff-select"
+                    className={`add-staff-select ${errors.role ? 'input-error' : ''}`}
                     id="role"
                     name="role"
                     value={formData.role}
                     onChange={handleChange}
-                    required
                   >
                     <option value="" disabled>Select staff role</option>
                     <option value="Hotel Manager">Hotel Manager</option>
@@ -509,7 +558,14 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                   </select>
                   <div className="input-underline"></div>
                 </div>
+                {errors.role && (
+                  <div className="input-error-message">
+                    <i className="fas fa-exclamation-circle"></i> {errors.role}
+                  </div>
+                )}
               </div>
+
+              {/* Joining Date */}
               <div className="add-staff-form-group">
                 <label htmlFor="joiningDate" className="add-staff-label">
                   <i className="fas fa-calendar-alt"></i> Joining Date
@@ -517,16 +573,23 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                 <div className="add-staff-input-container">
                   <input
                     type="date"
-                    className="add-staff-input"
+                    className={`add-staff-input ${errors.joiningDate ? 'input-error' : ''}`}
                     id="joiningDate"
                     name="joiningDate"
                     value={formData.joiningDate}
                     onChange={handleChange}
-                    required
+                    min={formData.dateOfBirth || ''}
                   />
                   <div className="input-underline"></div>
                 </div>
+                {errors.joiningDate && (
+                  <div className="input-error-message">
+                    <i className="fas fa-exclamation-circle"></i> {errors.joiningDate}
+                  </div>
+                )}
               </div>
+
+              {/* Experience */}
               <div className="add-staff-form-group">
                 <label htmlFor="experience" className="add-staff-label">
                   <i className="fas fa-briefcase"></i> Experience (Years)
@@ -534,18 +597,25 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                 <div className="add-staff-input-container">
                   <input
                     type="number"
-                    className="add-staff-input"
+                    className={`add-staff-input ${errors.experience ? 'input-error' : ''}`}
                     id="experience"
                     name="experience"
                     value={formData.experience}
                     onChange={handleChange}
                     placeholder="Enter years of experience"
                     min="0"
-                    required
+                    max="50"
                   />
                   <div className="input-underline"></div>
                 </div>
+                {errors.experience && (
+                  <div className="input-error-message">
+                    <i className="fas fa-exclamation-circle"></i> {errors.experience}
+                  </div>
+                )}
               </div>
+
+              {/* Qualification */}
               <div className="add-staff-form-group">
                 <label htmlFor="qualification" className="add-staff-label">
                   <i className="fas fa-graduation-cap"></i> Qualification
@@ -553,17 +623,49 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                 <div className="add-staff-input-container">
                   <input
                     type="text"
-                    className="add-staff-input"
+                    className={`add-staff-input ${errors.qualification ? 'input-error' : ''}`}
                     id="qualification"
                     name="qualification"
                     value={formData.qualification}
                     onChange={handleChange}
                     placeholder="Enter highest qualification"
-                    required
                   />
                   <div className="input-underline"></div>
                 </div>
+                {errors.qualification && (
+                  <div className="input-error-message">
+                    <i className="fas fa-exclamation-circle"></i> {errors.qualification}
+                  </div>
+                )}
               </div>
+
+              {/* Age */}
+              <div className="add-staff-form-group">
+                <label htmlFor="age" className="add-staff-label">
+                  <i className="fas fa-user"></i> Age
+                </label>
+                <div className="add-staff-input-container">
+                  <input
+                    type="number"
+                    className={`add-staff-input ${errors.age ? 'input-error' : ''}`}
+                    id="age"
+                    name="age"
+                    value={formData.age}
+                    onChange={handleChange}
+                    placeholder="Enter age"
+                    min="18"
+                    max="100"
+                  />
+                  <div className="input-underline"></div>
+                </div>
+                {errors.age && (
+                  <div className="input-error-message">
+                    <i className="fas fa-exclamation-circle"></i> {errors.age}
+                  </div>
+                )}
+              </div>
+
+              {/* Image */}
               <div className="add-staff-form-group">
                 <label htmlFor="image" className="add-staff-label">
                   <i className="fas fa-image"></i> Profile Image
@@ -571,7 +673,7 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                 <div className="add-staff-input-container">
                   <input
                     type="file"
-                    className={`add-staff-input ${imageError ? 'input-error' : ''}`}
+                    className={`add-staff-input ${errors.image ? 'input-error' : ''}`}
                     id="image"
                     name="image"
                     accept="image/jpeg,image/png,image/gif"
@@ -579,13 +681,14 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                   />
                   <div className="input-underline"></div>
                 </div>
-                {imageError && (
+                {errors.image && (
                   <div className="input-error-message">
-                    <i className="fas fa-exclamation-circle"></i> {imageError}
+                    <i className="fas fa-exclamation-circle"></i> {errors.image}
                   </div>
                 )}
               </div>
             </div>
+
             <div className="add-staff-actions">
               <button
                 type="submit"
