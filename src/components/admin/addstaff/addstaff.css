@@ -1,5 +1,3 @@
-/* AddStaff.css */
-
 /* Base Styles */
 .add-staff-container {
     font-family: 'Poppins', sans-serif;
@@ -7,6 +5,7 @@
     margin: 2rem auto;
     padding: 0 1rem;
     animation: fadeIn 0.5s ease;
+    position: relative;
 }
 
 @keyframes fadeIn {
@@ -28,12 +27,35 @@
     background: linear-gradient(90deg, #3498db, #2c3e50);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    position: relative;
+    display: inline-block;
+}
+
+.add-staff-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, #3498db, #2c3e50);
+    border-radius: 3px;
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: titleUnderline 1.5s ease forwards;
+}
+
+@keyframes titleUnderline {
+    to {
+        transform: scaleX(1);
+    }
 }
 
 .add-staff-subtitle {
     color: #7f8c8d;
     font-size: 1rem;
     font-weight: 400;
+    animation: fadeIn 0.8s ease 0.3s both;
 }
 
 /* Card Styles */
@@ -43,6 +65,19 @@
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     overflow: hidden;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: cardAppear 0.6s ease;
+    position: relative;
+}
+
+@keyframes cardAppear {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .add-staff-card:hover {
@@ -64,6 +99,18 @@
 
 .add-staff-form-group {
     margin-bottom: 1rem;
+    animation: formGroupAppear 0.6s ease;
+}
+
+@keyframes formGroupAppear {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 /* Label Styles */
@@ -73,11 +120,21 @@
     font-weight: 500;
     color: #34495e;
     font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.add-staff-label:hover {
+    color: #3498db;
 }
 
 .add-staff-label i {
     margin-right: 8px;
     color: #3498db;
+    transition: transform 0.3s ease;
+}
+
+.add-staff-label:hover i {
+    transform: scale(1.2);
 }
 
 /* Input Container */
@@ -110,6 +167,11 @@
 
 .add-staff-input::placeholder {
     color: #bdc3c7;
+    transition: color 0.3s ease;
+}
+
+.add-staff-input:focus::placeholder {
+    color: transparent;
 }
 
 /* Input Underline Animation */
@@ -141,6 +203,13 @@
     margin-top: 0.5rem;
     font-size: 0.8rem;
     color: #e74c3c;
+    animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
 }
 
 .input-error-message i {
@@ -154,6 +223,18 @@
     background-color: #f8f9fa;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    animation: popupAppear 0.4s ease;
+}
+
+@keyframes popupAppear {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .popup-header {
@@ -178,12 +259,22 @@
     margin-bottom: 0.3rem;
     display: flex;
     align-items: center;
+    transition: color 0.3s ease;
 }
 
 .requirements-list li i {
     margin-right: 8px;
     width: 16px;
     text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.requirements-list li:hover {
+    color: #3498db;
+}
+
+.requirements-list li:hover i {
+    transform: scale(1.2);
 }
 
 .requirements-list .valid {
@@ -215,6 +306,23 @@
     align-items: center;
     justify-content: center;
     min-width: 200px;
+    position: relative;
+    overflow: hidden;
+}
+
+.add-staff-submit-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: 0.5s;
+}
+
+.add-staff-submit-btn:hover::before {
+    left: 100%;
 }
 
 .add-staff-submit-btn:hover {
@@ -233,8 +341,108 @@
     box-shadow: none;
 }
 
+.add-staff-submit-btn:disabled::before {
+    display: none;
+}
+
 .add-staff-submit-btn i {
     margin-right: 8px;
+}
+
+/* Success Overlay */
+.success-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeInOverlay 0.5s ease;
+}
+
+@keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.success-message {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    text-align: center;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    position: relative;
+}
+
+.success-icon {
+    margin-bottom: 1.5rem;
+}
+
+.success-icon-circle {
+    width: 80px;
+    height: 80px;
+}
+
+.circle-bg {
+    fill: none;
+    stroke: #e0e0e0;
+    stroke-width: 4;
+}
+
+.checkmark {
+    fill: none;
+    stroke: #27ae60;
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: drawCheckmark 1s ease-in-out forwards 0.5s;
+}
+
+@keyframes drawCheckmark {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+.success-message h2 {
+    color: #27ae60;
+    margin-bottom: 0.5rem;
+    font-size: 1.8rem;
+}
+
+.success-message p {
+    color: #7f8c8d;
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+}
+
+.success-close-btn {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
+}
+
+.success-close-btn:hover {
+    background: #219653;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(39, 174, 96, 0.4);
+}
+
+.success-close-btn:active {
+    transform: translateY(0);
 }
 
 /* Notifications */
@@ -253,6 +461,13 @@
     z-index: 1000;
     display: flex;
     align-items: center;
+    animation: notificationSlideIn 0.5s ease forwards;
+}
+
+@keyframes notificationSlideIn {
+    to {
+        transform: translateX(0);
+    }
 }
 
 .staff-added-notification {
@@ -261,11 +476,6 @@
 
 .staff-error-notification {
     background-color: #e74c3c;
-}
-
-.staff-added-notification.show,
-.staff-error-notification.show {
-    transform: translateX(0);
 }
 
 .notification-content i {
@@ -295,5 +505,11 @@
     .add-staff-submit-btn {
         width: 100%;
         padding: 0.8rem;
+    }
+    .success-message {
+        padding: 1.5rem;
+    }
+    .success-message h2 {
+        font-size: 1.4rem;
     }
 }

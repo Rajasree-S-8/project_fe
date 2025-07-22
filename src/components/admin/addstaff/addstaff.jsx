@@ -1,5 +1,4 @@
-// src/components/addstaff/addstaff.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './AddStaff.css';
 
 const AddStaff = ({ isActive, onStaffAdded }) => {
@@ -8,18 +7,33 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
     fullName: '',
     email: '',
     address: '',
-    Age: '',
+    dateOfBirth: '',
     phoneNumber: '',
     password: '',
+    confirmPassword: '',
     role: '',
+    joiningDate: '',
+    experience: '',
+    qualification: '',
     image: null
   });
   const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [imageError, setImageError] = useState('');
   const [showPasswordPopup, setShowPasswordPopup] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    if (showSuccess) {
+      const timer = setTimeout(() => {
+        setShowSuccess(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccess]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -78,6 +92,22 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
       } else {
         setPasswordError('');
       }
+      if (formData.confirmPassword) {
+        validateConfirmPassword(value, formData.confirmPassword);
+      }
+      return;
+    }
+
+    if (name === 'confirmPassword') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+      if (value.length > 0) {
+        validateConfirmPassword(formData.password, value);
+      } else {
+        setConfirmPasswordError('');
+      }
       return;
     }
 
@@ -107,12 +137,21 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
     return true;
   };
 
+  const validateConfirmPassword = (password, confirmPassword) => {
+    if (password !== confirmPassword) {
+      setConfirmPasswordError('Passwords do not match');
+      return false;
+    }
+    setConfirmPasswordError('');
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitAttempted(true);
     setIsSubmitting(true);
 
-    const requiredFields = ['username', 'fullName', 'email', 'address', 'Age', 'phoneNumber', 'password', 'role'];
+    const requiredFields = ['username', 'fullName', 'email', 'address', 'dateOfBirth', 'phoneNumber', 'password', 'confirmPassword', 'role', 'joiningDate', 'experience', 'qualification'];
     for (const field of requiredFields) {
       if (!formData[field]) {
         showNotification(`Please fill in ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`, 'error');
@@ -138,16 +177,24 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
       return;
     }
 
+    if (!validateConfirmPassword(formData.password, formData.confirmPassword)) {
+      setIsSubmitting(false);
+      return;
+    }
+
     const formDataToSend = new FormData();
     formDataToSend.append('staff', new Blob([JSON.stringify({
       username: formData.username,
       fullname: formData.fullName,
       email: formData.email,
       address: formData.address,
-      age: parseInt(formData.Age),
+      dateOfBirth: formData.dateOfBirth,
       phonenumber: formData.phoneNumber,
       password: formData.password,
-      role: formData.role
+      role: formData.role,
+      joiningDate: formData.joiningDate,
+      experience: parseInt(formData.experience),
+      qualification: formData.qualification
     })], { type: 'application/json' }));
     if (formData.image) {
       formDataToSend.append('image', formData.image);
@@ -164,19 +211,25 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
         throw new Error(errorData.message || 'Failed to add staff');
       }
 
+      setShowSuccess(true);
       showNotification('Staff added successfully!', 'success');
       setFormData({
         username: '',
         fullName: '',
         email: '',
         address: '',
-        Age: '',
+        dateOfBirth: '',
         phoneNumber: '',
         password: '',
+        confirmPassword: '',
         role: '',
+        joiningDate: '',
+        experience: '',
+        qualification: '',
         image: null
       });
       setPasswordError('');
+      setConfirmPasswordError('');
       setEmailError('');
       setImageError('');
       setShowPasswordPopup(false);
@@ -194,8 +247,8 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
     const notification = document.createElement('div');
     notification.className = `staff-${type}-notification show`;
     notification.innerHTML = `
-      <div className="notification-content">
-        <i className="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+      <div class="notification-content">
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
         ${message}
       </div>
     `;
@@ -215,6 +268,27 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
 
   return (
     <div id="add-staff" className="add-staff-container">
+      {showSuccess && (
+        <div className="success-overlay">
+          <div className="success-message animate__animated animate__bounceIn">
+            <div className="success-icon">
+              <svg viewBox="0 0 76 76" className="success-icon-circle">
+                <circle cx="38" cy="38" r="36" className="circle-bg"/>
+                <path d="M17.7,40.9l10.9,10.9l28.7-28.7" className="checkmark"/>
+              </svg>
+            </div>
+            <h2>Staff Registration Successful!</h2>
+            <p>The new staff member has been added to the system.</p>
+            <button 
+              onClick={() => setShowSuccess(false)}
+              className="success-close-btn"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="add-staff-header">
         <h1 className="add-staff-title">Add New Staff Member</h1>
         <p className="add-staff-subtitle">Fill in the details below to register a new staff member</p>
@@ -301,20 +375,17 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                 </div>
               </div>
               <div className="add-staff-form-group">
-                <label htmlFor="Age" className="add-staff-label">
-                  <i className="fas fa-birthday-cake"></i> Age
+                <label htmlFor="dateOfBirth" className="add-staff-label">
+                  <i className="fas fa-birthday-cake"></i> Date of Birth
                 </label>
                 <div className="add-staff-input-container">
                   <input
-                    type="number"
+                    type="date"
                     className="add-staff-input"
-                    id="Age"
-                    name="Age"
-                    value={formData.Age}
+                    id="dateOfBirth"
+                    name="dateOfBirth"
+                    value={formData.dateOfBirth}
                     onChange={handleChange}
-                    placeholder="Enter age"
-                    min="18"
-                    max="100"
                     required
                   />
                   <div className="input-underline"></div>
@@ -394,6 +465,31 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                 )}
               </div>
               <div className="add-staff-form-group">
+                <label htmlFor="confirmPassword" className="add-staff-label">
+                  <i className="fas fa-key"></i> Confirm Password
+                </label>
+                <div className="add-staff-input-container">
+                  <input
+                    type="password"
+                    className={`add-staff-input ${confirmPasswordError && submitAttempted ? 'input-error' : ''}`}
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="Confirm password"
+                    minLength="8"
+                    maxLength="50"
+                    required
+                  />
+                  <div className="input-underline"></div>
+                </div>
+                {confirmPasswordError && submitAttempted && (
+                  <div className="input-error-message">
+                    <i className="fas fa-exclamation-circle"></i> {confirmPasswordError}
+                  </div>
+                )}
+              </div>
+              <div className="add-staff-form-group">
                 <label htmlFor="role" className="add-staff-label">
                   <i className="fas fa-user-tag"></i> Role
                 </label>
@@ -411,6 +507,60 @@ const AddStaff = ({ isActive, onStaffAdded }) => {
                     <option value="Restaurant Manager">Restaurant Manager</option>
                     <option value="Other">Other</option>
                   </select>
+                  <div className="input-underline"></div>
+                </div>
+              </div>
+              <div className="add-staff-form-group">
+                <label htmlFor="joiningDate" className="add-staff-label">
+                  <i className="fas fa-calendar-alt"></i> Joining Date
+                </label>
+                <div className="add-staff-input-container">
+                  <input
+                    type="date"
+                    className="add-staff-input"
+                    id="joiningDate"
+                    name="joiningDate"
+                    value={formData.joiningDate}
+                    onChange={handleChange}
+                    required
+                  />
+                  <div className="input-underline"></div>
+                </div>
+              </div>
+              <div className="add-staff-form-group">
+                <label htmlFor="experience" className="add-staff-label">
+                  <i className="fas fa-briefcase"></i> Experience (Years)
+                </label>
+                <div className="add-staff-input-container">
+                  <input
+                    type="number"
+                    className="add-staff-input"
+                    id="experience"
+                    name="experience"
+                    value={formData.experience}
+                    onChange={handleChange}
+                    placeholder="Enter years of experience"
+                    min="0"
+                    required
+                  />
+                  <div className="input-underline"></div>
+                </div>
+              </div>
+              <div className="add-staff-form-group">
+                <label htmlFor="qualification" className="add-staff-label">
+                  <i className="fas fa-graduation-cap"></i> Qualification
+                </label>
+                <div className="add-staff-input-container">
+                  <input
+                    type="text"
+                    className="add-staff-input"
+                    id="qualification"
+                    name="qualification"
+                    value={formData.qualification}
+                    onChange={handleChange}
+                    placeholder="Enter highest qualification"
+                    required
+                  />
                   <div className="input-underline"></div>
                 </div>
               </div>

@@ -1,4 +1,3 @@
-// src/components/Customer/Customer.jsx
 import React, { useState, useEffect } from 'react';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './Customer.css';
@@ -101,8 +100,12 @@ const CustomerDetails = ({ isActive, refreshKey }) => {
     try {
       const doc = new jsPDF();
       
-      doc.setFontSize(18);
-      doc.text('Customer Details', 105, 20, { align: 'center' });
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.setFillColor(17, 153, 142);
+      doc.rect(0, 0, 210, 40, 'F');
+      doc.text('Customer Profile', 105, 25, { align: 'center' });
       
       if (customer.image) {
         try {
@@ -113,14 +116,16 @@ const CustomerDetails = ({ isActive, refreshKey }) => {
           
           reader.onload = function() {
             const imgData = reader.result;
-            doc.addImage(imgData, 'JPEG', 15, 30, 40, 40);
+            doc.addImage(imgData, 'JPEG', 20, 50, 50, 50, undefined, 'FAST');
             doc.setFontSize(12);
-            doc.text(`Username: ${customer.username}`, 70, 35);
-            doc.text(`Full Name: ${customer.fullName}`, 70, 45);
-            doc.text(`Email: ${customer.email}`, 70, 55);
-            doc.text(`Phone: ${customer.phoneNumber || 'N/A'}`, 70, 65);
-            doc.text(`Address: ${customer.address || 'N/A'}`, 70, 75);
-            doc.save(`customer_${customer.username}_details.pdf`);
+            doc.setTextColor(0, 0, 0);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Username: ${customer.username}`, 80, 55);
+            doc.text(`Full Name: ${customer.fullName}`, 80, 65);
+            doc.text(`Email: ${customer.email}`, 80, 75);
+            doc.text(`Phone: ${customer.phoneNumber || 'N/A'}`, 80, 85);
+            doc.text(`Address: ${customer.address || 'N/A'}`, 80, 95);
+            doc.save(`customer_${customer.username}_profile.pdf`);
           };
           
           reader.readAsDataURL(blob);
@@ -141,12 +146,14 @@ const CustomerDetails = ({ isActive, refreshKey }) => {
 
   const addCustomerDetailsWithoutImage = (doc, customer) => {
     doc.setFontSize(12);
-    doc.text(`Username: ${customer.username}`, 20, 30);
-    doc.text(`Full Name: ${customer.fullName}`, 20, 40);
-    doc.text(`Email: ${customer.email}`, 20, 50);
-    doc.text(`Phone: ${customer.phoneNumber || 'N/A'}`, 20, 60);
-    doc.text(`Address: ${customer.address || 'N/A'}`, 20, 70);
-    doc.save(`customer_${customer.username}_details.pdf`);
+    doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Username: ${customer.username}`, 20, 50);
+    doc.text(`Full Name: ${customer.fullName}`, 20, 60);
+    doc.text(`Email: ${customer.email}`, 20, 70);
+    doc.text(`Phone: ${customer.phoneNumber || 'N/A'}`, 20, 80);
+    doc.text(`Address: ${customer.address || 'N/A'}`, 20, 90);
+    doc.save(`customer_${customer.username}_profile.pdf`);
   };
 
   const downloadAllCustomersPDF = async () => {
@@ -154,11 +161,17 @@ const CustomerDetails = ({ isActive, refreshKey }) => {
     try {
       const doc = new jsPDF();
       
-      doc.setFontSize(18);
-      doc.text('All Customers Report', 105, 20, { align: 'center' });
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.setFillColor(17, 153, 142);
+      doc.rect(0, 0, 210, 40, 'F');
+      doc.text('All Customers Report', 105, 25, { align: 'center' });
       
       doc.setFontSize(10);
-      doc.text(`Generated on: ${new Date().toLocaleString()}`, 105, 30, { align: 'center' });
+      doc.setTextColor(0, 0, 0);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Generated on: ${new Date().toLocaleString()}`, 105, 50, { align: 'center' });
       
       const tableData = filteredCustomerList.map(customer => [
         customer.userId,
@@ -170,17 +183,29 @@ const CustomerDetails = ({ isActive, refreshKey }) => {
       ]);
       
       doc.autoTable({
-        startY: 40,
+        startY: 60,
         head: [['ID', 'Username', 'Full Name', 'Email', 'Phone', 'Address']],
         body: tableData,
         theme: 'grid',
         headStyles: {
-          fillColor: [41, 128, 185],
+          fillColor: [17, 153, 142],
           textColor: 255,
-          fontStyle: 'bold'
+          fontStyle: 'bold',
+          font: 'helvetica',
+          fontSize: 10
+        },
+        bodyStyles: {
+          font: 'helvetica',
+          fontSize: 9
         },
         alternateRowStyles: {
-          fillColor: [245, 245, 245]
+          fillColor: [240, 245, 245]
+        },
+        margin: { top: 60 },
+        styles: {
+          cellPadding: 3,
+          lineWidth: 0.2,
+          lineColor: [200, 200, 200]
         }
       });
       
@@ -196,59 +221,59 @@ const CustomerDetails = ({ isActive, refreshKey }) => {
   if (!isActive) return null;
 
   return (
-    <div id="customer-details" className="customer-management-container">
+    <div className="customer-management">
       <div className="customer-header">
         <h1 className="customer-title">Customer Management</h1>
-        <p className="customer-subtitle">Manage all customer information with ease</p>
+        <p className="customer-subtitle">Efficiently manage all customer information</p>
       </div>
 
       {error && (
-        <div className="alert alert-danger fade-in" role="alert">
-          <i className="bi bi-exclamation-triangle-fill me-2"></i>
-          {error}
+        <div className="alert alert-error">
+          <i className="bi bi-exclamation-octagon-fill"></i>
+          <span>{error}</span>
         </div>
       )}
 
       <div className="customer-controls">
-        <div className="search-container">
-          <i className="bi bi-search search-icon"></i>
+        <div className="search-wrapper">
+          <i className="bi bi-search"></i>
           <input
             type="text"
             className="search-input"
-            placeholder="Search customers..."
+            placeholder="Search by name, email, or phone..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="d-flex align-items-center">
-          <span className="total-badge me-3">
-            <i className="bi bi-people-fill me-1"></i>
-            Total: {filteredCustomerList.length}
+        <div className="controls-right">
+          <span className="total-count">
+            <i className="bi bi-person-lines-fill"></i>
+            {filteredCustomerList.length} Customers
           </span>
-          <button 
-            onClick={downloadAllCustomersPDF} 
-            className="btn btn-primary btn-sm"
+          <button
+            onClick={downloadAllCustomersPDF}
+            className="btn btn-export"
             disabled={isLoading || filteredCustomerList.length === 0}
           >
             {isLoading ? (
-              <span className="spinner-border spinner-border-sm me-1"></span>
+              <span className="spinner-border spinner-border-sm"></span>
             ) : (
-              <i className="bi bi-file-earmark-pdf me-1"></i>
+              <i className="bi bi-download"></i>
             )}
             Export All
           </button>
         </div>
       </div>
 
-      <div className="table-container">
+      <div className="table-wrapper">
         <table className="customer-table">
           <thead>
             <tr>
-              <th>#</th>
+              <th>ID</th>
               <th>Image</th>
               <th>Username</th>
               <th>Full Name</th>
-              <th>Email Address</th>
+              <th>Email</th>
               <th>Phone</th>
               <th>Address</th>
               <th>Actions</th>
@@ -257,9 +282,9 @@ const CustomerDetails = ({ isActive, refreshKey }) => {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan="8" className="loading-cell">
-                  <div className="spinner"></div>
-                  <span>Loading customer data...</span>
+                <td colSpan="8" className="loading-state">
+                  <span className="spinner"></span>
+                  Loading...
                 </td>
               </tr>
             ) : currentItems.length > 0 ? (
@@ -268,21 +293,21 @@ const CustomerDetails = ({ isActive, refreshKey }) => {
                   <td>{getDisplayId(index)}</td>
                   <td>
                     {customer.image ? (
-                      <div className="customer-image-container">
-                        <img 
-                          src={`http://localhost:8080/api/files/uploads/${customer.image}`} 
-                          alt="Customer" 
-                          className="customer-thumbnail"
+                      <div className="image-container">
+                        <img
+                          src={`http://localhost:8080/api/files/uploads/${customer.image}`}
+                          alt="Customer"
+                          className="customer-img"
                         />
-                        <button 
-                          className="view-image-btn"
+                        <button
+                          className="view-img-btn"
                           onClick={() => handleViewImage(`http://localhost:8080/api/files/uploads/${customer.image}`)}
                         >
-                          <i className="bi bi-eye"></i>
+                          <i className="bi bi-zoom-in"></i>
                         </button>
                       </div>
                     ) : (
-                      <div className="no-image-placeholder">
+                      <div className="no-image">
                         <i className="bi bi-person-circle"></i>
                       </div>
                     )}
@@ -293,26 +318,22 @@ const CustomerDetails = ({ isActive, refreshKey }) => {
                   <td>{customer.phoneNumber || '-'}</td>
                   <td>{customer.address || '-'}</td>
                   <td>
-                    <div className="action-buttons">
+                    <div className="action-btns">
                       <button
                         onClick={() => downloadCustomerPDF(customer)}
-                        className="btn pdf-btn"
+                        className="btn btn-pdf"
                         title="Download PDF"
                         disabled={isLoading}
                       >
-                        {isLoading ? (
-                          <span className="spinner-border spinner-border-sm"></span>
-                        ) : (
-                          <i className="bi bi-file-earmark-pdf"></i>
-                        )}
+                        <i className="bi bi-file-earmark-pdf"></i>
                       </button>
                       <button
                         onClick={() => handleDeleteCustomer(customer.userId)}
-                        className="btn delete-btn"
+                        className="btn btn-delete"
                         title="Delete Customer"
                         disabled={isLoading}
                       >
-                        <i className="bi bi-trash"></i>
+                        <i className="bi bi-trash3"></i>
                       </button>
                     </div>
                   </td>
@@ -321,7 +342,7 @@ const CustomerDetails = ({ isActive, refreshKey }) => {
             ) : (
               <tr>
                 <td colSpan="8" className="no-data">
-                  <i className="bi bi-exclamation-circle"></i>
+                  <i className="bi bi-info-circle"></i>
                   No customers found
                 </td>
               </tr>
@@ -331,61 +352,49 @@ const CustomerDetails = ({ isActive, refreshKey }) => {
       </div>
 
       {filteredCustomerList.length > itemsPerPage && (
-        <div className="pagination-container">
-          <nav>
-            <ul className="pagination">
-              <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                <button 
-                  className="page-link prev-next" 
-                  onClick={() => paginate(currentPage - 1)}
-                >
-                  <i className="bi bi-chevron-left"></i>
-                </button>
-              </li>
-              
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
-                <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
-                  <button 
-                    onClick={() => paginate(number)} 
-                    className="page-link page-number"
-                  >
-                    {number}
-                  </button>
-                </li>
-              ))}
-              
-              <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                <button 
-                  className="page-link prev-next" 
-                  onClick={() => paginate(currentPage + 1)}
-                >
-                  <i className="bi bi-chevron-right"></i>
-                </button>
-              </li>
-            </ul>
-          </nav>
+        <div className="pagination">
+          <button
+            className={`page-btn ${currentPage === 1 ? 'disabled' : ''}`}
+            onClick={() => paginate(currentPage - 1)}
+          >
+            <i className="bi bi-chevron-left"></i>
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+            <button
+              key={number}
+              className={`page-btn ${currentPage === number ? 'active' : ''}`}
+              onClick={() => paginate(number)}
+            >
+              {number}
+            </button>
+          ))}
+          <button
+            className={`page-btn ${currentPage === totalPages ? 'disabled' : ''}`}
+            onClick={() => paginate(currentPage + 1)}
+          >
+            <i className="bi bi-chevron-right"></i>
+          </button>
         </div>
       )}
 
       <div className="last-updated">
-        <i className="bi bi-clock-history"></i>
+        <i className="bi bi-clock"></i>
         Last updated: {new Date().toLocaleString()}
       </div>
 
       <Modal show={showImageModal} onHide={() => setShowImageModal(false)} centered size="lg">
-        <Modal.Header closeButton>
+        <Modal.Header closeButton className="modal-header">
           <Modal.Title>Customer Image</Modal.Title>
         </Modal.Header>
-        <Modal.Body className="text-center">
-          <img 
-            src={currentImage} 
-            alt="Customer Full Size" 
-            className="img-fluid modal-image"
-            style={{ maxHeight: '70vh' }}
+        <Modal.Body className="modal-body">
+          <img
+            src={currentImage}
+            alt="Customer Full Size"
+            className="modal-img"
           />
         </Modal.Body>
-        <Modal.Footer>
-          <button className="btn btn-secondary" onClick={() => setShowImageModal(false)}>
+        <Modal.Footer className="modal-footer">
+          <button className="btn btn-close-modal" onClick={() => setShowImageModal(false)}>
             Close
           </button>
         </Modal.Footer>

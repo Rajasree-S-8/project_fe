@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './admin.css';
-import Sidebar from './slidebar/slidebar';
+import Navbar from './navbar/navbar';
 import Dashboard from './dashboard/dashboard';
 import AddStaff from './addstaff/addstaff';
 import StaffDetails from './staffdetails/staffdetails';
@@ -14,15 +14,14 @@ import CustomerFoodOrders from './Customer/foodorder';
 
 const Admin = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
-  const [userRole, setUserRole] = useState('Admin'); // Set this based on your authentication
-  
+  const [userRole, setUserRole] = useState('Admin');
+  const [staffId, setStaffId] = useState(1); // Replace with actual staffId from auth
 
   const handleNavClick = (e, section) => {
     e.preventDefault();
     setActiveSection(section);
   };
 
-  // Map activeSection to the corresponding component
   const renderActiveSection = () => {
     switch (activeSection) {
       case 'dashboard':
@@ -38,8 +37,7 @@ const Admin = () => {
       case 'hotel-manager':
         return <HotelManager isActive={true} />;
       case 'restaurant-manager':
-        return <RestaurantManager isActive={true} userRole={userRole} />;
-      case 'customers':
+return <RestaurantManager isActive={true} userRole={userRole} staffId={staffId} />;      case 'customers':
         return <Adcustomer isActive={true} />;
       case 'customer-registrations':
         return <CustomerRoomBook isActive={true} />;
@@ -51,7 +49,7 @@ const Admin = () => {
   };
 
   return (
-    <>
+    <div className="admin-wrapper">
       <meta charSet="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <title>Hotel Admin Dashboard</title>
@@ -60,13 +58,13 @@ const Admin = () => {
       <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
       <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
 
-      <div className="d-flex">
-        <Sidebar activeSection={activeSection} handleNavClick={handleNavClick} />
-        <main className="flex-grow-1 p-4">
+      <div className="d-flex flex-column">
+        <Navbar activeSection={activeSection} handleNavClick={handleNavClick} />
+        <main className="flex-grow-1 p-4" style={{ marginTop: '80px' }}>
           {renderActiveSection()}
         </main>
       </div>
-    </>
+    </div>
   );
 };
 

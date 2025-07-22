@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { 
-  Table, 
-  Form, 
-  Pagination, 
-  Dropdown, 
-  Badge, 
-  Spinner, 
-  Alert, 
-  Modal, 
-  Button, 
-  FormControl, 
+import {
+  Table,
+  Form,
+  Pagination,
+  Dropdown,
+  Badge,
+  Spinner,
+  Alert,
+  Modal,
+  Button,
+  FormControl,
   FormCheck,
   Card,
   Row,
@@ -18,7 +18,7 @@ import {
 } from 'react-bootstrap';
 import './RestaurantManager.css';
 
-const RestaurantManager = ({ isActive, staffId, userRole }) => {
+const RestaurantManager = ({ isActive, userRole, staffId }) => {
   const [foodItems, setFoodItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -43,17 +43,31 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteFoodId, setDeleteFoodId] = useState(null);
   const [currentFoodId, setCurrentFoodId] = useState(null);
+  const [actionLoading, setActionLoading] = useState({
+    toggle: null,
+    edit: null,
+    delete: null
+  });
 
   const isAdmin = userRole === 'Admin';
+
+  const getHeaders = () => {
+    return {
+      'Content-Type': 'application/json',
+      'role': isAdmin ? 'Admin' : '',
+      'staffId': staffId.toString() // Include staffId in headers
+    };
+  };
 
   useEffect(() => {
     const fetchFoodItems = async () => {
       try {
         setLoading(true);
         const response = await axios.get('http://localhost:8080/api/food/', {
-          headers: isAdmin ? { role: 'Admin' } : { staffId }
+          headers: getHeaders()
         });
         setFoodItems(response.data);
+        setError(null);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to fetch food items');
         console.error('Fetch food items error:', err);
@@ -61,17 +75,17 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
         setLoading(false);
       }
     };
-    
+
     if (isActive) {
       fetchFoodItems();
     }
-  }, [isActive, staffId, isAdmin]);
+  }, [isActive, isAdmin, staffId]);
 
   const filteredItems = foodItems.filter(item => {
     const matchesSearch = item.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
-    const matchesAvailability = 
-      availabilityFilter === 'all' || 
-      (availabilityFilter === 'available' && item.isAvailable) || 
+    const matchesAvailability =
+      availabilityFilter === 'all' ||
+      (availabilityFilter === 'available' && item.isAvailable) ||
       (availabilityFilter === 'unavailable' && !item.isAvailable);
     return matchesSearch && matchesAvailability;
   });
@@ -79,7 +93,6 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
   const sortedItems = [...filteredItems].sort((a, b) => {
     const aValue = a[sortConfig.key] ?? '';
     const bValue = b[sortConfig.key] ?? '';
-    
     if (aValue < bValue) {
       return sortConfig.direction === 'asc' ? -1 : 1;
     }
@@ -106,9 +119,10 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
     try {
       setLoading(true);
       const response = await axios.get('http://localhost:8080/api/food/', {
-        headers: isAdmin ? { role: 'Admin' } : { staffId }
+        headers: getHeaders()
       });
       setFoodItems(response.data);
+      setError(null);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to refresh food items');
       console.error('Refresh data error:', err);
@@ -119,16 +133,28 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
 
   const toggleAvailability = async (id) => {
     try {
-      setLoading(true);
-      await axios.put(`http://localhost:8080/api/food/${id}/availability`, {}, {
-        headers: isAdmin ? { role: 'Admin' } : { staffId }
-      });
-      await refreshData();
+      setActionLoading(prev => ({ ...prev, toggle: id }));
+      const response = await axios.put(
+        `http://localhost:8080/api/food/${id}/availability`,
+        {},
+        { headers: getHeaders() }
+      );
+
+      if (response.status === 200) {
+        setFoodItems(prevItems =>
+          prevItems.map(item =>
+            item.foodId === id
+              ? { ...item, isAvailable: !item.isAvailable }
+              : item
+          )
+        );
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to toggle availability');
+      const errorMessage = err.response?.data?.message || 'Failed to toggle availability';
+      setError(errorMessage);
       console.error('Toggle availability error:', err);
     } finally {
-      setLoading(false);
+      setActionLoading(prev => ({ ...prev, toggle: null }));
     }
   };
 
@@ -149,9 +175,9 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
 
   const openEditModal = async (id) => {
     try {
-      setLoading(true);
+      setActionLoading(prev => ({ ...prev, edit: id }));
       const response = await axios.get(`http://localhost:8080/api/food/${id}`, {
-        headers: isAdmin ? { role: 'Admin' } : { staffId }
+        headers: getHeaders()
       });
       const food = response.data;
       setModalType('edit');
@@ -170,7 +196,7 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
       setError(err.response?.data?.message || 'Failed to fetch food item');
       console.error('Fetch food item for edit error:', err);
     } finally {
-      setLoading(false);
+      setActionLoading(prev => ({ ...prev, edit: null }));
     }
   };
 
@@ -207,11 +233,11 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
 
       if (modalType === 'add') {
         await axios.post('http://localhost:8080/api/food/', foodData, {
-          headers: isAdmin ? { role: 'Admin' } : { staffId }
+          headers: getHeaders()
         });
       } else {
         await axios.put(`http://localhost:8080/api/food/${currentFoodId}`, foodData, {
-          headers: isAdmin ? { role: 'Admin' } : { staffId }
+          headers: getHeaders()
         });
       }
 
@@ -227,30 +253,22 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
 
   const openViewModal = async (id) => {
     try {
-      setLoading(true);
       const response = await axios.get(`http://localhost:8080/api/food/${id}`, {
-        headers: isAdmin ? { role: 'Admin' } : { staffId }
+        headers: getHeaders()
       });
       setViewFood(response.data);
       setShowViewModal(true);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch food item details');
       console.error('Fetch food item for view error:', err);
-    } finally {
-      setLoading(false);
     }
-  };
-
-  const openDeleteModal = (id) => {
-    setDeleteFoodId(id);
-    setShowDeleteModal(true);
   };
 
   const confirmDelete = async () => {
     try {
-      setLoading(true);
+      setActionLoading(prev => ({ ...prev, delete: deleteFoodId }));
       await axios.delete(`http://localhost:8080/api/food/${deleteFoodId}`, {
-        headers: isAdmin ? { role: 'Admin' } : { staffId }
+        headers: getHeaders()
       });
       setShowDeleteModal(false);
       setDeleteFoodId(null);
@@ -259,8 +277,13 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
       setError(err.response?.data?.message || 'Failed to delete food item');
       console.error('Delete food item error:', err);
     } finally {
-      setLoading(false);
+      setActionLoading(prev => ({ ...prev, delete: null }));
     }
+  };
+
+  const openDeleteModal = (id) => {
+    setDeleteFoodId(id);
+    setShowDeleteModal(true);
   };
 
   if (!isActive) return null;
@@ -269,7 +292,7 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
     <div className="container mt-4 restaurant-manager">
       <h1 className="h3 fw-bold mb-1">Restaurant Manager</h1>
       <p className="text-muted mb-4">Manage Food Items</p>
-      
+
       <Card className="shadow">
         <Card.Body>
           {error && (
@@ -291,13 +314,13 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
                 />
               </Form.Group>
             </Col>
-            
+
             <Col md={3}>
               <Form.Group>
                 <Form.Label>Filter by Availability</Form.Label>
                 <Dropdown>
                   <Dropdown.Toggle variant="outline-secondary" className="w-100">
-                    {availabilityFilter === 'all' ? 'All Items' : 
+                    {availabilityFilter === 'all' ? 'All Items' :
                      availabilityFilter === 'available' ? 'Available Only' : 'Unavailable Only'}
                   </Dropdown.Toggle>
                   <Dropdown.Menu className="w-100">
@@ -308,9 +331,9 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
                 </Dropdown>
               </Form.Group>
             </Col>
-            
+
             <Col md={3} className="d-flex align-items-end">
-              <Button 
+              <Button
                 variant="primary"
                 className="w-100"
                 onClick={openAddModal}
@@ -358,9 +381,9 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
                         <tr key={item.foodId}>
                           <td className="fw-bold">{item.name || 'N/A'}</td>
                           <td>
-                            <img 
-                              src={item.image || 'https://via.placeholder.com/60?text=No+Image'} 
-                              alt={item.name || 'Food Image'} 
+                            <img
+                              src={item.image || 'https://via.placeholder.com/60?text=No+Image'}
+                              alt={item.name || 'Food Image'}
                               className="food-image-thumbnail"
                               onError={(e) => {
                                 e.target.src = 'https://via.placeholder.com/60?text=No+Image';
@@ -384,15 +407,20 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
                                 variant="primary"
                                 size="sm"
                                 onClick={() => openEditModal(item.foodId)}
-                                disabled={loading}
+                                disabled={actionLoading.edit === item.foodId}
                               >
-                                <i className="bi bi-pencil me-1"></i> Edit
+                                {actionLoading.edit === item.foodId ? (
+                                  <Spinner animation="border" size="sm" />
+                                ) : (
+                                  <>
+                                    <i className="bi bi-pencil me-1"></i> Edit
+                                  </>
+                                )}
                               </Button>
                               <Button
                                 variant="info"
                                 size="sm"
                                 onClick={() => openViewModal(item.foodId)}
-                                disabled={loading}
                               >
                                 <i className="bi bi-eye me-1"></i> View
                               </Button>
@@ -400,9 +428,11 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
                                 variant={item.isAvailable ? 'warning' : 'success'}
                                 size="sm"
                                 onClick={() => toggleAvailability(item.foodId)}
-                                disabled={loading}
+                                disabled={actionLoading.toggle === item.foodId}
                               >
-                                {item.isAvailable ? (
+                                {actionLoading.toggle === item.foodId ? (
+                                  <Spinner animation="border" size="sm" />
+                                ) : item.isAvailable ? (
                                   <>
                                     <i className="bi bi-x-circle me-1"></i> Unavailable
                                   </>
@@ -416,9 +446,15 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
                                 variant="danger"
                                 size="sm"
                                 onClick={() => openDeleteModal(item.foodId)}
-                                disabled={loading}
+                                disabled={actionLoading.delete === item.foodId}
                               >
-                                <i className="bi bi-trash me-1"></i> Delete
+                                {actionLoading.delete === item.foodId ? (
+                                  <Spinner animation="border" size="sm" />
+                                ) : (
+                                  <>
+                                    <i className="bi bi-trash me-1"></i> Delete
+                                  </>
+                                )}
                               </Button>
                             </div>
                           </td>
@@ -445,15 +481,15 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
                     Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredItems.length)} of {filteredItems.length} items
                   </div>
                   <Pagination>
-                    <Pagination.First 
-                      onClick={() => setCurrentPage(1)} 
-                      disabled={currentPage === 1} 
+                    <Pagination.First
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
                     />
-                    <Pagination.Prev 
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
-                      disabled={currentPage === 1} 
+                    <Pagination.Prev
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
                     />
-                    
+
                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                       let pageNum;
                       if (totalPages <= 5) {
@@ -475,14 +511,14 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
                         </Pagination.Item>
                       );
                     })}
-                    
-                    <Pagination.Next 
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} 
-                      disabled={currentPage === totalPages} 
+
+                    <Pagination.Next
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
                     />
-                    <Pagination.Last 
-                      onClick={() => setCurrentPage(totalPages)} 
-                      disabled={currentPage === totalPages} 
+                    <Pagination.Last
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={currentPage === totalPages}
                     />
                   </Pagination>
                 </div>
@@ -513,7 +549,7 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
                     required
                   />
                 </Form.Group>
-                
+
                 <Form.Group className="mb-3">
                   <Form.Label>Price *</Form.Label>
                   <FormControl
@@ -527,7 +563,7 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
                     required
                   />
                 </Form.Group>
-                
+
                 <Form.Group className="mb-3">
                   <Form.Label>Description *</Form.Label>
                   <FormControl
@@ -540,7 +576,7 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
                     required
                   />
                 </Form.Group>
-                
+
                 <Form.Group className="mb-3">
                   <Form.Label>Recipe</Form.Label>
                   <FormControl
@@ -553,7 +589,7 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
                   />
                 </Form.Group>
               </Col>
-              
+
               <Col md={4}>
                 <Form.Group className="mb-3">
                   <Form.Label>Image URL *</Form.Label>
@@ -580,7 +616,7 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
                     </div>
                   )}
                 </Form.Group>
-                
+
                 <Form.Group className="mb-3">
                   <FormCheck
                     type="switch"
@@ -676,9 +712,9 @@ const RestaurantManager = ({ isActive, staffId, userRole }) => {
           <Button
             variant="danger"
             onClick={confirmDelete}
-            disabled={loading}
+            disabled={actionLoading.delete === deleteFoodId}
           >
-            {loading ? (
+            {actionLoading.delete === deleteFoodId ? (
               <>
                 <Spinner animation="border" size="sm" className="me-2" />
                 Deleting...

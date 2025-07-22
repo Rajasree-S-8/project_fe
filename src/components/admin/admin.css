@@ -1,60 +1,86 @@
-body {
+/* Scoped Admin Styles */
+.admin-wrapper {
   font-family: 'Roboto', sans-serif;
-}
-
-.sidebar {
+  background: #f5f7fa;
   min-height: 100vh;
-  width: 250px;
-  background: #343a40;
-  color: #adb5bd;
 }
 
-.sidebar .nav-link {
-  color: #adb5bd;
-}
-
-.sidebar .nav-link:hover {
-  color: #fff;
-}
-
-.sidebar .nav-link.active {
-  background: #495057;
-  color: #fff !important;
-}
-
-.sidebar .nav-link i {
-  margin-right: 0.5rem;
-}
-
-.sidebar .top-section {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem;
-}
-
-table.dataTable {
-  border-collapse: collapse !important;
-  width: 100% !important;
-}
-
-table.dataTable thead th {
-  border-bottom: 1px solid #dee2e6;
-  cursor: pointer;
-  padding: 0.75rem;
-  font-weight: 600;
-  font-size: 0.875rem;
-  color: #212529;
-  background: #f8f9fa;
-}
-
-table.dataTable tbody td {
-  border-bottom: 1px solid #dee2e6;
-  padding: 0.75rem;
-  font-size: 0.875rem;
-  color: #212529;
-}
-
-.table-container {
+.admin-wrapper main {
+  background: #f5f7fa;
+  min-height: calc(100vh - 80px);
+  padding: 20px;
+  margin-top: 80px;
   overflow-x: auto;
+}
+
+/* Ensure all tables are scrollable */
+.admin-wrapper .table-container {
+  overflow-x: auto;
+  background: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.admin-wrapper table.dataTable {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  min-width: 800px;
+}
+
+.admin-wrapper table.dataTable thead th {
+  background: linear-gradient(135deg, #0288d1, #26a69a);
+  color: #ffffff;
+  border-bottom: none;
+  padding: 15px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.admin-wrapper table.dataTable tbody td {
+  border-bottom: 1px solid #e0e0e0;
+  padding: 15px;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.admin-wrapper table.dataTable tbody tr:hover {
+  background: #f1faff;
+  transform: translateY(-1px);
+  transition: all 0.3s ease;
+}
+
+/* General Section Styling for All Admin Pages */
+.admin-wrapper section {
+  background: #ffffff;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+  .admin-wrapper main {
+    padding: 15px;
+  }
+
+  .admin-wrapper section {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 576px) {
+  .admin-wrapper main {
+    padding: 10px;
+  }
+
+  .admin-wrapper table.dataTable {
+    min-width: 600px;
+  }
 }
